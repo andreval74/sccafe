@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistema Linear de Tokens - EIP-1167 + CREATE2</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="icon" href="imgs/sccafe-32x32.png">
+  <link rel="apple-touch-icon" href="imgs/sccafe-192x192.png">
+  <link rel="stylesheet" href="css/token.css">
+  <link rel="stylesheet" href="assets/css/main.css">
+</head>
+<body>
+  <div class="main-container">
+    <div class="header">
+      <h1>🚀 Sistema Linear de Tokens - alterado</h1>
+      <p>Fluxo guiado para criação de tokens com EIP-1167 + CREATE2</p>
+    </div>
+    <div class="progress-container">
+      <div class="progress-steps">
+        <div class="step active" id="step-indicator-1"><div class="step-circle">1</div><div class="step-line"></div></div>
+        <div class="step" id="step-indicator-2"><div class="step-circle">2</div><div class="step-line"></div></div>
+        <div class="step" id="step-indicator-3"><div class="step-circle">3</div><div class="step-line"></div></div>
+        <div class="step" id="step-indicator-4"><div class="step-circle">4</div><div class="step-line"></div></div>
+        <div class="step" id="step-indicator-5"><div class="step-circle">5</div><div class="step-line"></div></div>
+        <div class="step" id="step-indicator-6"><div class="step-circle">6</div></div>
+      </div>
+      <div class="step-labels">
+        <div class="step-label">Dados Básicos</div>
+        <div class="step-label">Personalização</div>
+        <div class="step-label">Resumo</div>
+        <div class="step-label">Deploy</div>
+        <div class="step-label">Verificação</div>
+        <div class="step-label">MetaMask</div>
+      </div>
+    </div>
+    <div class="content">
+      <div class="step-content active" id="step-1">
+        <!-- Seção de Conexão no Topo -->
+        <div class="connection-section">
+          <div class="form-group">
+            <label for="wallet-connection">🔗 Conexão da Carteira</label>
+            <div class="connection-container">
+              <input type="text" id="wallet-status" placeholder="Clique em 'Conectar' para iniciar" readonly>
+              <button id="connect-metamask-btn" type="button" class="connect-btn">
+                <img src="imgs/metamask-fox.svg" alt="MetaMask" class="metamask-icon">
+                Conectar MetaMask
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <h2 class="step-title">📝 Dados Básicos do Token</h2>
+        <p class="step-description">Preencha as informações do seu token abaixo.</p>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="tokenName">📝 Nome do Token</label>
+            <input type="text" id="tokenName" placeholder="Ex: BitcoinBR" required>
+          </div>
+          <div class="form-group">
+            <label for="tokenSymbol">🏷️ Símbolo do Token</label>
+            <input type="text" id="tokenSymbol" placeholder="Ex: BTCBR" required>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="decimals">🔢 Decimais</label>
+            <input type="number" id="decimals" placeholder="18" value="18" min="0" max="18" required>
+          </div>
+          <div class="form-group">
+            <label for="totalSupply">💰 Total Supply</label>
+            <input type="text" id="totalSupply" placeholder="Ex: 1000000" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="ownerAddress">👤 Endereço do Proprietário</label>
+          <input type="text" id="ownerAddress" placeholder="Será preenchido após conectar carteira" required readonly>
+        </div>
+        <div class="form-group">
+          <label for="tokenImage">🖼️ URL da Imagem do Token</label>
+          <input type="url" id="tokenImage" placeholder="https://exemplo.com/logo.png">
+        </div>
+        <!-- Campos ocultos para armazenar dados -->
+        <input type="hidden" id="networkValue" name="network">
+        <input type="hidden" id="networkDisplay" name="networkDisplay">
+        
+        <div class="navigation">
+          <button id="next-step-1">➡️ Próximo: Personalização</button>
+        </div>
+      </div>
+      <div class="step-content" id="step-2">
+        <h2 class="step-title">🎯 Personalização do Endereço</h2>
+        <p class="step-description">Escolha se deseja personalizar o endereço do seu token ou usar um endereço padrão.</p>
+        <div class="info-box">
+          <h3>💡 Opções Disponíveis</h3>
+          <p>
+            <label>
+              <input type="radio" name="tipo-contrato" id="contrato-simples" checked onchange="toggleAddressCustomization()">
+              Contrato Simples (Endereço padrão)
+            </label>
+            <br>
+            <label>
+              <input type="radio" name="tipo-contrato" id="contrato-personalizado" onchange="toggleAddressCustomization()">
+              Contrato com Endereço Personalizado (CREATE2)
+            </label>
+          </p>
+          <p><strong>Endereço Personalizado:</strong> Use CREATE2 para gerar um endereço com os últimos 4 caracteres de sua escolha. Custa um pouco mais de gas, mas oferece um endereço memorável.</p>
+          <p><strong>Endereço Padrão:</strong> Use CREATE normal para um deploy mais rápido e barato, mas com endereço aleatório.</p>
+        </div>
+        <div id="customization-section" style="display: none;">
+          <div class="form-group">
+            <label for="targetSuffix">🎯 Últimos 4 caracteres desejados (hex)</label>
+            <input type="text" id="targetSuffix" maxlength="4" placeholder="Ex: cafe" pattern="[0-9a-fA-F]{4}">
+          </div>
+          <div class="form-group">
+            <label for="predictedAddress">📍 Endereço Previsto</label>
+            <input type="text" id="predictedAddress" placeholder="Será calculado automaticamente" readonly>
+          </div>
+          <div class="form-group">
+            <label for="saltFound">🔢 SALT Encontrado</label>
+            <input type="text" id="saltFound" placeholder="Será gerado automaticamente" readonly>
+          </div>
+          <button onclick="buscarSalt()" id="search-salt-btn">🔍 Buscar SALT</button>
+          <button onclick="pararBusca()" id="stop-search-btn" style="display:none;" class="btn-secondary">⏹️ Parar Busca</button>
+          <div id="salt-progress" class="progress-bar-container" style="display:none;">
+            <div id="salt-progress-bar" class="progress-bar"></div>
+          </div>
+          <div id="salt-output" class="output" style="display:none;">// O resultado da busca será exibido aqui...</div>
+        </div>
+        <div class="navigation">
+          <button class="btn-secondary">⬅️ Voltar</button>
+          <button id="next-step-2">➡️ Próximo: Resumo</button>
+        </div>
+      </div>
+      <div class="step-content" id="step-3">
+        <h2 class="step-title">📋 Resumo</h2>
+        <p class="step-description">Revise os dados antes do deploy.</p>
+        <div class="info-box">
+          <h3>📋 Resumo do Token</h3>
+          <div id="token-summary">
+          </div>
+        </div>
+        <div class="navigation">
+          <button class="btn-secondary">⬅️ Voltar</button>
+          <button id="next-step-3">➡️ Próximo: Deploy</button>
+        </div>
+      </div>
+            <div class="step-content" id="step-4">
+        <h2 class="step-title">🚀 Deploy do Contrato</h2>
+        <p class="step-description">Agora vamos deployar seu token na blockchain. Certifique-se de ter BNB suficiente para o gas.</p>
+        
+        <div class="info-box">
+          <h3>📋 Etapas do Deploy</h3>
+          <ul>
+            <li><strong>1. Gerar Contrato:</strong> Criar arquivo .sol com seus dados</li>
+            <li><strong>2. Compilar:</strong> Transformar código em bytecode</li>
+            <li><strong>3. Deploy:</strong> Enviar para a blockchain</li>
+          </ul>
+        </div>
+
+        <div class="button-group">
+          <button id="btn-salvar-contrato" class="btn-success">📄 Gerar Contrato (.sol)</button>
+          <button id="btn-compilar-contrato" class="btn-success" disabled>🛠️ Compilar</button>
+          <button id="btn-deploy-contrato" class="btn-success" disabled>🚀 Deploy Token</button>
+        </div>
+        
+        <div id="contract-status"></div>
+        <div id="compile-status"></div>
+        <div id="deploy-status"></div>
+        
+        <div class="navigation">
+          <button class="btn-secondary">⬅️ Voltar</button>
+          <button id="next-step-4" style="display: none;">➡️ Próximo: Verificação</button>
+        </div>
+      </div>
+
+      <div class="step-content" id="step-5">
+        <h2 class="step-title">🔍 Verificação do Contrato</h2>
+        <p class="step-description">Verifique seu contrato no explorador da blockchain para maior transparência e confiança.</p>
+        
+        <div class="info-box">
+          <h3>✅ Por que verificar?</h3>
+          <ul>
+            <li>🔒 <strong>Transparência:</strong> Código fonte visível publicamente</li>
+            <li>🔍 <strong>Auditoria:</strong> Usuários podem revisar o código</li>
+            <li>⭐ <strong>Confiança:</strong> Selo de verificação no explorador</li>
+            <li>🛡️ <strong>Segurança:</strong> Prova de que o código está correto</li>
+          </ul>
+        </div>
+
+        <div class="verification-section" id="verification-section" style="display: none;">
+          <div class="button-group">
+            <button id="btn-verification-info" class="btn-info">📋 Obter Dados de Verificação</button>
+            <button id="btn-auto-verify" class="btn-success">� Verificar Automaticamente</button>
+          </div>
+          
+          <div id="verification-status"></div>
+          
+          <div class="verification-guide" style="margin-top: 20px;">
+            <h4>📖 Como verificar manualmente:</h4>
+            <ol>
+              <li>Clique em "Obter Dados de Verificação"</li>
+              <li>Acesse o explorador da sua rede (BSCScan, Etherscan, etc.)</li>
+              <li>Vá para o endereço do seu contrato</li>
+              <li>Clique em "Verify and Publish"</li>
+              <li>Cole o código fonte e configurações fornecidas</li>
+            </ol>
+          </div>
+        </div>
+
+        <div class="navigation">
+          <button class="btn-secondary">⬅️ Voltar</button>
+          <button id="next-step-5" style="display: none;">➡️ Próximo: MetaMask</button>
+        </div>
+      </div>
+
+      <div class="step-content" id="step-6">
+      <div class="step-content" id="step-5">
+        <h2 class="step-title">🦊 Adicionar ao MetaMask</h2>
+        <p class="step-description">Seu token foi criado com sucesso! Agora adicione-o ao MetaMask para visualizar e gerenciar.</p>
+        <div class="info-box">
+          <h3>✅ Token Criado com Sucesso!</h3>
+          <p>Seu token foi deployado na blockchain. Clique no botão abaixo para adicioná-lo automaticamente ao MetaMask.</p>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>📍 Endereço do Token</label>
+            <input type="text" id="final-token-address">
+          </div>
+          <div class="form-group">
+            <label>🏷️ Símbolo</label>
+            <input type="text" id="final-token-symbol">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>🔢 Decimais</label>
+            <input type="number" id="final-token-decimals">
+          </div>
+          <div class="form-group">
+            <label>🖼️ Imagem</label>
+            <input type="text" id="final-token-image">
+          </div>
+        </div>
+        <button id="btn-add-metamask" class="btn-success">➕ Adicionar no MetaMask</button>
+        <button id="btn-share-link" class="btn-primary" style="margin-left:8px;display:none;">🔗 Compartilhar Link</button>
+        <input id="share-link-field" class="form-control" readonly style="margin-top:8px;display:none;">
+
+        <div id="metamask-status"></div>
+        <div class="navigation">
+          <button onclick="prevStep()" class="btn-secondary">⬅️ Voltar</button>
+          <button onclick="reiniciarFluxo()" class="btn-success">🔄 Criar Outro Token</button>
+        </div>
+      </div>
+    </div>
+  </div>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+    <script type="module" src="js/add-index.js"></script>
+</body>
+</html>

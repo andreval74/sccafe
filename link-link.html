@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>SCCAFE - Adicionar Token</title>
+    <link href="imgs/sccafe.png" rel="icon">
+  <link href="assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <link href="assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+  <link href="assets/css/main.css" rel="stylesheet">
+</head>
+<body class="bg-light text-dark">
+  <div id="header-include" class="fixed-top"></div>
+  <main class="main">
+    <div class="page-title light-background">
+      <div class="container d-lg-flex justify-content-between align-items-center">
+        <h1 class="mb-2 mb-lg-0"></h1>
+        <nav class="breadcrumbs">
+          <ol>
+            <li><a href="index.html"></a></li>
+            <li class="current"></li>
+          </ol>
+        </nav>
+      </div>
+    </div>
+    
+    <section class="starter-section section">
+      <div class="container section-title" data-aos="fade-up">
+        <h2>Adicionar ao MetaMask</h2>
+        <p class="lead">Confira as informações abaixo e clique no botão para adicionar o token à sua carteira com segurança.</p>
+      </div>
+      <div class="container" data-aos="fade-up">
+        <div class="card mx-auto mb-4" style="max-width: 700px;">
+          <div class="card-body">
+            <h5 class="card-title mb-3">Dados do Token</h5>
+            <ul class="list-group mb-3">
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                  <span class="token-label fw-bold"><i class="bi bi-currency-bitcoin me-1"></i> Endereço:</span>
+                  <span id="tokenAddressText" class="token-data ms-2"></span>
+              </li>
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span class="token-label"><i class="bi bi-info-circle me-1"></i> <b>Nome do Token:</b></span>
+                <span id="tokenNameText" class="token-data"></span>
+              </li>
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span class="token-label"><i class="bi bi-123 me-1"></i> <b>Símbolo:</b></span>
+                <span id="tokenSymbolText" class="token-data"></span>
+              </li>
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span class="token-label"><i class="bi bi-hash me-1"></i> <b>Decimais:</b></span>
+                <span id="tokenDecimalsText" class="token-data"></span>
+              </li>
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span class="token-label"><i class="bi bi-image me-1"></i> <b>Imagem:</b></span>
+                <span id="tokenImageText" class="token-data"></span>
+              </li>
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span class="token-label"><i class="bi bi-diagram-3 me-1"></i> <b>Rede:</b></span>
+                <span id="tokenNetworkText" class="token-data"></span>
+              </li>
+            </ul>
+            <div class="text-center mb-2">
+              <div id="connectedNetwork" class="fw-bold"></div>
+            </div>
+            <div class="text-center mb-2">
+                <button class="btn btn-warning w-100" id="btnOpenMetaMask" style="display:none;">
+                    <i class="bi bi-box-arrow-up-right"></i> Abrir no MetaMask Mobile
+                </button>
+            </div>
+            <div class="text-center">
+              <button class="btn btn-primary w-100" id="btnAddToken">
+                <i class="bi bi-wallet2"></i> Adicionar Token ao MetaMask
+              </button>
+              <div id="avisoRede" style="display: none;"></div>
+              <button id="btnAjuda" class="btn btn-outline-secondary w-100 mt-2 mb-2" style="display:none;">Ajuda</button>
+              <div id="ajudaContent" style="display:none;"></div>
+            </div>
+            <div id="status" class="mt-4 fw-bold text-center"></div>
+            <div id="manual" class="alert alert-info mt-4" style="display:none;"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <div id="footer-include"></div>
+  <script src="assets/js/include.js"></script>
+  <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>  
+  <script src="assets/js/main.js"></script>
+  <script type="module" src="js/addtoken-link.js"></script>
+</body>
+</html>
