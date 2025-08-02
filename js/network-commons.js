@@ -2,6 +2,52 @@
 // v1.0.0 - Extraído do link-index.js para reuso
 
 /**
+ * APIs de Block Explorers para verificação automática
+ */
+export const BLOCK_EXPLORER_APIS = {
+  1: {
+    name: 'Etherscan',
+    api: 'https://api.etherscan.io',
+    apiKey: 'YourApiKeyToken' // Usuários devem configurar suas próprias chaves
+  },
+  56: {
+    name: 'BscScan',
+    api: 'https://api.bscscan.com',
+    apiKey: 'YourApiKeyToken'
+  },
+  97: {
+    name: 'BscScan Testnet',
+    api: 'https://api-testnet.bscscan.com',
+    apiKey: 'YourApiKeyToken'
+  },
+  137: {
+    name: 'PolygonScan',
+    api: 'https://api.polygonscan.com',
+    apiKey: 'YourApiKeyToken'
+  },
+  43114: {
+    name: 'SnowTrace',
+    api: 'https://api.snowtrace.io',
+    apiKey: 'YourApiKeyToken'
+  },
+  250: {
+    name: 'FTMScan',
+    api: 'https://api.ftmscan.com',
+    apiKey: 'YourApiKeyToken'
+  },
+  42161: {
+    name: 'Arbiscan',
+    api: 'https://api.arbiscan.io',
+    apiKey: 'YourApiKeyToken'
+  },
+  10: {
+    name: 'Optimistic Etherscan',
+    api: 'https://api-optimistic.etherscan.io',
+    apiKey: 'YourApiKeyToken'
+  }
+};
+
+/**
  * RPCs de fallback para redes principais
  */
 export const RPC_FALLBACKS = {
@@ -72,6 +118,13 @@ export async function loadAllNetworks() {
     console.error('❌ Erro ao carregar redes:', error);
     return [];
   }
+}
+
+/**
+ * Obtém informações da API do block explorer para verificação
+ */
+export function getBlockExplorerAPI(chainId) {
+  return BLOCK_EXPLORER_APIS[chainId] || null;
 }
 
 /**

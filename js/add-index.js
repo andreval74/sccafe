@@ -5,7 +5,7 @@ import { connectMetaMask, listenMetaMask, adicionarTokenMetaMask, montarTokenDat
 import { buscarSaltFake, pararBuscaSalt } from './add-salt.js';
 import { detectCurrentNetwork, currentNetwork, setupNetworkMonitoring, updateNetworkInfo } from './network-manager.js';
 import { showVerificationInterface } from './verification-ui.js';
-import { initNetworkCommons } from './network-commons.js';
+import { initNetworkCommons, getBlockExplorerAPI } from './network-commons.js';
 import { verificarContratoManualmente } from './manual-verification.js';
 
 // Adiciona evento ao botão Conectar MetaMask
@@ -242,6 +242,8 @@ console.log('🚀 Interface inicializada:', {
 
 // -------------------- Navegação entre steps --------------------
 function showStep(step) {
+  console.log(`🔄 [DEBUG] Mudando para step ${step}`);
+  
   steps.forEach((el, idx) => {
     el.classList.toggle('active', idx === (step - 1));
   });
@@ -250,6 +252,42 @@ function showStep(step) {
     el.classList.toggle('completed', idx < (step - 1));
   });
   currentStep = step;
+  
+  // Atualiza status visual da timeline
+  updateTimelineStatus(step);
+}
+
+// Atualiza status visual da timeline
+function updateTimelineStatus(currentStep) {
+  console.log(`🎯 [DEBUG] Atualizando timeline para step ${currentStep}`);
+  
+  const stepStatuses = [
+    'Coleta de Dados',
+    'Personalização',
+    'Compilação & Deploy',
+    'Verificação',
+    'MetaMask'
+  ];
+  
+  // Atualiza indicadores visuais
+  indicators.forEach((indicator, idx) => {
+    const stepNum = idx + 1;
+    
+    if (stepNum < currentStep) {
+      // Steps concluídos
+      indicator.classList.add('completed');
+      indicator.classList.remove('active');
+      console.log(`✅ [DEBUG] Step ${stepNum} marcado como concluído`);
+    } else if (stepNum === currentStep) {
+      // Step atual
+      indicator.classList.add('active');
+      indicator.classList.remove('completed');
+      console.log(`⏳ [DEBUG] Step ${stepNum} marcado como ativo`);
+    } else {
+      // Steps futuros
+      indicator.classList.remove('active', 'completed');
+    }
+  });
 }
 
 // Validação do Step 1
@@ -397,8 +435,10 @@ function reiniciarFluxo() {
   showStep(1);
 }
 
-// -------------------- Resumo Step --------------------
+// -------------------- Resumo Step Melhorado --------------------
 function fillResumo() {
+  console.log('📋 [DEBUG] Preenchendo resumo melhorado...');
+  
   let ownerChecksum = inputOwner.value;
   try {
     if (window.ethers && window.ethers.utils) {
@@ -407,16 +447,157 @@ function fillResumo() {
   } catch (e) {
     // Se não conseguir converter, mantém o valor original
   }
+  
+  // Melhora o layout do resumo para ficar mais parecido com a tela inicial
   summaryBox.innerHTML = `
-    <strong>Nome:</strong> ${inputNome.value}<br>
-    <strong>Símbolo:</strong> ${inputSymbol.value}<br>
-    <strong>Decimais:</strong> ${inputDecimals.value}<br>
-    <strong>Total Supply:</strong> ${inputSupply.value}<br>
-    <strong>Proprietário:</strong> ${ownerChecksum}<br>
-    <strong>Logo:</strong> ${inputImage.value || "-"}<br>
-    <strong>Rede:</strong> ${networkDisplay ? networkDisplay.value : "Não detectada"}<br>
-    <strong>Tipo de Endereço:</strong> ${(radioPersonalizado && radioPersonalizado.checked) ? "Personalizado" : "Padrão"}
+    <div class="token-summary-card">
+      <div class="summary-header">
+        <h4><i class="bi bi-check-circle-fill text-success me-2"></i>Resumo do Token</h4>
+        <p class="text-muted">Revise as informações antes de prosseguir</p>
+      </div>
+      
+      <div class="row g-3">
+        <div class="col-md-6">
+          <div class="summary-field">
+            <label><i class="bi bi-tag me-1"></i>Nome do Token</label>
+            <div class="summary-value">${inputNome.value}</div>
+          </div>
+        </div>
+        
+        <div class="col-md-6">
+          <div class="summary-field">
+            <label><i class="bi bi-code-square me-1"></i>Símbolo</label>
+            <div class="summary-value">${inputSymbol.value}</div>
+          </div>
+        </div>
+        
+        <div class="col-md-6">
+          <div class="summary-field">
+            <label><i class="bi bi-123 me-1"></i>Decimais</label>
+            <div class="summary-value">${inputDecimals.value}</div>
+          </div>
+        </div>
+        
+        <div class="col-md-6">
+          <div class="summary-field">
+            <label><i class="bi bi-coin me-1"></i>Total Supply</label>
+            <div class="summary-value">${inputSupply.value}</div>
+          </div>
+        </div>
+        
+        <div class="col-12">
+          <div class="summary-field">
+            <label><i class="bi bi-person-circle me-1"></i>Proprietário</label>
+            <div class="summary-value address-value">${ownerChecksum}</div>
+          </div>
+        </div>
+        
+        <div class="col-md-6">
+          <div class="summary-field">
+            <label><i class="bi bi-image me-1"></i>Logo URL</label>
+            <div class="summary-value">${inputImage.value || "Não definido"}</div>
+          </div>
+        </div>
+        
+        <div class="col-md-6">
+          <div class="summary-field">
+            <label><i class="bi bi-globe me-1"></i>Rede</label>
+            <div class="summary-value">${networkDisplay ? networkDisplay.value : "Não detectada"}</div>
+          </div>
+        </div>
+        
+        <div class="col-12">
+          <div class="summary-field">
+            <label><i class="bi bi-gear me-1"></i>Tipo de Endereço</label>
+            <div class="summary-value">${(radioPersonalizado && radioPersonalizado.checked) ? "Personalizado" : "Padrão"}</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Seção de Deploy integrada -->
+      <div class="deploy-section mt-4">
+        <h5><i class="bi bi-rocket-takeoff me-2"></i>Deploy do Contrato</h5>
+        <div class="deploy-controls">
+          <div class="row g-2">
+            <div class="col-12">
+              <div class="status-item">
+                <span class="status-label">Status do Contrato:</span>
+                <span id="contract-status" class="status-value">Aguardando...</span>
+              </div>
+            </div>
+            <div class="col-12">
+              <div class="status-item">
+                <span class="status-label">Status da Compilação:</span>
+                <span id="compile-status" class="status-value">Aguardando...</span>
+              </div>
+            </div>
+            <div class="col-12">
+              <div class="status-item">
+                <span class="status-label">Status do Deploy:</span>
+                <span id="deploy-status" class="status-value">Aguardando...</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="deploy-buttons mt-3">
+            <button id="btn-salvar-contrato" type="button" class="btn btn-primary me-2">
+              <i class="bi bi-file-code me-1"></i>Gerar Contrato
+            </button>
+            <button id="btn-compilar-contrato" type="button" class="btn btn-warning me-2" disabled>
+              <i class="bi bi-gear-fill me-1"></i>Compilar
+            </button>
+            <button id="btn-deploy-contrato" type="button" class="btn btn-success me-2" disabled>
+              <i class="bi bi-rocket-takeoff me-1"></i>Deploy
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Seção MetaMask integrada -->
+      <div class="metamask-section mt-4" id="metamask-section" style="display: none;">
+        <h5><i class="bi bi-wallet2 me-2"></i>Adicionar ao MetaMask</h5>
+        <div class="metamask-controls">
+          <div class="row g-2">
+            <div class="col-12">
+              <div class="contract-info">
+                <p><strong>Endereço do Contrato:</strong> <span id="contract-address-display">-</span></p>
+                <p><strong>Rede:</strong> <span id="network-name-display">-</span></p>
+              </div>
+            </div>
+            <div class="col-12">
+              <div class="status-item">
+                <span class="status-label">Status MetaMask:</span>
+                <span id="metamask-status" class="status-value">Aguardando deploy...</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="metamask-buttons mt-3">
+            <button id="btn-add-metamask" type="button" class="btn btn-success me-2" disabled>
+              <i class="bi bi-wallet2 me-1"></i>Adicionar ao MetaMask
+            </button>
+            <button id="btn-verify-contract" type="button" class="btn btn-info me-2" style="display: none;">
+              <i class="bi bi-shield-check me-1"></i>Verificar Contrato
+            </button>
+            <button id="btn-share-link" type="button" class="btn btn-outline-primary" style="display: none;">
+              <i class="bi bi-share me-1"></i>Compartilhar Link
+            </button>
+          </div>
+          
+          <div id="share-link-field" class="mt-3" style="display: none;">
+            <div class="input-group">
+              <input type="text" class="form-control" id="generated-link" readonly>
+              <button class="btn btn-outline-secondary" type="button" onclick="navigator.clipboard.writeText(document.getElementById('generated-link').value)">
+                <i class="bi bi-clipboard"></i> Copiar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   `;
+  
+  console.log('✅ [DEBUG] Resumo preenchido com layout melhorado e MetaMask integrado');
 }
 
 // -------------------- Handlers navegação --------------------
@@ -434,14 +615,241 @@ document.querySelectorAll('.navigation .btn-secondary').forEach(btn => {
 const btnReiniciar = document.querySelector('button[onclick="reiniciarFluxo()"]');
 if (btnReiniciar) btnReiniciar.addEventListener('click', reiniciarFluxo);
 
-// -------------------- Handlers principais --------------------
+// -------------------- Funções de Status e Progress Bar --------------------
+function updateContractStatus(message, type) {
+  const contractStatus = document.getElementById('contract-status');
+  if (contractStatus) {
+    contractStatus.textContent = message;
+    contractStatus.className = `status-item ${type}`;
+    console.log(`📊 [STATUS] Contract: ${message}`);
+  }
+}
+
+function updateCompileStatus(message, type) {
+  const compileStatus = document.getElementById('compile-status');
+  if (compileStatus) {
+    compileStatus.textContent = message;
+    compileStatus.className = `status-item ${type}`;
+    console.log(`📊 [STATUS] Compile: ${message}`);
+  }
+}
+
+function updateDeployStatus(message, type) {
+  const deployStatus = document.getElementById('deploy-status');
+  if (deployStatus) {
+    deployStatus.textContent = message;
+    deployStatus.className = `status-item ${type}`;
+    console.log(`📊 [STATUS] Deploy: ${message}`);
+  }
+}
+
+function updateTimelineStatus(step) {
+  console.log(`📈 [TIMELINE] Atualizando para step: ${step}`);
+  const steps = ['dados-basicos', 'personalizacao', 'resumo', 'deploy', 'verificacao', 'metamask'];
+  
+  steps.forEach((stepName, index) => {
+    const element = document.querySelector(`.timeline-step[data-step="${stepName}"]`);
+    if (element) {
+      if (index < step) {
+        element.classList.add('completed');
+        element.classList.remove('active');
+      } else if (index === step) {
+        element.classList.add('active');
+        element.classList.remove('completed');
+      } else {
+        element.classList.remove('active', 'completed');
+      }
+    }
+  });
+}
+
+function startCompileProgressBar() {
+  const compileStatus = document.getElementById('compile-status');
+  if (!compileStatus) return null;
+  
+  let dots = 0;
+  return setInterval(() => {
+    dots = (dots + 1) % 4;
+    const dotString = '.'.repeat(dots);
+    updateCompileStatus(`🔄 Compilando contrato${dotString}`, 'processing');
+  }, 500);
+}
+
+function stopCompileProgressBar(interval, success) {
+  if (interval) {
+    clearInterval(interval);
+  }
+  if (success) {
+    updateCompileStatus('✅ Contrato compilado com sucesso!', 'success');
+  } else {
+    updateCompileStatus('❌ Erro na compilação', 'error');
+  }
+}
+
+function startDeployProgressBar() {
+  const deployStatus = document.getElementById('deploy-status');
+  if (!deployStatus) return null;
+  
+  let dots = 0;
+  return setInterval(() => {
+    dots = (dots + 1) % 4;
+    const dotString = '.'.repeat(dots);
+    updateDeployStatus(`🚀 Fazendo deploy${dotString}`, 'processing');
+  }, 500);
+}
+
+function stopDeployProgressBar(interval, success) {
+  if (interval) {
+    clearInterval(interval);
+  }
+  if (success) {
+    updateDeployStatus('✅ Contrato implantado com sucesso!', 'success');
+  } else {
+    updateDeployStatus('❌ Erro no deploy', 'error');
+  }
+}
+
+// Função de verificação automática
+async function autoVerifyContract(contractAddress) {
+  console.log('🔍 [DEBUG] Iniciando verificação automática para:', contractAddress);
+  
+  if (!contractAddress || !window.lastCompilationResult) {
+    console.log('❌ [DEBUG] Dados insuficientes para verificação automática');
+    return false;
+  }
+  
+  try {
+    // Mostrar botão de verificação
+    const btnVerify = document.getElementById('btn-verify-contract');
+    if (btnVerify) {
+      btnVerify.style.display = 'inline-block';
+      btnVerify.textContent = '🔄 Verificando...';
+      btnVerify.disabled = true;
+    }
+    
+    // Obter dados da rede atual
+    const networkData = window.currentNetwork;
+    const explorerAPI = networkData ? getBlockExplorerAPI(networkData.chainId) : null;
+    
+    if (!explorerAPI) {
+      console.log('⚠️ [DEBUG] Rede não suporta verificação automática');
+      if (btnVerify) {
+        btnVerify.textContent = '⚠️ Verificação manual necessária';
+        btnVerify.disabled = false;
+      }
+      return false;
+    }
+    
+    // Preparar dados para verificação
+    const verificationData = {
+      contractAddress: contractAddress,
+      sourceCode: window.lastCompilationResult.sourceCode,
+      contractName: inputNome.value,
+      compilerVersion: window.lastCompilationResult.compilerVersion || 'v0.8.19+commit.7dd6d404',
+      constructorArguments: window.lastCompilationResult.constructorArgs || '',
+      optimizationUsed: '1',
+      runs: '200'
+    };
+    
+    console.log('📤 [DEBUG] Enviando para verificação:', verificationData);
+    
+    // Fazer verificação via API do explorer
+    const response = await fetch(`${explorerAPI.api}/api`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        module: 'contract',
+        action: 'verifysourcecode',
+        contractaddress: verificationData.contractAddress,
+        sourceCode: verificationData.sourceCode,
+        codeformat: 'solidity-single-file',
+        contractname: verificationData.contractName,
+        compilerversion: verificationData.compilerVersion,
+        optimizationUsed: verificationData.optimizationUsed,
+        runs: verificationData.runs,
+        constructorArguements: verificationData.constructorArguments,
+        apikey: explorerAPI.apiKey
+      })
+    });
+    
+    const result = await response.json();
+    console.log('📥 [DEBUG] Resposta da verificação:', result);
+    
+    if (result.status === '1') {
+      console.log('✅ [DEBUG] Verificação automática iniciada com sucesso!');
+      if (btnVerify) {
+        btnVerify.textContent = '✅ Verificação enviada';
+        btnVerify.disabled = true;
+      }
+      
+      // Checar status da verificação
+      setTimeout(() => checkVerificationStatus(result.result, explorerAPI), 10000);
+      return true;
+    } else {
+      console.log('❌ [DEBUG] Falha na verificação automática:', result.result);
+      if (btnVerify) {
+        btnVerify.textContent = '❌ Verificação falhou';
+        btnVerify.disabled = false;
+      }
+      return false;
+    }
+    
+  } catch (error) {
+    console.error('❌ [DEBUG] Erro na verificação automática:', error);
+    const btnVerify = document.getElementById('btn-verify-contract');
+    if (btnVerify) {
+      btnVerify.textContent = '❌ Erro na verificação';
+      btnVerify.disabled = false;
+    }
+    return false;
+  }
+}
+
+// Verificar status da verificação
+async function checkVerificationStatus(guid, explorerAPI) {
+  try {
+    const response = await fetch(`${explorerAPI.api}/api?module=contract&action=checkverifystatus&guid=${guid}&apikey=${explorerAPI.apiKey}`);
+    const result = await response.json();
+    
+    console.log('🔍 [DEBUG] Status da verificação:', result);
+    
+    const btnVerify = document.getElementById('btn-verify-contract');
+    if (result.status === '1') {
+      console.log('✅ [DEBUG] Contrato verificado com sucesso!');
+      if (btnVerify) {
+        btnVerify.textContent = '✅ Verificado';
+        btnVerify.style.backgroundColor = '#22c55e';
+      }
+    } else if (result.result === 'Pending in queue') {
+      console.log('⏳ [DEBUG] Verificação ainda pendente, checando novamente...');
+      setTimeout(() => checkVerificationStatus(guid, explorerAPI), 15000);
+    } else {
+      console.log('❌ [DEBUG] Verificação falhou:', result.result);
+      if (btnVerify) {
+        btnVerify.textContent = '❌ Falhou';
+      }
+    }
+  } catch (error) {
+    console.error('❌ [DEBUG] Erro ao checar status:', error);
+  }
+}
+
+// -------------------- Handlers principais melhorados --------------------
 btnSalvarContrato.onclick = () => {
+  console.log('💾 [DEBUG] Iniciando geração do contrato...');
+  
+  // Atualiza status
+  updateContractStatus('⏳ Gerando contrato...', 'processing');
+  
   let ownerChecksum = inputOwner.value;
   try {
     if (window.ethers && window.ethers.utils) {
       ownerChecksum = window.ethers.utils.getAddress(inputOwner.value);
     }
   } catch (e) {}
+  
   salvarContrato({
     nome: inputNome.value,
     symbol: inputSymbol.value,
@@ -452,15 +860,40 @@ btnSalvarContrato.onclick = () => {
   }, () => {
     btnCompilar.disabled = false;
     
-    // Mostra status de sucesso
-    if (contractStatus) {
-      contractStatus.innerHTML = '✅ <strong>Contrato gerado e salvo com sucesso!</strong>';
-      contractStatus.style.color = '#16924b';
-    }
+    // Atualiza status de sucesso
+    updateContractStatus('✅ Contrato gerado e salvo com sucesso!', 'success');
+    updateCompileStatus('⏳ Pronto para compilar', 'ready');
     
-    compileStatus.textContent = "";
+    console.log('✅ [DEBUG] Contrato gerado com sucesso');
   });
 };
+
+// Função para atualizar status do contrato
+function updateContractStatus(message, type = 'info') {
+  const statusElement = document.getElementById('contract-status');
+  if (statusElement) {
+    statusElement.textContent = message;
+    statusElement.className = `status-value ${type}`;
+  }
+}
+
+// Função para atualizar status da compilação
+function updateCompileStatus(message, type = 'info') {
+  const statusElement = document.getElementById('compile-status');
+  if (statusElement) {
+    statusElement.textContent = message;
+    statusElement.className = `status-value ${type}`;
+  }
+}
+
+// Função para atualizar status do deploy
+function updateDeployStatus(message, type = 'info') {
+  const statusElement = document.getElementById('deploy-status');
+  if (statusElement) {
+    statusElement.textContent = message;
+    statusElement.className = `status-value ${type}`;
+  }
+}
 
 
 
@@ -494,30 +927,34 @@ function stopCompileProgressBar(interval, success = true) {
 }
 
 btnCompilar.onclick = async () => {
-  console.log('🔍 Verificando estado antes da compilação...');
+  console.log('🔍 [DEBUG] Verificando estado antes da compilação...');
   debugContractState();
   
   if (!contratoSource || !contratoSource.trim()) {
-    compileStatus.textContent = '⚠️ Salve o contrato antes de compilar!';
-    compileStatus.style.color = '#b91c1c';
+    updateCompileStatus('⚠️ Salve o contrato antes de compilar!', 'error');
     return;
   }
   
-  console.log('🚀 Iniciando compilação via API...');
-  compileStatus.style.color = '#333';
+  console.log('🚀 [DEBUG] Iniciando compilação via API...');
+  updateCompileStatus('🔄 Compilando contrato...', 'processing');
+  
   let progressInterval = startCompileProgressBar();
   
   try {
     const result = await compilarContrato(inputNome.value, btnCompilar, compileStatus, btnDeploy);
-    console.log('✅ Compilação concluída:', result);
+    console.log('✅ [DEBUG] Compilação concluída:', result);
+    
     stopCompileProgressBar(progressInterval, true);
+    updateCompileStatus('✅ Contrato compilado com sucesso!', 'success');
+    updateDeployStatus('⏳ Pronto para deploy', 'ready');
     
     // Não mostra mais botão de verificação aqui
     // Será mostrado apenas após o deploy
     
   } catch (error) {
-    console.error('❌ Erro na compilação:', error);
+    console.error('❌ [DEBUG] Erro na compilação:', error);
     stopCompileProgressBar(progressInterval, false);
+    updateCompileStatus('❌ Erro na compilação: ' + (error.message || error), 'error');
     btnCompilar.disabled = false;
   }
 };
@@ -719,6 +1156,142 @@ if (btnAddMetaMask) btnAddMetaMask.disabled = true;
 if (btnShareLink) btnShareLink.style.display = 'none';
 if (shareLinkField) shareLinkField.style.display = 'none';
 
+// -------------------- Handlers dos botões integrados --------------------
+// Handler do botão adicionar ao MetaMask integrado
+document.addEventListener('click', async (e) => {
+  if (e.target.id === 'btn-add-metamask') {
+    console.log('🦊 [DEBUG] Adicionando token ao MetaMask...');
+    
+    const address = window.contractAddress;
+    const symbol = inputSymbol.value;
+    const decimals = inputDecimals.value;
+    const image = inputImage.value;
+    
+    if (!address || !symbol || !decimals) {
+      console.log('❌ [DEBUG] Dados insuficientes para adicionar ao MetaMask');
+      return;
+    }
+    
+    try {
+      // Detectar rede atual
+      let networkData = null;
+      try {
+        if (window.ethereum && window.ethereum.selectedAddress) {
+          const chainId = await window.ethereum.request({method: 'eth_chainId'});
+          console.log('🔗 [DEBUG] Chain ID detectado:', chainId);
+          networkData = detectNetworkById(chainId);
+        }
+      } catch (e) {
+        console.log('⚠️ [DEBUG] Erro ao detectar rede:', e);
+      }
+      
+      let tokenData = { address, symbol, decimals, image };
+      if (networkData && networkData.chainId) {
+        // Garantir que chainId seja tratado corretamente
+        if (typeof networkData.chainId === 'string' && networkData.chainId.startsWith('0x')) {
+          tokenData.chainId = parseInt(networkData.chainId, 16);
+        } else {
+          tokenData.chainId = parseInt(networkData.chainId);
+        }
+      }
+      
+      // Tentar trocar para a rede correta antes de adicionar
+      let switched = true;
+      if (tokenData.chainId) {
+        switched = await switchOrAddNetwork(tokenData);
+      }
+      
+      if (!switched) {
+        document.getElementById('metamask-status').textContent = 'Não foi possível trocar para a rede do token.';
+        document.getElementById('metamask-status').className = 'status-value error';
+        return;
+      }
+      
+      // Adicionar token ao MetaMask
+      const success = await window.ethereum.request({
+        method: 'wallet_watchAsset',
+        params: {
+          type: 'ERC20',
+          options: tokenData,
+        },
+      });
+      
+      if (success) {
+        console.log('✅ [DEBUG] Token adicionado ao MetaMask com sucesso!');
+        document.getElementById('metamask-status').textContent = 'Token adicionado com sucesso!';
+        document.getElementById('metamask-status').className = 'status-value success';
+        
+        // Mostrar botão de compartilhar
+        const btnShare = document.getElementById('btn-share-link');
+        if (btnShare) {
+          btnShare.style.display = 'inline-block';
+        }
+        
+        // Gerar link de compartilhamento
+        generateShareLink();
+        
+      } else {
+        console.log('❌ [DEBUG] Usuário rejeitou adicionar o token');
+        document.getElementById('metamask-status').textContent = 'Usuário cancelou a adição do token.';
+        document.getElementById('metamask-status').className = 'status-value waiting';
+      }
+      
+    } catch (error) {
+      console.error('❌ [DEBUG] Erro ao adicionar token ao MetaMask:', error);
+      document.getElementById('metamask-status').textContent = 'Erro ao adicionar token: ' + (error.message || error);
+      document.getElementById('metamask-status').className = 'status-value error';
+    }
+  }
+  
+  // Handler do botão compartilhar link
+  if (e.target.id === 'btn-share-link') {
+    const shareField = document.getElementById('share-link-field');
+    if (shareField) {
+      shareField.style.display = shareField.style.display === 'none' ? 'block' : 'none';
+    }
+  }
+});
+
+// Função para gerar link de compartilhamento
+function generateShareLink() {
+  const params = new URLSearchParams({
+    address: window.contractAddress,
+    symbol: inputSymbol.value,
+    decimals: inputDecimals.value,
+    image: inputImage.value || '',
+    network: window.currentNetwork ? window.currentNetwork.chainId : ''
+  });
+  
+  const shareUrl = `${window.location.origin}/add-token.html?${params.toString()}`;
+  
+  const linkField = document.getElementById('generated-link');
+  if (linkField) {
+    linkField.value = shareUrl;
+  }
+  
+  console.log('🔗 [DEBUG] Link de compartilhamento gerado:', shareUrl);
+}
+
+// Função helper para detectar rede por chainId
+function detectNetworkById(chainIdHex) {
+  const chainId = parseInt(chainIdHex, 16);
+  
+  const networks = {
+    1: { chainId: '0x1', name: 'Ethereum Mainnet' },
+    56: { chainId: '0x38', name: 'BSC Mainnet' },
+    97: { chainId: '0x61', name: 'BSC Testnet' },
+    137: { chainId: '0x89', name: 'Polygon Mainnet' },
+    43114: { chainId: '0xa86a', name: 'Avalanche Mainnet' },
+    250: { chainId: '0xfa', name: 'Fantom Mainnet' },
+    42161: { chainId: '0xa4b1', name: 'Arbitrum Mainnet' },
+    10: { chainId: '0xa', name: 'Optimism Mainnet' }
+  };
+  
+  return networks[chainId] || { chainId: chainIdHex, name: `Rede ${chainId}` };
+}
+
+// -------------------- MetaMask Legacy (manter compatibilidade) --------------------
+
 if (btnAddMetaMask) {
   btnAddMetaMask.onclick = async function() {
     statusDiv.textContent = '';
@@ -740,7 +1313,12 @@ if (btnAddMetaMask) {
       let chainId = networkData ? networkData.chainId : null;
       let tokenData = { address, symbol, decimals, image };
       if (chainId) {
-        tokenData.chainId = chainId.startsWith('0x') ? parseInt(chainId, 16) : parseInt(chainId);
+        // Garantir que chainId seja tratado corretamente
+        if (typeof chainId === 'string' && chainId.startsWith('0x')) {
+          tokenData.chainId = parseInt(chainId, 16);
+        } else {
+          tokenData.chainId = parseInt(chainId);
+        }
       }
       // Tenta trocar para a rede correta antes de adicionar
       let switched = true;
@@ -800,31 +1378,84 @@ if (btnShareLink) {
 }
 
 btnDeploy.onclick = async () => {
-  await deployContrato(btnDeploy, deployStatus);
+  console.log('🚀 [DEBUG] Iniciando processo de deploy...');
+  updateDeployStatus('🔄 Fazendo deploy do contrato...', 'processing');
   
-  // Mostra mensagem de deploy concluído
-  if (deployStatus) {
-    deployStatus.innerHTML = '✅ <strong>Contrato deployado com sucesso!</strong>';
-    deployStatus.style.color = '#16924b';
+  let progressInterval = startDeployProgressBar();
+  
+  try {
+    await deployContrato(btnDeploy, deployStatus);
+    console.log('✅ [DEBUG] Deploy concluído com sucesso!');
+    
+    stopDeployProgressBar(progressInterval, true);
+    updateDeployStatus('✅ Contrato implantado com sucesso!', 'success');
+    
+    // Atualizar informações do contrato no resumo
+    const address = window.contractAddress || '';
+    if (address && document.getElementById('contract-address-display')) {
+      document.getElementById('contract-address-display').textContent = address;
+    }
+    
+    // Atualizar nome da rede
+    const networkNameDisplay = document.getElementById('network-name-display');
+    if (networkNameDisplay && window.currentNetwork) {
+      networkNameDisplay.textContent = window.currentNetwork.name || 'Rede Detectada';
+    }
+    
+    // Mostrar seção MetaMask
+    const metamaskSection = document.getElementById('metamask-section');
+    if (metamaskSection) {
+      metamaskSection.style.display = 'block';
+      
+      // Habilitar botão do MetaMask
+      const btnAddMetaMask = document.getElementById('btn-add-metamask');
+      if (btnAddMetaMask && address && inputSymbol.value && inputDecimals.value) {
+        btnAddMetaMask.disabled = false;
+        document.getElementById('metamask-status').textContent = 'Pronto para adicionar';
+        document.getElementById('metamask-status').className = 'status-value ready';
+      }
+    }
+    
+    // Após deploy, preencher campos do passo MetaMask (manter compatibilidade)
+    if (document.getElementById('final-token-address')) {
+      document.getElementById('final-token-address').value = address;
+    }
+    if (document.getElementById('final-token-symbol')) {
+      document.getElementById('final-token-symbol').value = inputSymbol.value;
+    }
+    if (document.getElementById('final-token-decimals')) {
+      document.getElementById('final-token-decimals').value = inputDecimals.value;
+    }
+    
+    // Iniciar verificação automática após 2 segundos
+    if (address) {
+      console.log('🔄 [DEBUG] Iniciando verificação automática em 2 segundos...');
+      setTimeout(async () => {
+        await autoVerifyContract(address);
+      }, 2000);
+    }
+    
+    // Habilitar verificação
+    const verifySection = document.querySelector('.verify-section');
+    if (verifySection) {
+      verifySection.style.display = 'block';
+      updateContractStatus('⏳ Pronto para verificação', 'ready');
+    }
+    
+  } catch (error) {
+    console.error('❌ [DEBUG] Erro no deploy:', error);
+    stopDeployProgressBar(progressInterval, false);
+    updateDeployStatus('❌ Erro no deploy: ' + (error.message || error), 'error');
+    btnDeploy.disabled = false;
   }
   
   // Após deploy, preencher campos do passo MetaMask
   const address = window.contractAddress || '';
-  if (document.getElementById('final-token-address')) {
-    document.getElementById('final-token-address').value = address;
-  }
-  if (document.getElementById('final-token-symbol')) {
-    document.getElementById('final-token-symbol').value = inputSymbol.value;
-  }
-  if (document.getElementById('final-token-decimals')) {
-    document.getElementById('final-token-decimals').value = inputDecimals.value;
-  }
   if (document.getElementById('final-token-image')) {
     document.getElementById('final-token-image').value = inputImage.value;
   }
   
   // Habilita o botão MetaMask se todos os campos estiverem preenchidos
-  const btnAddMetaMask = document.getElementById('btn-add-metamask');
   if (btnAddMetaMask) {
     if (address && inputSymbol.value && inputDecimals.value) {
       btnAddMetaMask.disabled = false;
@@ -834,8 +1465,6 @@ btnDeploy.onclick = async () => {
   }
   
   // Esconde botão de compartilhar link e campo de link ao novo deploy
-  const btnShareLink = document.getElementById('btn-share-link');
-  const shareLinkField = document.getElementById('share-link-field');
   if (btnShareLink) btnShareLink.style.display = 'none';
   if (shareLinkField) shareLinkField.style.display = 'none';
 };

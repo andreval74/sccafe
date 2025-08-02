@@ -608,3 +608,61 @@
 .token-creator-container {
   flex: 1;
 }
+
+/* Status items */
+.status-item {
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 14px;
+  margin: 5px 0;
+  display: inline-block;
+  min-width: 200px;
+  text-align: center;
+}
+
+.status-item.success {
+  background-color: #dcfce7;
+  color: #166534;
+  border-left: 4px solid #22c55e;
+}
+
+.status-item.error {
+  background-color: #fef2f2;
+  color: #dc2626;
+  border-left: 4px solid #ef4444;
+}
+
+.status-item.processing {
+  background-color: #fef3c7;
+  color: #d97706;
+  border-left: 4px solid #f59e0b;
+}
+
+.status-item.ready {
+  background-color: #e0f2fe;
+  color: #0369a1;
+  border-left: 4px solid #0ea5e9;
+}
+
+.status-item.waiting {
+  background-color: #f1f5f9;
+  color: #64748b;
+  border-left: 4px solid #94a3b8;
+}
+
+/* Timeline improvements */
+.timeline-step {
+  transition: all 0.3s ease;
+}
+
+.timeline-step.completed {
+  background-color: #22c55e;
+  color: white;
+}
+
+.timeline-step.active {
+  background-color: var(--accent-color, #f85d23);
+  color: white;
+  transform: scale(1.05);
+}
