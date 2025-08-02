@@ -149,21 +149,20 @@ const btnVerificationInfo = document.getElementById('btn-verification-info');
 const btnAutoVerify = document.getElementById('btn-auto-verify');
 const nextStep4 = document.getElementById('next-step-4');
 const nextStep5 = document.getElementById('next-step-5');
+
+// Elementos de conexão e status
+const connectionSection = document.querySelector('.connection-section');
+const walletStatus = document.getElementById('wallet-status');
+const networkValue = document.getElementById('networkValue');
+const networkDisplay = document.getElementById('networkDisplay');
+const networkDisplayField = document.getElementById('network-display');
+const networkStatus = document.getElementById('network-status');
+const verificationSection = document.getElementById('verification-section');
+const verificationStatus = document.getElementById('verification-status');
 const contractStatus = document.getElementById('contract-status');
 const compileStatus = document.getElementById('compile-status');
 const deployStatus = document.getElementById('deploy-status');
-const verificationStatus = document.getElementById('verification-status');
-const verificationSection = document.getElementById('verification-section');
-
-// Elementos do novo layout
-const walletStatus = document.getElementById('wallet-status');
-const connectionInfo = document.getElementById('connection-info'); // Removido
-const ownerDisplay = document.getElementById('owner-display'); // Removido
-const networkDisplayInfo = document.getElementById('network-display-info'); // Removido
-const networkValue = document.getElementById('networkValue');
-const networkDisplay = document.getElementById('networkDisplay'); // Campo oculto
-const connectionSection = document.querySelector('.connection-section');
-
+// Elementos do novo layout - versão única e limpa
 let currentStep = 1;
 
 // Garante que os botões começam desabilitados
@@ -197,6 +196,93 @@ function showStep(step) {
   });
   currentStep = step;
 }
+
+// Validação do Step 1
+function validateStep1() {
+  let isValid = true;
+  const errors = [];
+  
+  // Verifica conexão MetaMask
+  if (!inputOwner || !inputOwner.value || inputOwner.value.trim() === '') {
+    errors.push('Conecte sua carteira MetaMask primeiro');
+    isValid = false;
+  }
+  
+  // Verifica nome do token
+  if (!inputNome || !inputNome.value || inputNome.value.trim() === '') {
+    errors.push('Nome do token é obrigatório');
+    isValid = false;
+  }
+  
+  // Verifica símbolo do token  
+  if (!inputSymbol || !inputSymbol.value || inputSymbol.value.trim() === '') {
+    errors.push('Símbolo do token é obrigatório');
+    isValid = false;
+  }
+  
+  // Verifica total supply
+  if (!inputSupply || !inputSupply.value || isNaN(inputSupply.value) || parseFloat(inputSupply.value) <= 0) {
+    errors.push('Total Supply deve ser um número maior que 0');
+    isValid = false;
+  }
+  
+  // Verifica decimais
+  const decimals = parseInt(inputDecimals.value);
+  if (isNaN(decimals) || decimals < 0 || decimals > 18) {
+    errors.push('Decimais deve ser um número entre 0 e 18');
+    isValid = false;
+  }
+  
+  // Mostra erros se houver
+  if (!isValid) {
+    alert('⚠️ Corrija os seguintes erros:\n\n' + errors.join('\n'));
+  }
+  
+  return isValid;
+}
+
+// Função para mostrar/ocultar seção de personalização
+function toggleAddressCustomization() {
+  const customSection = document.getElementById('customization-section');
+  const radioPersonalizado = document.getElementById('contrato-personalizado');
+  
+  if (customSection && radioPersonalizado) {
+    if (radioPersonalizado.checked) {
+      customSection.style.display = 'block';
+    } else {
+      customSection.style.display = 'none';
+      // Limpa campos quando não está em uso
+      if (targetSuffix) targetSuffix.value = '';
+      if (predictedAddress) predictedAddress.value = '';
+      if (saltFound) saltFound.value = '';
+    }
+  }
+}
+
+// Função para buscar SALT (placeholder - função real está em add-salt.js)
+function buscarSalt() {
+  console.log('🔍 Iniciando busca de SALT...');
+  if (buscarSaltFake) {
+    buscarSaltFake();
+  } else {
+    console.warn('⚠️ Função buscarSaltFake não encontrada');
+  }
+}
+
+// Função para parar busca de SALT
+function pararBusca() {
+  console.log('⏹️ Parando busca de SALT...');
+  if (pararBuscaSalt) {
+    pararBuscaSalt();
+  } else {
+    console.warn('⚠️ Função pararBuscaSalt não encontrada');
+  }
+}
+
+// Torna funções globais para uso no HTML
+window.toggleAddressCustomization = toggleAddressCustomization;
+window.buscarSalt = buscarSalt;
+window.pararBusca = pararBusca;
 
 function nextStep() {
   if (currentStep === 1 && !validateStep1()) return;
@@ -719,30 +805,111 @@ if (radioPersonalizado) {
 }
 
 // -------------------- Inicialização --------------------
+function initNetworkSystem() {
+  console.log('🔧 Inicializando sistema de redes...');
+  if (typeof initNetworkCommons === 'function') {
+    initNetworkCommons();
+  }
+  if (typeof setupNetworkMonitoring === 'function') {
+    setupNetworkMonitoring();
+  }
+  console.log('✅ Sistema de redes inicializado');
+}
+
 // Aguarda DOM estar pronto antes de inicializar
 document.addEventListener('DOMContentLoaded', () => {
+  console.log('🎬 DOM carregado - inicializando sistema...');
   showStep(1);
   toggleAddressCustomization();
-  
-  // Inicializa apenas sistema de redes (sem detectar automaticamente)
   initNetworkSystem();
 });
 
 // Se DOM já estiver pronto (no caso de module loading)
 if (document.readyState === 'loading') {
   // DOM ainda carregando, aguarda evento
+  console.log('⏳ Aguardando DOM carregar...');
 } else {
   // DOM já pronto, executa imediatamente
+  console.log('🚀 DOM pronto - inicializando imediatamente...');
   showStep(1);
   toggleAddressCustomization();
   initNetworkSystem();
 }
 
-// -------------------- Expor funções no window para HTML legacy (se necessário) --------------------
-window.toggleAddressCustomization = toggleAddressCustomization;
-window.buscarSalt = () => buscarSaltFake(targetSuffix.value, saltFound, predictedAddress);
-window.pararBusca = pararBuscaSalt;
-window.marcarConcluido = marcarConcluido; // Expõe função marcarConcluido globalmente
+// Handler para Step 6 - MetaMask
+// Reutiliza elementos já declarados
+if (btnAddMetaMask) {
+  btnAddMetaMask.addEventListener('click', () => {
+    const tokenData = {
+      address: document.getElementById('final-token-address')?.value || '',
+      symbol: document.getElementById('final-token-symbol')?.value || '',
+      decimals: parseInt(document.getElementById('final-token-decimals')?.value) || 18,
+      image: document.getElementById('final-token-image')?.value || ''
+    };
+    
+    if (!tokenData.address || !tokenData.symbol) {
+      alert('⚠️ Dados do token não encontrados. Faça o deploy primeiro.');
+      return;
+    }
+    
+    // Chama função do add-metamask.js
+    adicionarTokenMetaMask(tokenData);
+  });
+}
+
+// Handler para botão de compartilhar link (reutiliza elemento)
+const shareLinkBtn = document.getElementById('btn-share-link');
+if (shareLinkBtn) {
+  shareLinkBtn.addEventListener('click', () => {
+    const tokenData = montarTokenData({
+      address: document.getElementById('final-token-address')?.value || '',
+      symbol: document.getElementById('final-token-symbol')?.value || '',
+      decimals: document.getElementById('final-token-decimals')?.value || '18',
+      image: document.getElementById('final-token-image')?.value || '',
+      name: inputNome?.value || '',
+      chainId: currentNetwork?.chainId || '',
+      chainName: currentNetwork?.name || '',
+      rpcUrl: currentNetwork?.rpcUrl || '',
+      blockExplorer: currentNetwork?.blockExplorer || '',
+      nativeCurrency: currentNetwork?.nativeCurrency || ''
+    });
+    
+    const shareLink = gerarLinkToken(tokenData);
+    const linkField = document.getElementById('share-link-field');
+    
+    if (linkField) {
+      linkField.value = shareLink;
+      linkField.style.display = 'block';
+      // Copia automaticamente
+      linkField.select();
+      document.execCommand('copy');
+      alert('🔗 Link copiado para área de transferência!');
+    }
+  });
+}
+
+// Função para preencher dados do Step 6 após deploy
+function fillStep6Data(deployedInfo) {
+  if (deployedInfo) {
+    const addressField = document.getElementById('final-token-address');
+    const symbolField = document.getElementById('final-token-symbol');
+    const decimalsField = document.getElementById('final-token-decimals');
+    const imageField = document.getElementById('final-token-image');
+    
+    if (addressField) addressField.value = deployedInfo.address || '';
+    if (symbolField) symbolField.value = inputSymbol?.value || '';
+    if (decimalsField) decimalsField.value = inputDecimals?.value || '18';
+    if (imageField) imageField.value = inputImage?.value || '';
+    
+    // Mostra botão de compartilhar
+    if (shareLinkBtn) shareLinkBtn.style.display = 'inline-block';
+  }
+}
+
+// Listener para evento de deploy concluído (para Step 6)
+window.addEventListener('contractDeployed', (event) => {
+  fillStep6Data(event.detail);
+});
 // Garante que a função global nunca receba undefined
 window.adicionarTokenMetaMask = function(args) {
   // Log para depuração
@@ -762,3 +929,7 @@ window.adicionarTokenMetaMask = function(args) {
   }
   adicionarTokenMetaMask({ address, symbol, decimals, image });
 };
+
+// Expor funções adicionais para HTML inline
+window.prevStep = prevStep;
+window.reiniciarFluxo = reiniciarFluxo;

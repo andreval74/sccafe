@@ -81,6 +81,16 @@
           <label for="tokenImage">🖼️ URL da Imagem do Token</label>
           <input type="url" id="tokenImage" placeholder="https://exemplo.com/logo.png">
         </div>
+        
+        <!-- Seção de Rede -->
+        <div class="form-group">
+          <label for="network-info">🌐 Rede Detectada</label>
+          <div class="network-container">
+            <input type="text" id="network-display" placeholder="Será detectado após conectar" readonly>
+            <div class="network-status" id="network-status">🔍 Detectando...</div>
+          </div>
+        </div>
+        
         <!-- Campos ocultos para armazenar dados -->
         <input type="hidden" id="networkValue" name="network">
         <input type="hidden" id="networkDisplay" name="networkDisplay">
@@ -216,7 +226,6 @@
       </div>
 
       <div class="step-content" id="step-6">
-      <div class="step-content" id="step-5">
         <h2 class="step-title">🦊 Adicionar ao MetaMask</h2>
         <p class="step-description">Seu token foi criado com sucesso! Agora adicione-o ao MetaMask para visualizar e gerenciar.</p>
         <div class="info-box">
