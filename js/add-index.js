@@ -334,18 +334,6 @@ function reiniciarFluxo() {
   showStep(1);
 }
 
-// -------------------- Validação Step 1 --------------------
-function validateStep1() {
-  let ok = true;
-  const fields = [inputNome, inputSymbol, inputDecimals, inputSupply, inputOwner];
-  clearErrors(fields);
-  fields.forEach(field => {
-    if (!field.value) ok = false;
-  });
-  if (!ok) markErrors(fields);
-  return ok;
-}
-
 // -------------------- Resumo Step --------------------
 function fillResumo() {
   let ownerChecksum = inputOwner.value;
