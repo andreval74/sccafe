@@ -10,17 +10,24 @@ export let deployedContract = null;
  * Detecta a rede atual conectada no MetaMask
  */
 export async function detectCurrentNetwork() {
+  console.log('🌐 [DEBUG] detectCurrentNetwork iniciado');
+  
   try {
     if (!window.ethereum) {
-      console.log('❌ MetaMask não encontrada');
+      console.log('❌ [DEBUG] MetaMask não encontrada');
       return null;
     }
 
+    console.log('🔍 [DEBUG] Criando provider...');
     const provider = new ethers.providers.Web3Provider(window.ethereum);
     const network = await provider.getNetwork();
     
+    console.log('✅ [DEBUG] Rede detectada:', network);
+    
     // Busca informações detalhadas da rede
+    console.log('🔍 [DEBUG] Buscando informações da rede...');
     const networkInfo = await getNetworkInfo(network.chainId);
+    console.log('✅ [DEBUG] Informações da rede:', networkInfo);
     
     // Mapeia para exploradores de bloco conhecidos para verificação
     const verificationEndpoints = {
@@ -55,11 +62,14 @@ export async function detectCurrentNetwork() {
       nativeCurrency: networkInfo.nativeCurrency
     };
 
-    console.log('🔗 Rede detectada:', currentNetwork);
+    console.log('🔗 [DEBUG] Rede detectada e configurada:', currentNetwork);
+    console.log('✅ [DEBUG] detectCurrentNetwork concluído com sucesso');
     return currentNetwork;
 
   } catch (error) {
-    console.error('❌ Erro ao detectar rede:', error);
+    console.error('❌ [DEBUG] Erro ao detectar rede:', error);
+    console.error('❌ [DEBUG] Stack trace:', error.stack);
+    currentNetwork = null;
     return null;
   }
 }
@@ -95,37 +105,69 @@ export function updateNetworkDisplay(element) {
  * Atualiza o novo layout com informação da rede
  */
 export function updateNetworkInfo() {
-  const networkDisplay = document.getElementById('networkDisplay'); // Campo oculto
+  console.log('🔄 [DEBUG] updateNetworkInfo chamado');
+  console.log('🔍 [DEBUG] currentNetwork:', currentNetwork);
+  
+  const networkDisplay = document.getElementById('network-display'); // Corrigido: era 'networkDisplay'
   const networkValue = document.getElementById('networkValue');
   const walletStatus = document.getElementById('wallet-status');
   const inputOwner = document.getElementById('ownerAddress');
+  const networkStatus = document.getElementById('network-status');
+  
+  console.log('🔍 [DEBUG] Elementos encontrados:', {
+    networkDisplay: !!networkDisplay,
+    networkValue: !!networkValue,
+    walletStatus: !!walletStatus,
+    inputOwner: !!inputOwner,
+    networkStatus: !!networkStatus
+  });
   
   if (currentNetwork) {
-    // Atualiza o campo oculto (para compatibilidade)
+    console.log('✅ [DEBUG] Atualizando com rede:', currentNetwork.name);
+    
+    // Atualiza o campo visível da rede
     if (networkDisplay) {
       networkDisplay.value = currentNetwork.name;
+      console.log('✅ [DEBUG] networkDisplay atualizado:', currentNetwork.name);
+    }
+    
+    // Atualiza o status visual da rede
+    if (networkStatus) {
+      networkStatus.innerHTML = `<i class="bi bi-check-circle text-success"></i> Conectado`;
+      console.log('✅ [DEBUG] networkStatus atualizado');
     }
     
     // Atualiza o campo oculto com dados completos para o sistema
     if (networkValue) {
-      networkValue.value = JSON.stringify({
+      const networkData = {
         chainId: currentNetwork.chainId,
         name: currentNetwork.name,
         blockExplorer: currentNetwork.blockExplorer
-      });
+      };
+      networkValue.value = JSON.stringify(networkData);
+      console.log('✅ [DEBUG] networkValue atualizado:', networkData);
     }
     
     // Atualiza o status da carteira para incluir rede
     if (walletStatus && inputOwner && inputOwner.value) {
       const address = inputOwner.value;
-      walletStatus.value = `Conectado: ${address.slice(0, 6)}...${address.slice(-4)} | ${currentNetwork.name}`;
+      const newStatus = `Conectado: ${address.slice(0, 6)}...${address.slice(-4)} | ${currentNetwork.name}`;
+      walletStatus.value = newStatus;
+      console.log('✅ [DEBUG] walletStatus atualizado:', newStatus);
     }
     
-    console.log('✅ Interface atualizada com rede:', currentNetwork.name);
+    console.log('✅ [DEBUG] Interface atualizada com rede:', currentNetwork.name);
   } else {
+    console.log('⚠️ [DEBUG] currentNetwork é null, limpando campos');
+    
     // Estado desconectado
     if (networkDisplay) {
       networkDisplay.value = '';
+      networkDisplay.placeholder = 'Será detectado após conectar';
+    }
+    
+    if (networkStatus) {
+      networkStatus.innerHTML = `<i class="bi bi-search text-muted"></i> Detectando...`;
     }
     
     if (networkValue) {
