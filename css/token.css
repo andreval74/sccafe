@@ -666,3 +666,56 @@
   color: white;
   transform: scale(1.05);
 }
+
+/*--------------------------------------------------------------
+# Progress Bar Animations
+--------------------------------------------------------------*/
+@keyframes progress-animation {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 20px 0;
+  }
+}
+
+.progress-bar-container {
+  width: 100%;
+  height: 4px;
+  background-color: rgba(248, 93, 35, 0.2);
+  border-radius: 2px;
+  margin-top: 8px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  background-color: var(--accent-color, #f85d23);
+  border-radius: 2px;
+  transition: width 0.3s ease;
+  background-image: linear-gradient(45deg, 
+    rgba(255,255,255,0.2) 25%, 
+    transparent 25%, 
+    transparent 50%, 
+    rgba(255,255,255,0.2) 50%, 
+    rgba(255,255,255,0.2) 75%, 
+    transparent 75%, 
+    transparent);
+  background-size: 20px 20px;
+  animation: progress-animation 1s linear infinite;
+}
+
+/* Status item melhorias */
+.status-item.processing .progress-bar {
+  background-color: var(--accent-color, #f85d23);
+}
+
+.status-item.success .progress-bar {
+  background-color: #22c55e;
+  animation: none;
+}
+
+.status-item.error .progress-bar {
+  background-color: #dc2626;
+  animation: none;
+}

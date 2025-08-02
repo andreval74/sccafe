@@ -506,6 +506,7 @@ const btnReiniciar = document.querySelector('button[onclick="reiniciarFluxo()"]'
 if (btnReiniciar) btnReiniciar.addEventListener('click', reiniciarFluxo);
 
 // -------------------- Funções de Status e Progress Bar --------------------
+// -------------------- Funções de Status e Progress Bar Unificadas --------------------
 function updateContractStatus(message, type) {
   const contractStatus = document.getElementById('contract-status');
   if (contractStatus) {
@@ -533,50 +534,102 @@ function updateDeployStatus(message, type) {
   }
 }
 
-function startCompileProgressBar() {
-  const compileStatus = document.getElementById('compile-status');
-  if (!compileStatus) return null;
+// Função unificada para criar barra de progresso
+function createProgressBar(containerId, color = '#f85d23') {
+  const container = document.getElementById(containerId);
+  if (!container) return null;
   
-  let dots = 0;
-  return setInterval(() => {
-    dots = (dots + 1) % 4;
-    const dotString = '.'.repeat(dots);
-    updateCompileStatus(`🔄 Compilando contrato${dotString}`, 'processing');
-  }, 500);
+  // Remove barra existente se houver
+  const existingBar = container.querySelector('.progress-bar-container');
+  if (existingBar) existingBar.remove();
+  
+  // Cria nova barra de progresso
+  const progressBarContainer = document.createElement('div');
+  progressBarContainer.className = 'progress-bar-container';
+  progressBarContainer.style.cssText = `
+    width: 100%;
+    height: 4px;
+    background-color: rgba(248, 93, 35, 0.2);
+    border-radius: 2px;
+    margin-top: 8px;
+    overflow: hidden;
+  `;
+  
+  const progressBar = document.createElement('div');
+  progressBar.className = 'progress-bar';
+  progressBar.style.cssText = `
+    width: 0%;
+    height: 100%;
+    background-color: ${color};
+    border-radius: 2px;
+    transition: width 0.3s ease;
+    background-image: linear-gradient(45deg, rgba(255,255,255,0.2) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0.2) 75%, transparent 75%, transparent);
+    background-size: 20px 20px;
+    animation: progress-animation 1s linear infinite;
+  `;
+  
+  progressBarContainer.appendChild(progressBar);
+  container.appendChild(progressBarContainer);
+  
+  return progressBar;
+}
+
+// Função para animar barra de progresso
+function animateProgressBar(progressBar, duration = 3000) {
+  if (!progressBar) return null;
+  
+  let progress = 0;
+  const increment = 100 / (duration / 100);
+  
+  const interval = setInterval(() => {
+    progress += increment;
+    if (progress >= 100) {
+      progress = 100;
+      clearInterval(interval);
+    }
+    progressBar.style.width = `${progress}%`;
+  }, 100);
+  
+  return interval;
+}
+
+// Função para finalizar barra de progresso
+function finishProgressBar(progressBar, success = true) {
+  if (!progressBar) return;
+  
+  progressBar.style.width = '100%';
+  progressBar.style.backgroundColor = success ? '#22c55e' : '#dc2626';
+  progressBar.style.animation = 'none';
+  
+  // Remove a barra após 2 segundos
+  setTimeout(() => {
+    const container = progressBar.closest('.progress-bar-container');
+    if (container) container.remove();
+  }, 2000);
+}
+
+function startCompileProgressBar() {
+  const progressBar = createProgressBar('compile-status');
+  return animateProgressBar(progressBar, 4000);
 }
 
 function stopCompileProgressBar(interval, success) {
-  if (interval) {
-    clearInterval(interval);
-  }
-  if (success) {
-    updateCompileStatus('✅ Contrato compilado com sucesso!', 'success');
-  } else {
-    updateCompileStatus('❌ Erro na compilação', 'error');
-  }
+  if (interval) clearInterval(interval);
+  const container = document.getElementById('compile-status');
+  const progressBar = container?.querySelector('.progress-bar');
+  finishProgressBar(progressBar, success);
 }
 
 function startDeployProgressBar() {
-  const deployStatus = document.getElementById('deploy-status');
-  if (!deployStatus) return null;
-  
-  let dots = 0;
-  return setInterval(() => {
-    dots = (dots + 1) % 4;
-    const dotString = '.'.repeat(dots);
-    updateDeployStatus(`🚀 Fazendo deploy${dotString}`, 'processing');
-  }, 500);
+  const progressBar = createProgressBar('deploy-status');
+  return animateProgressBar(progressBar, 5000);
 }
 
 function stopDeployProgressBar(interval, success) {
-  if (interval) {
-    clearInterval(interval);
-  }
-  if (success) {
-    updateDeployStatus('✅ Contrato implantado com sucesso!', 'success');
-  } else {
-    updateDeployStatus('❌ Erro no deploy', 'error');
-  }
+  if (interval) clearInterval(interval);
+  const container = document.getElementById('deploy-status');
+  const progressBar = container?.querySelector('.progress-bar');
+  finishProgressBar(progressBar, success);
 }
 
 // Função de verificação automática
@@ -1186,93 +1239,7 @@ function detectNetworkById(chainIdHex) {
   return networks[chainId] || { chainId: chainIdHex, name: `Rede ${chainId}` };
 }
 
-// -------------------- MetaMask Legacy (manter compatibilidade) --------------------
-
-if (btnAddMetaMask) {
-  btnAddMetaMask.onclick = async function() {
-    statusDiv.textContent = '';
-    btnAddMetaMask.disabled = true;
-    try {
-      const address = document.getElementById('final-token-address').value;
-      const symbol = document.getElementById('final-token-symbol').value;
-      const decimals = parseInt(document.getElementById('final-token-decimals').value, 10);
-      const image = document.getElementById('final-token-image').value;
-      // Recupera chainId e dados de rede do campo oculto
-      let networkData = null;
-      if (networkValue && networkValue.value) {
-        try {
-          networkData = JSON.parse(networkValue.value);
-        } catch (e) {
-          console.log('Erro ao parse dados da rede:', e);
-        }
-      }
-      let chainId = networkData ? networkData.chainId : null;
-      let tokenData = { address, symbol, decimals, image };
-      if (chainId) {
-        // Garantir que chainId seja tratado corretamente
-        if (typeof chainId === 'string' && chainId.startsWith('0x')) {
-          tokenData.chainId = parseInt(chainId, 16);
-        } else {
-          tokenData.chainId = parseInt(chainId);
-        }
-      }
-      // Tenta trocar para a rede correta antes de adicionar
-      let switched = true;
-      if (tokenData.chainId) {
-        switched = await switchOrAddNetwork(tokenData);
-      }
-      if (!switched) {
-        statusDiv.textContent = 'Não foi possível trocar para a rede do token.';
-        statusDiv.style.color = '#b91c1c';
-        btnAddMetaMask.disabled = false;
-        return;
-      }
-      const result = await adicionarTokenMetaMask({ address, symbol, decimals, image });
-      if (result) {
-        statusDiv.textContent = 'Token adicionado ao MetaMask!';
-        statusDiv.style.color = '#16924b';
-        if (btnShareLink) btnShareLink.style.display = 'inline-block';
-      } else {
-        statusDiv.textContent = 'Não foi possível adicionar o token.';
-        statusDiv.style.color = '#b91c1c';
-      }
-    } catch (e) {
-      statusDiv.textContent = 'Erro ao adicionar token: ' + (e.message || e);
-      statusDiv.style.color = '#b91c1c';
-    }
-    btnAddMetaMask.disabled = false;
-  };
-}
-
-if (btnShareLink) {
-  btnShareLink.onclick = () => {
-    const address = document.getElementById('final-token-address').value;
-    const symbol = document.getElementById('final-token-symbol').value;
-    const decimals = parseInt(document.getElementById('final-token-decimals').value, 10);
-    const image = document.getElementById('final-token-image').value;
-    const link = gerarLinkToken({ address, symbol, decimals, image });
-    // Web Share API se disponível
-    if (navigator.share) {
-      navigator.share({
-        title: 'Token criado',
-        text: 'Veja o token que acabei de criar:',
-        url: link
-      }).catch(() => {
-        // fallback se usuário cancelar
-      });
-    } else {
-      shareLinkField.value = link;
-      shareLinkField.style.display = 'block';
-      shareLinkField.select();
-      document.execCommand('copy');
-      btnShareLink.textContent = '🔗 Link Copiado!';
-      setTimeout(() => {
-        btnShareLink.textContent = '🔗 Compartilhar Link';
-      }, 2000);
-    }
-  };
-}
-
+// -------------------- Deploy Handler --------------------
 btnDeploy.onclick = async () => {
   console.log('🚀 [DEBUG] Iniciando processo de deploy...');
   updateDeployStatus('🔄 Fazendo deploy do contrato...', 'processing');
@@ -1448,7 +1415,7 @@ if (radioPersonalizado) {
   radioPersonalizado.addEventListener('change', toggleAddressCustomization);
 }
 
-// -------------------- Aguarda DOM estar pronto antes de inicializar --------------------
+// -------------------- Inicialização e Event Listeners --------------------
 document.addEventListener('DOMContentLoaded', () => {
   console.log('🎬 [DEBUG] DOM carregado - inicializando sistema...');
   console.log('🔍 [DEBUG] Elementos principais:', {
@@ -1465,117 +1432,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Se DOM já estiver pronto (no caso de module loading)
 if (document.readyState === 'loading') {
-  // DOM ainda carregando, aguarda evento
   console.log('⏳ [DEBUG] Aguardando DOM carregar...');
 } else {
-  // DOM já pronto, executa imediatamente
   console.log('🚀 [DEBUG] DOM pronto - inicializando imediatamente...');
-  console.log('🔍 [DEBUG] Elementos principais:', {
-    btnConectar: !!document.getElementById('connect-metamask-btn'),
-    inputOwner: !!document.getElementById('ownerAddress'),
-    walletStatus: !!document.getElementById('wallet-status'),
-    connectionSection: !!document.querySelector('.connection-section')
-  });
-  
   showStep(1);
   toggleAddressCustomization();
   initNetworkSystem();
 }
 
-// Handler para Step 6 - MetaMask
-// Reutiliza elementos já declarados
-if (btnAddMetaMask) {
-  btnAddMetaMask.addEventListener('click', () => {
-    const tokenData = {
-      address: document.getElementById('final-token-address')?.value || '',
-      symbol: document.getElementById('final-token-symbol')?.value || '',
-      decimals: parseInt(document.getElementById('final-token-decimals')?.value) || 18,
-      image: document.getElementById('final-token-image')?.value || ''
-    };
-    
-    if (!tokenData.address || !tokenData.symbol) {
-      alert('⚠️ Dados do token não encontrados. Faça o deploy primeiro.');
-      return;
-    }
-    
-    // Chama função do add-metamask.js
-    adicionarTokenMetaMask(tokenData);
-  });
-}
-
-// Handler para botão de compartilhar link (reutiliza elemento)
-const shareLinkBtn = document.getElementById('btn-share-link');
-if (shareLinkBtn) {
-  shareLinkBtn.addEventListener('click', () => {
-    const tokenData = montarTokenData({
-      address: document.getElementById('final-token-address')?.value || '',
-      symbol: document.getElementById('final-token-symbol')?.value || '',
-      decimals: document.getElementById('final-token-decimals')?.value || '18',
-      image: document.getElementById('final-token-image')?.value || '',
-      name: inputNome?.value || '',
-      chainId: currentNetwork?.chainId || '',
-      chainName: currentNetwork?.name || '',
-      rpcUrl: currentNetwork?.rpcUrl || '',
-      blockExplorer: currentNetwork?.blockExplorer || '',
-      nativeCurrency: currentNetwork?.nativeCurrency || ''
-    });
-    
-    const shareLink = gerarLinkToken(tokenData);
-    const linkField = document.getElementById('share-link-field');
-    
-    if (linkField) {
-      linkField.value = shareLink;
-      linkField.style.display = 'block';
-      // Copia automaticamente
-      linkField.select();
-      document.execCommand('copy');
-      alert('🔗 Link copiado para área de transferência!');
-    }
-  });
-}
-
-// Função para preencher dados do Step 6 após deploy
-function fillStep6Data(deployedInfo) {
-  if (deployedInfo) {
-    const addressField = document.getElementById('final-token-address');
-    const symbolField = document.getElementById('final-token-symbol');
-    const decimalsField = document.getElementById('final-token-decimals');
-    const imageField = document.getElementById('final-token-image');
-    
-    if (addressField) addressField.value = deployedInfo.address || '';
-    if (symbolField) symbolField.value = inputSymbol?.value || '';
-    if (decimalsField) decimalsField.value = inputDecimals?.value || '18';
-    if (imageField) imageField.value = inputImage?.value || '';
-    
-    // Mostra botão de compartilhar
-    if (shareLinkBtn) shareLinkBtn.style.display = 'inline-block';
-  }
-}
-
-// Listener para evento de deploy concluído (para Step 6)
-window.addEventListener('contractDeployed', (event) => {
-  fillStep6Data(event.detail);
-});
-// Garante que a função global nunca receba undefined
-window.adicionarTokenMetaMask = function(args) {
-  // Log para depuração
-  console.log('adicionarTokenMetaMask chamado com:', args);
-  if (!args || typeof args !== 'object') {
-    alert('Dados do token não informados!');
-    return;
-  }
-  // Remove espaços extras
-  const address = (args.address || '').trim();
-  const symbol = (args.symbol || '').trim();
-  const decimals = Number(args.decimals);
-  const image = (args.image || '').trim();
-  if (!address || !symbol || isNaN(decimals) || decimals < 0) {
-    alert('Preencha todos os campos do token antes de adicionar ao MetaMask.');
-    return;
-  }
-  adicionarTokenMetaMask({ address, symbol, decimals, image });
-};
-
-// Expor funções adicionais para HTML inline
+// Expor funções necessárias para HTML inline
 window.prevStep = prevStep;
 window.reiniciarFluxo = reiniciarFluxo;
