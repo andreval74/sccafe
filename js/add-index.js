@@ -9,10 +9,20 @@ import { initNetworkCommons } from './network-commons.js';
 import { verificarContratoManualmente } from './manual-verification.js';
 
 // Adiciona evento ao botão Conectar MetaMask
+console.log('🔍 Iniciando setup do botão MetaMask...');
 const btnConectar = document.getElementById('connect-metamask-btn');
+console.log('🔍 Botão encontrado:', btnConectar);
+
 if (btnConectar) {
+  console.log('✅ Adicionando event listener ao botão...');
   btnConectar.addEventListener('click', async () => {
-    console.log('🔗 Iniciando conexão MetaMask...');
+    console.log('🔗 Botão clicado! Iniciando conexão MetaMask...');
+    
+    // Verifica se o MetaMask está disponível
+    if (!window.ethereum) {
+      alert('MetaMask não encontrado! Por favor, instale a extensão MetaMask no seu navegador.');
+      return;
+    }
     
     // Adiciona classe de estado conectando
     if (connectionSection) connectionSection.classList.add('connecting');
@@ -44,7 +54,7 @@ if (btnConectar) {
     }
   });
 } else {
-  console.warn('⚠️ Botão conectar não encontrado');
+  console.warn('⚠️ Botão conectar não encontrado - ID: connect-metamask-btn');
 }
 
 // Inicializa apenas o sistema de redes (sem detectar automaticamente)
@@ -781,12 +791,7 @@ btnDeploy.onclick = async () => {
 document.getElementById('search-salt-btn').onclick = () => buscarSaltFake(targetSuffix.value, saltFound, predictedAddress);
 document.getElementById('stop-search-btn').onclick = () => pararBuscaSalt();
 
-// -------------------- Personalização do endereço --------------------
-function toggleAddressCustomization() {
-  const showCustom = (radioPersonalizado && radioPersonalizado.checked);
-  document.getElementById('customization-section').style.display = showCustom ? '' : 'none';
-}
-
+// -------------------- Event listeners para personalização (usa função já existente) --------------------
 document.getElementById('contrato-simples').addEventListener('change', toggleAddressCustomization);
 if (radioPersonalizado) {
   radioPersonalizado.addEventListener('change', toggleAddressCustomization);

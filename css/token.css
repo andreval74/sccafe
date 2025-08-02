@@ -302,19 +302,8 @@
 }
 
 /*--------------------------------------------------------------
-# MetaMask Icon & Connect Button
+# Connect Button - Simplified
 --------------------------------------------------------------*/
-.metamask-icon {
-  width: 24px;
-  height: 24px;
-}
-
-.connect-btn .metamask-icon {
-  width: 20px;
-  height: 20px;
-  margin-right: 8px;
-}
-
 .connect-btn {
   background: linear-gradient(135deg, #f6851b 0%, #e2761b 100%);
   color: var(--contrast-color);
@@ -322,14 +311,14 @@
   padding: 12px 24px;
   border-radius: 50px;
   font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  font-size: 14px;
+  letter-spacing: 0.5px;
   transition: all 0.3s ease;
   box-shadow: 0 4px 15px rgba(246, 133, 27, 0.4);
   cursor: pointer;
   text-decoration: none;
   border: 2px solid transparent;
+  min-width: 120px;
 }
 
 .connect-btn:hover {
