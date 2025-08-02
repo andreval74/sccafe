@@ -7,6 +7,7 @@ import { detectCurrentNetwork, currentNetwork, setupNetworkMonitoring, updateNet
 import { showVerificationInterface } from './verification-ui.js';
 import { initNetworkCommons, getBlockExplorerAPI } from './network-commons.js';
 import { verificarContratoManualmente } from './manual-verification.js';
+import { loadTemplate, injectTemplate, fillTemplate } from './template-loader.js';
 
 // Adiciona evento ao botão Conectar MetaMask
 console.log('🔍 [DEBUG] Iniciando setup do botão MetaMask...');
@@ -436,168 +437,51 @@ function reiniciarFluxo() {
 }
 
 // -------------------- Resumo Step Melhorado --------------------
-function fillResumo() {
-  console.log('📋 [DEBUG] Preenchendo resumo melhorado...');
+async function fillResumo() {
+  console.log('📋 [DEBUG] Preenchendo resumo com template separado...');
   
-  let ownerChecksum = inputOwner.value;
   try {
-    if (window.ethers && window.ethers.utils) {
-      ownerChecksum = window.ethers.utils.getAddress(inputOwner.value);
+    // Prepara dados do resumo
+    let ownerChecksum = inputOwner.value;
+    try {
+      if (window.ethers && window.ethers.utils) {
+        ownerChecksum = window.ethers.utils.getAddress(inputOwner.value);
+      }
+    } catch (e) {
+      // Se não conseguir converter, mantém o valor original
     }
-  } catch (e) {
-    // Se não conseguir converter, mantém o valor original
+    
+    const resumoData = {
+      'summary-nome': inputNome.value,
+      'summary-symbol': inputSymbol.value,
+      'summary-decimals': inputDecimals.value,
+      'summary-supply': inputSupply.value,
+      'summary-owner': ownerChecksum,
+      'summary-image': inputImage.value || "Não definido",
+      'summary-network': networkDisplay ? networkDisplay.value : "Não detectada",
+      'summary-address-type': (radioPersonalizado && radioPersonalizado.checked) ? "Personalizado" : "Padrão"
+    };
+    
+    // Carrega e preenche o template
+    await fillTemplate('resumo-template', resumoData, summaryBox);
+    
+    console.log('✅ [DEBUG] Resumo preenchido com template externo');
+    
+  } catch (error) {
+    console.error('❌ [DEBUG] Erro ao carregar template do resumo:', error);
+    
+    // Fallback: mantém funcionalidade básica
+    summaryBox.innerHTML = `
+      <div class="alert alert-warning">
+        <h5>Resumo do Token</h5>
+        <p><strong>Nome:</strong> ${inputNome.value}</p>
+        <p><strong>Símbolo:</strong> ${inputSymbol.value}</p>
+        <p><strong>Decimais:</strong> ${inputDecimals.value}</p>
+        <p><strong>Supply:</strong> ${inputSupply.value}</p>
+        <p><em>Erro ao carregar template completo. Usando versão simplificada.</em></p>
+      </div>
+    `;
   }
-  
-  // Melhora o layout do resumo para ficar mais parecido com a tela inicial
-  summaryBox.innerHTML = `
-    <div class="token-summary-card">
-      <div class="summary-header">
-        <h4><i class="bi bi-check-circle-fill text-success me-2"></i>Resumo do Token</h4>
-        <p class="text-muted">Revise as informações antes de prosseguir</p>
-      </div>
-      
-      <div class="row g-3">
-        <div class="col-md-6">
-          <div class="summary-field">
-            <label><i class="bi bi-tag me-1"></i>Nome do Token</label>
-            <div class="summary-value">${inputNome.value}</div>
-          </div>
-        </div>
-        
-        <div class="col-md-6">
-          <div class="summary-field">
-            <label><i class="bi bi-code-square me-1"></i>Símbolo</label>
-            <div class="summary-value">${inputSymbol.value}</div>
-          </div>
-        </div>
-        
-        <div class="col-md-6">
-          <div class="summary-field">
-            <label><i class="bi bi-123 me-1"></i>Decimais</label>
-            <div class="summary-value">${inputDecimals.value}</div>
-          </div>
-        </div>
-        
-        <div class="col-md-6">
-          <div class="summary-field">
-            <label><i class="bi bi-coin me-1"></i>Total Supply</label>
-            <div class="summary-value">${inputSupply.value}</div>
-          </div>
-        </div>
-        
-        <div class="col-12">
-          <div class="summary-field">
-            <label><i class="bi bi-person-circle me-1"></i>Proprietário</label>
-            <div class="summary-value address-value">${ownerChecksum}</div>
-          </div>
-        </div>
-        
-        <div class="col-md-6">
-          <div class="summary-field">
-            <label><i class="bi bi-image me-1"></i>Logo URL</label>
-            <div class="summary-value">${inputImage.value || "Não definido"}</div>
-          </div>
-        </div>
-        
-        <div class="col-md-6">
-          <div class="summary-field">
-            <label><i class="bi bi-globe me-1"></i>Rede</label>
-            <div class="summary-value">${networkDisplay ? networkDisplay.value : "Não detectada"}</div>
-          </div>
-        </div>
-        
-        <div class="col-12">
-          <div class="summary-field">
-            <label><i class="bi bi-gear me-1"></i>Tipo de Endereço</label>
-            <div class="summary-value">${(radioPersonalizado && radioPersonalizado.checked) ? "Personalizado" : "Padrão"}</div>
-          </div>
-        </div>
-      </div>
-      
-      <!-- Seção de Deploy integrada -->
-      <div class="deploy-section mt-4">
-        <h5><i class="bi bi-rocket-takeoff me-2"></i>Deploy do Contrato</h5>
-        <div class="deploy-controls">
-          <div class="row g-2">
-            <div class="col-12">
-              <div class="status-item">
-                <span class="status-label">Status do Contrato:</span>
-                <span id="contract-status" class="status-value">Aguardando...</span>
-              </div>
-            </div>
-            <div class="col-12">
-              <div class="status-item">
-                <span class="status-label">Status da Compilação:</span>
-                <span id="compile-status" class="status-value">Aguardando...</span>
-              </div>
-            </div>
-            <div class="col-12">
-              <div class="status-item">
-                <span class="status-label">Status do Deploy:</span>
-                <span id="deploy-status" class="status-value">Aguardando...</span>
-              </div>
-            </div>
-          </div>
-          
-          <div class="deploy-buttons mt-3">
-            <button id="btn-salvar-contrato" type="button" class="btn btn-primary me-2">
-              <i class="bi bi-file-code me-1"></i>Gerar Contrato
-            </button>
-            <button id="btn-compilar-contrato" type="button" class="btn btn-warning me-2" disabled>
-              <i class="bi bi-gear-fill me-1"></i>Compilar
-            </button>
-            <button id="btn-deploy-contrato" type="button" class="btn btn-success me-2" disabled>
-              <i class="bi bi-rocket-takeoff me-1"></i>Deploy
-            </button>
-          </div>
-        </div>
-      </div>
-      
-      <!-- Seção MetaMask integrada -->
-      <div class="metamask-section mt-4" id="metamask-section" style="display: none;">
-        <h5><i class="bi bi-wallet2 me-2"></i>Adicionar ao MetaMask</h5>
-        <div class="metamask-controls">
-          <div class="row g-2">
-            <div class="col-12">
-              <div class="contract-info">
-                <p><strong>Endereço do Contrato:</strong> <span id="contract-address-display">-</span></p>
-                <p><strong>Rede:</strong> <span id="network-name-display">-</span></p>
-              </div>
-            </div>
-            <div class="col-12">
-              <div class="status-item">
-                <span class="status-label">Status MetaMask:</span>
-                <span id="metamask-status" class="status-value">Aguardando deploy...</span>
-              </div>
-            </div>
-          </div>
-          
-          <div class="metamask-buttons mt-3">
-            <button id="btn-add-metamask" type="button" class="btn btn-success me-2" disabled>
-              <i class="bi bi-wallet2 me-1"></i>Adicionar ao MetaMask
-            </button>
-            <button id="btn-verify-contract" type="button" class="btn btn-info me-2" style="display: none;">
-              <i class="bi bi-shield-check me-1"></i>Verificar Contrato
-            </button>
-            <button id="btn-share-link" type="button" class="btn btn-outline-primary" style="display: none;">
-              <i class="bi bi-share me-1"></i>Compartilhar Link
-            </button>
-          </div>
-          
-          <div id="share-link-field" class="mt-3" style="display: none;">
-            <div class="input-group">
-              <input type="text" class="form-control" id="generated-link" readonly>
-              <button class="btn btn-outline-secondary" type="button" onclick="navigator.clipboard.writeText(document.getElementById('generated-link').value)">
-                <i class="bi bi-clipboard"></i> Copiar
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  `;
-  
-  console.log('✅ [DEBUG] Resumo preenchido com layout melhorado e MetaMask integrado');
 }
 
 // -------------------- Handlers navegação --------------------
@@ -641,26 +525,6 @@ function updateDeployStatus(message, type) {
     deployStatus.className = `status-item ${type}`;
     console.log(`📊 [STATUS] Deploy: ${message}`);
   }
-}
-
-function updateTimelineStatus(step) {
-  console.log(`📈 [TIMELINE] Atualizando para step: ${step}`);
-  const steps = ['dados-basicos', 'personalizacao', 'resumo', 'deploy', 'verificacao', 'metamask'];
-  
-  steps.forEach((stepName, index) => {
-    const element = document.querySelector(`.timeline-step[data-step="${stepName}"]`);
-    if (element) {
-      if (index < step) {
-        element.classList.add('completed');
-        element.classList.remove('active');
-      } else if (index === step) {
-        element.classList.add('active');
-        element.classList.remove('completed');
-      } else {
-        element.classList.remove('active', 'completed');
-      }
-    }
-  });
 }
 
 function startCompileProgressBar() {
@@ -822,6 +686,12 @@ async function checkVerificationStatus(guid, explorerAPI) {
         btnVerify.textContent = '✅ Verificado';
         btnVerify.style.backgroundColor = '#22c55e';
       }
+      
+      // Mostrar sucesso da verificação usando template
+      if (window.deployedContractAddress) {
+        await showVerificationSuccess(window.deployedContractAddress, explorerAPI.explorer, explorerAPI.name);
+      }
+      
     } else if (result.result === 'Pending in queue') {
       console.log('⏳ [DEBUG] Verificação ainda pendente, checando novamente...');
       setTimeout(() => checkVerificationStatus(guid, explorerAPI), 15000);
@@ -830,9 +700,104 @@ async function checkVerificationStatus(guid, explorerAPI) {
       if (btnVerify) {
         btnVerify.textContent = '❌ Falhou';
       }
+      
+      // Mostrar interface manual se a verificação automática falhou
+      if (window.lastContractData) {
+        await showManualVerificationInterface(window.lastContractData);
+      }
     }
   } catch (error) {
     console.error('❌ [DEBUG] Erro ao checar status:', error);
+  }
+}
+
+// Função para mostrar sucesso da verificação
+async function showVerificationSuccess(contractAddress, explorerUrl, networkName) {
+  try {
+    if (verificationStatus) {
+      // Carrega template de sucesso
+      await injectTemplate('verificacao-sucesso-template', verificationStatus);
+      
+      // Preenche dados específicos
+      document.getElementById('verified-contract-address').textContent = contractAddress;
+      document.getElementById('verified-explorer-link').href = `${explorerUrl}/address/${contractAddress}`;
+      document.getElementById('verified-explorer-link').textContent = `Ver no ${networkName}`;
+      
+      verificationStatus.className = 'verification-status success';
+      
+      console.log('✅ [DEBUG] Interface de sucesso da verificação carregada via template');
+    }
+    
+  } catch (error) {
+    console.error('❌ [DEBUG] Erro ao carregar template de sucesso:', error);
+    
+    // Fallback simples em caso de erro
+    if (verificationStatus) {
+      verificationStatus.innerHTML = `
+        <div class="alert alert-success">
+          <h5>🎉 Contrato Verificado!</h5>
+          <p>Endereço: <code>${contractAddress}</code></p>
+          <p><a href="${explorerUrl}/address/${contractAddress}" target="_blank">Ver no Explorer</a></p>
+        </div>
+      `;
+      verificationStatus.className = 'verification-status success';
+    }
+  }
+}
+
+// Função para mostrar status de loading usando template
+async function showLoadingStatus(title, message, tip = null) {
+  try {
+    if (verificationStatus) {
+      // Carrega template de loading
+      await injectTemplate('loading-template', verificationStatus);
+      
+      // Preenche dados específicos
+      document.getElementById('loading-title').textContent = title;
+      document.getElementById('loading-message').textContent = message;
+      
+      if (tip) {
+        document.getElementById('loading-tip').textContent = tip;
+      }
+      
+      verificationStatus.className = 'verification-status loading';
+      
+      console.log('🔄 [DEBUG] Interface de loading carregada via template');
+    }
+    
+  } catch (error) {
+    console.error('❌ [DEBUG] Erro ao carregar template de loading:', error);
+    
+    // Fallback simples em caso de erro
+    if (verificationStatus) {
+      verificationStatus.innerHTML = `
+        <div class="alert alert-info">
+          <div class="d-flex align-items-center">
+            <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+            <div>
+              <strong>${title}</strong><br>
+              <small>${message}</small>
+            </div>
+          </div>
+        </div>
+      `;
+      verificationStatus.className = 'verification-status loading';
+    }
+  }
+}
+
+// Função para atualizar progresso do loading
+function updateLoadingProgress(percent, text) {
+  const progressBar = document.getElementById('loading-progress-bar');
+  const progressText = document.getElementById('loading-progress-text');
+  
+  if (progressBar) {
+    progressBar.style.width = `${percent}%`;
+    progressBar.setAttribute('aria-valuenow', percent);
+  }
+  
+  if (progressText && text) {
+    progressText.textContent = text;
   }
 }
 
@@ -868,63 +833,7 @@ btnSalvarContrato.onclick = () => {
   });
 };
 
-// Função para atualizar status do contrato
-function updateContractStatus(message, type = 'info') {
-  const statusElement = document.getElementById('contract-status');
-  if (statusElement) {
-    statusElement.textContent = message;
-    statusElement.className = `status-value ${type}`;
-  }
-}
-
-// Função para atualizar status da compilação
-function updateCompileStatus(message, type = 'info') {
-  const statusElement = document.getElementById('compile-status');
-  if (statusElement) {
-    statusElement.textContent = message;
-    statusElement.className = `status-value ${type}`;
-  }
-}
-
-// Função para atualizar status do deploy
-function updateDeployStatus(message, type = 'info') {
-  const statusElement = document.getElementById('deploy-status');
-  if (statusElement) {
-    statusElement.textContent = message;
-    statusElement.className = `status-value ${type}`;
-  }
-}
-
-
-
 // Spinner Overlay helpers
-
-// Barra de progresso/contador na compilação
-function startCompileProgressBar() {
-  let percent = 0;
-  let dots = 0;
-  compileStatus.textContent = `Compilando contrato... 0%`;
-  const interval = setInterval(() => {
-    percent += Math.floor(Math.random() * 3) + 2; // Progresso mais lento e realista
-    if (percent >= 95) percent = 95; // Para em 95% até a compilação real terminar
-    
-    // Adiciona pontos animados
-    dots = (dots + 1) % 4;
-    let dotStr = '.'.repeat(dots);
-    compileStatus.textContent = `Compilando contrato${dotStr} ${percent}%`;
-  }, 300);
-  return interval;
-}
-
-function stopCompileProgressBar(interval, success = true) {
-  if (interval) clearInterval(interval);
-  if (success) {
-    compileStatus.innerHTML = '✅ <strong>Contrato compilado com sucesso!</strong>';
-    compileStatus.style.color = '#16924b';
-  } else {
-    compileStatus.style.color = '#b91c1c';
-  }
-}
 
 btnCompilar.onclick = async () => {
   console.log('🔍 [DEBUG] Verificando estado antes da compilação...');
@@ -992,84 +901,54 @@ if (btnVerificationInfo) {
 }
 
 // Função auxiliar para mostrar interface manual
-function showManualVerificationInterface(contractData) {
-  const chainId = getCurrentChainId();
-  const VERIFICATION_APIS = {
-    1: { name: 'Ethereum', explorer: 'https://etherscan.io' },
-    56: { name: 'BNB Smart Chain', explorer: 'https://bscscan.com' },
-    97: { name: 'BNB Smart Chain Testnet', explorer: 'https://testnet.bscscan.com' },
-    137: { name: 'Polygon', explorer: 'https://polygonscan.com' },
-    43114: { name: 'Avalanche', explorer: 'https://snowtrace.io' }
-  };
-  
-  const apiConfig = VERIFICATION_APIS[chainId];
-  const networkName = apiConfig ? apiConfig.name : 'Rede Atual';
-  const explorerUrl = apiConfig ? apiConfig.explorer : '#';
-  
-  if (verificationStatus) {
-    verificationStatus.innerHTML = `
-      <div class="manual-verification">
-        <div class="verification-info">
-          <h4>📋 Dados para Verificação Manual</h4>
-          <p>✅ Todos os dados foram preparados para facilitar o processo manual.</p>
+async function showManualVerificationInterface(contractData) {
+  try {
+    const chainId = getCurrentChainId();
+    const VERIFICATION_APIS = {
+      1: { name: 'Ethereum', explorer: 'https://etherscan.io' },
+      56: { name: 'BNB Smart Chain', explorer: 'https://bscscan.com' },
+      97: { name: 'BNB Smart Chain Testnet', explorer: 'https://testnet.bscscan.com' },
+      137: { name: 'Polygon', explorer: 'https://polygonscan.com' },
+      43114: { name: 'Avalanche', explorer: 'https://snowtrace.io' }
+    };
+    
+    const apiConfig = VERIFICATION_APIS[chainId];
+    const networkName = apiConfig ? apiConfig.name : 'Rede Atual';
+    const explorerUrl = apiConfig ? apiConfig.explorer : '#';
+    
+    if (verificationStatus) {
+      // Carrega template e preenche dados
+      await injectTemplate('verificacao-manual-template', verificationStatus);
+      
+      // Preenche dados específicos
+      document.getElementById('explorer-link').href = explorerUrl;
+      document.getElementById('explorer-link').textContent = networkName;
+      document.getElementById('compiler-version').textContent = contractData.compilerVersion;
+      document.getElementById('optimization-used').textContent = contractData.optimizationUsed ? 'Yes' : 'No';
+      document.getElementById('optimization-runs').textContent = contractData.runs;
+      document.getElementById('evm-version').textContent = contractData.evmVersion;
+      document.getElementById('source-code-display').value = contractData.sourceCode;
+      document.getElementById('abi-display').value = JSON.stringify(window.contratoAbi || [], null, 2);
+      
+      verificationStatus.className = 'verification-status manual';
+      
+      console.log('✅ [DEBUG] Interface de verificação manual carregada via template');
+    }
+    
+  } catch (error) {
+    console.error('❌ [DEBUG] Erro ao carregar template de verificação:', error);
+    
+    // Fallback simples em caso de erro
+    if (verificationStatus) {
+      verificationStatus.innerHTML = `
+        <div class="alert alert-info">
+          <h5>� Verificação Manual</h5>
+          <p>Acesse o explorador da sua rede e verifique o contrato manualmente.</p>
+          <p><strong>Código:</strong></p>
+          <textarea readonly style="width:100%;height:100px;">${contractData.sourceCode || 'Código não disponível'}</textarea>
         </div>
-        
-        <div class="verification-steps">
-          <h5>🎯 Passos para verificar:</h5>
-          <ol>
-            <li>Acesse o explorador: <a href="${explorerUrl}" target="_blank">${networkName}</a></li>
-            <li>Vá para o endereço do seu contrato</li>
-            <li>Clique em "Contract" → "Verify and Publish"</li>
-            <li>Use os dados abaixo (clique para copiar facilmente)</li>
-          </ol>
-        </div>
-        
-        <div class="verification-data">
-          <div class="data-group">
-            <label>📋 Configurações do Compilador:</label>
-            <div class="copy-section">
-              <div class="config-grid">
-                <div><strong>Compiler Version:</strong> ${contractData.compilerVersion}</div>
-                <div><strong>Optimization:</strong> ${contractData.optimizationUsed ? 'Yes' : 'No'}</div>
-                <div><strong>Runs:</strong> ${contractData.runs}</div>
-                <div><strong>EVM Version:</strong> ${contractData.evmVersion}</div>
-              </div>
-            </div>
-          </div>
-          
-          <div class="data-group">
-            <label>📄 Código Fonte:</label>
-            <div class="copy-section">
-              <textarea id="source-code-display" readonly>${contractData.sourceCode}</textarea>
-              <button type="button" class="btn-copy" onclick="copyToClipboard('source-code-display', this)">
-                📋 Copiar Código Fonte
-              </button>
-            </div>
-          </div>
-          
-          <div class="data-group">
-            <label>⚙️ ABI (Application Binary Interface):</label>
-            <div class="copy-section">
-              <textarea id="abi-display" readonly>${JSON.stringify(window.contratoAbi || [], null, 2)}</textarea>
-              <button type="button" class="btn-copy" onclick="copyToClipboard('abi-display', this)">
-                📋 Copiar ABI
-              </button>
-            </div>
-          </div>
-        </div>
-        
-        <div class="verification-help">
-          <h5>💡 Dicas importantes:</h5>
-          <ul>
-            <li>✅ Use EXATAMENTE as configurações mostradas acima</li>
-            <li>🔄 O processo pode demorar alguns minutos</li>
-            <li>📧 Alguns exploradores enviam email de confirmação</li>
-            <li>🆔 Mantenha a aba aberta durante o processo</li>
-          </ul>
-        </div>
-      </div>
-    `;
-    verificationStatus.className = 'verification-status manual';
+      `;
+    }
   }
 }
 
