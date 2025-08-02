@@ -1,144 +1,145 @@
-<!-- Template do Resumo do Token -->
-<div class="token-summary-card">
-  <div class="summary-header">
-    <h4><i class="bi bi-check-circle-fill text-success me-2"></i>Resumo do Token</h4>
-    <p class="text-muted">Revise as informações antes de prosseguir</p>
-  </div>
+<!-- Template do Resumo do Token - 3 Etapas Simplificadas -->
+<div class="token-creator-simplified">
   
-  <div class="row g-3">
-    <div class="col-md-6">
-      <div class="summary-field">
-        <label><i class="bi bi-tag me-1"></i>Nome do Token</label>
-        <div class="summary-value" id="summary-nome">-</div>
-      </div>
+  <!-- Etapa 1: Resumo dos Dados -->
+  <div class="etapa-card">
+    <div class="etapa-header">
+      <h4><i class="bi bi-1-circle-fill text-primary me-2"></i>Dados do Token</h4>
+      <p class="text-muted">Informações configuradas</p>
     </div>
     
-    <div class="col-md-6">
-      <div class="summary-field">
-        <label><i class="bi bi-code-square me-1"></i>Símbolo</label>
-        <div class="summary-value" id="summary-symbol">-</div>
+    <div class="row g-3">
+      <div class="col-md-6">
+        <div class="info-item">
+          <label><i class="bi bi-tag me-1"></i>Nome</label>
+          <div class="info-value" id="summary-nome">-</div>
+        </div>
       </div>
-    </div>
-    
-    <div class="col-md-6">
-      <div class="summary-field">
-        <label><i class="bi bi-123 me-1"></i>Decimais</label>
-        <div class="summary-value" id="summary-decimals">-</div>
+      <div class="col-md-6">
+        <div class="info-item">
+          <label><i class="bi bi-code-square me-1"></i>Símbolo</label>
+          <div class="info-value" id="summary-symbol">-</div>
+        </div>
       </div>
-    </div>
-    
-    <div class="col-md-6">
-      <div class="summary-field">
-        <label><i class="bi bi-coin me-1"></i>Total Supply</label>
-        <div class="summary-value" id="summary-supply">-</div>
+      <div class="col-md-4">
+        <div class="info-item">
+          <label><i class="bi bi-123 me-1"></i>Decimais</label>
+          <div class="info-value" id="summary-decimals">-</div>
+        </div>
       </div>
-    </div>
-    
-    <div class="col-12">
-      <div class="summary-field">
-        <label><i class="bi bi-person-circle me-1"></i>Proprietário</label>
-        <div class="summary-value address-value" id="summary-owner">-</div>
+      <div class="col-md-8">
+        <div class="info-item">
+          <label><i class="bi bi-coin me-1"></i>Supply Total</label>
+          <div class="info-value" id="summary-supply">-</div>
+        </div>
       </div>
-    </div>
-    
-    <div class="col-md-6">
-      <div class="summary-field">
-        <label><i class="bi bi-image me-1"></i>Logo URL</label>
-        <div class="summary-value" id="summary-image">-</div>
-      </div>
-    </div>
-    
-    <div class="col-md-6">
-      <div class="summary-field">
-        <label><i class="bi bi-globe me-1"></i>Rede</label>
-        <div class="summary-value" id="summary-network">-</div>
-      </div>
-    </div>
-    
-    <div class="col-12">
-      <div class="summary-field">
-        <label><i class="bi bi-gear me-1"></i>Tipo de Endereço</label>
-        <div class="summary-value" id="summary-address-type">-</div>
+      <div class="col-12">
+        <div class="info-item">
+          <label><i class="bi bi-person-circle me-1"></i>Proprietário</label>
+          <div class="info-value address-display" id="summary-owner">-</div>
+        </div>
       </div>
     </div>
   </div>
-  
-  <!-- Seção de Deploy integrada -->
-  <div class="deploy-section mt-4">
-    <h5><i class="bi bi-rocket-takeoff me-2"></i>Deploy do Contrato</h5>
-    <div class="deploy-controls">
-      <div class="row g-2">
-        <div class="col-12">
-          <div class="status-item">
-            <span class="status-label">Status do Contrato:</span>
-            <span id="contract-status" class="status-value">Aguardando...</span>
-          </div>
-        </div>
-        <div class="col-12">
-          <div class="status-item">
-            <span class="status-label">Status da Compilação:</span>
-            <span id="compile-status" class="status-value">Aguardando...</span>
-          </div>
-        </div>
-        <div class="col-12">
-          <div class="status-item">
-            <span class="status-label">Status do Deploy:</span>
-            <span id="deploy-status" class="status-value">Aguardando...</span>
-          </div>
-        </div>
-      </div>
-      
-      <div class="deploy-buttons mt-3">
-        <button id="btn-salvar-contrato" type="button" class="btn btn-primary me-2">
-          <i class="bi bi-file-code me-1"></i>Gerar Contrato
-        </button>
-        <button id="btn-compilar-contrato" type="button" class="btn btn-warning me-2" disabled>
-          <i class="bi bi-gear-fill me-1"></i>Compilar
-        </button>
-        <button id="btn-deploy-contrato" type="button" class="btn btn-success me-2" disabled>
-          <i class="bi bi-rocket-takeoff me-1"></i>Deploy
-        </button>
-      </div>
+
+  <!-- Etapa 2: Criação e Deploy -->
+  <div class="etapa-card">
+    <div class="etapa-header">
+      <h4><i class="bi bi-2-circle-fill text-warning me-2"></i>Criação do Contrato</h4>
+      <p class="text-muted">Gerar, compilar e fazer deploy</p>
     </div>
-  </div>
-  
-  <!-- Seção MetaMask integrada -->
-  <div class="metamask-section mt-4" id="metamask-section" style="display: none;">
-    <h5><i class="bi bi-wallet2 me-2"></i>Adicionar ao MetaMask</h5>
-    <div class="metamask-controls">
-      <div class="row g-2">
-        <div class="col-12">
-          <div class="contract-info">
-            <p><strong>Endereço do Contrato:</strong> <span id="contract-address-display">-</span></p>
-            <p><strong>Rede:</strong> <span id="network-name-display">-</span></p>
+    
+    <div class="processo-steps">
+      <div class="step-item">
+        <div class="step-content">
+          <div class="step-info">
+            <h6><i class="bi bi-file-code me-1"></i>Gerar Código</h6>
+            <span id="contract-status" class="step-status">Aguardando...</span>
           </div>
-        </div>
-        <div class="col-12">
-          <div class="status-item">
-            <span class="status-label">Status MetaMask:</span>
-            <span id="metamask-status" class="status-value">Aguardando deploy...</span>
-          </div>
-        </div>
-      </div>
-      
-      <div class="metamask-buttons mt-3">
-        <button id="btn-add-metamask" type="button" class="btn btn-success me-2" disabled>
-          <i class="bi bi-wallet2 me-1"></i>Adicionar ao MetaMask
-        </button>
-        <button id="btn-verify-contract" type="button" class="btn btn-info me-2" style="display: none;">
-          <i class="bi bi-shield-check me-1"></i>Verificar Contrato
-        </button>
-        <button id="btn-share-link" type="button" class="btn btn-outline-primary" style="display: none;">
-          <i class="bi bi-share me-1"></i>Compartilhar Link
-        </button>
-      </div>
-      
-      <div id="share-link-field" class="mt-3" style="display: none;">
-        <div class="input-group">
-          <input type="text" class="form-control" id="generated-link" readonly>
-          <button class="btn btn-outline-secondary" type="button" onclick="navigator.clipboard.writeText(document.getElementById('generated-link').value)">
-            <i class="bi bi-clipboard"></i> Copiar
+          <button id="btn-salvar-contrato" type="button" class="btn btn-primary">
+            <i class="bi bi-play-fill me-1"></i>Gerar
           </button>
+        </div>
+      </div>
+      
+      <div class="step-item">
+        <div class="step-content">
+          <div class="step-info">
+            <h6><i class="bi bi-gear-fill me-1"></i>Compilar</h6>
+            <span id="compile-status" class="step-status">Aguardando...</span>
+          </div>
+          <button id="btn-compilar-contrato" type="button" class="btn btn-warning" disabled>
+            <i class="bi bi-play-fill me-1"></i>Compilar
+          </button>
+        </div>
+      </div>
+      
+      <div class="step-item">
+        <div class="step-content">
+          <div class="step-info">
+            <h6><i class="bi bi-rocket-takeoff me-1"></i>Deploy</h6>
+            <span id="deploy-status" class="step-status">Aguardando...</span>
+          </div>
+          <button id="btn-deploy-contrato" type="button" class="btn btn-success" disabled>
+            <i class="bi bi-play-fill me-1"></i>Deploy
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Etapa 3: Finalização -->
+  <div class="etapa-card" id="finalizacao-section" style="display: none;">
+    <div class="etapa-header">
+      <h4><i class="bi bi-3-circle-fill text-success me-2"></i>Finalização</h4>
+      <p class="text-muted">Verificar e adicionar ao MetaMask</p>
+    </div>
+    
+    <div class="contract-result">
+      <div class="result-info">
+        <h6><i class="bi bi-check-circle-fill text-success me-1"></i>Contrato Criado!</h6>
+        <div class="contract-details">
+          <p><strong>Endereço:</strong> <span id="contract-address-display" class="address-display">-</span></p>
+          <p><strong>Rede:</strong> <span id="network-name-display">-</span></p>
+        </div>
+      </div>
+      
+      <div class="final-actions">
+        <div class="row g-2">
+          <div class="col-md-6">
+            <div class="action-item">
+              <h6><i class="bi bi-shield-check me-1"></i>Verificação</h6>
+              <div id="verification-status" class="verification-container">
+                <span class="step-status">Iniciando...</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="col-md-6">
+            <div class="action-item">
+              <h6><i class="bi bi-wallet2 me-1"></i>MetaMask</h6>
+              <div class="metamask-container">
+                <div id="metamask-status" class="step-status mb-2">Pronto para adicionar</div>
+                <button id="btn-add-metamask" type="button" class="btn btn-success btn-sm">
+                  <i class="bi bi-plus-circle me-1"></i>Adicionar Token
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="share-section mt-3" id="share-section" style="display: none;">
+          <button id="btn-share-link" type="button" class="btn btn-outline-primary">
+            <i class="bi bi-share me-1"></i>Compartilhar Token
+          </button>
+          <div id="share-link-field" class="mt-2" style="display: none;">
+            <div class="input-group">
+              <input type="text" class="form-control" id="generated-link" readonly>
+              <button class="btn btn-outline-secondary" type="button" onclick="navigator.clipboard.writeText(document.getElementById('generated-link').value)">
+                <i class="bi bi-clipboard"></i>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>

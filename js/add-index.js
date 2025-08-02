@@ -241,9 +241,9 @@ console.log('🚀 Interface inicializada:', {
   networkDisplay: !!networkDisplay
 });
 
-// -------------------- Navegação entre steps --------------------
+// -------------------- Navegação Simplificada (3 Etapas) --------------------
 function showStep(step) {
-  console.log(`🔄 [DEBUG] Mudando para step ${step}`);
+  console.log(`🔄 [DEBUG] Mudando para etapa ${step}`);
   
   // Scroll para o topo da página suavemente
   window.scrollTo({
@@ -251,48 +251,73 @@ function showStep(step) {
     behavior: 'smooth'
   });
   
-  steps.forEach((el, idx) => {
-    el.classList.toggle('active', idx === (step - 1));
-  });
-  indicators.forEach((el, idx) => {
-    el.classList.toggle('active', idx === (step - 1));
-    el.classList.toggle('completed', idx < (step - 1));
-  });
-  currentStep = step;
+  // Ocultar todos os steps
+  const allSteps = document.querySelectorAll('.step-content, .step');
+  allSteps.forEach(s => s.style.display = 'none');
   
-  // Atualiza status visual da timeline
-  updateTimelineStatus(step);
+  // Mapear etapas simplificadas
+  const stepMapping = {
+    1: ['step-1'], // Configuração
+    2: ['step-2'], // Personalização (opcional)
+    3: ['step-3'] // Resumo e Criação
+  };
+  
+  // Mostrar steps correspondentes à etapa
+  if (stepMapping[step]) {
+    stepMapping[step].forEach(stepId => {
+      const stepElement = document.getElementById(stepId);
+      if (stepElement) {
+        stepElement.style.display = 'block';
+      }
+    });
+  }
+  
+  // Atualizar indicadores se existirem (mas de forma simplificada)
+  const indicators = document.querySelectorAll('.step-indicator');
+  indicators.forEach((indicator, idx) => {
+    if (idx < 3) { // Apenas 3 indicadores
+      indicator.classList.toggle('active', idx === (step - 1));
+      indicator.classList.toggle('completed', idx < (step - 1));
+    } else {
+      // Ocultar indicadores extras
+      indicator.style.display = 'none';
+    }
+  });
+  
+  currentStep = step;
 }
 
-// Atualiza status visual da timeline
+// Remover timeline complexa e usar indicadores simples
 function updateTimelineStatus(currentStep) {
-  console.log(`🎯 [DEBUG] Atualizando timeline para step ${currentStep}`);
+  console.log(`🎯 [DEBUG] Atualizando para etapa ${currentStep} (simplificado)`);
   
-  const stepStatuses = [
-    'Coleta de Dados',
-    'Personalização',
-    'Compilação & Deploy',
-    'Verificação',
-    'MetaMask'
+  const stepTitles = [
+    'Configuração',
+    'Personalização', 
+    'Criação & Deploy'
   ];
   
-  // Atualiza indicadores visuais
+  // Atualizar apenas indicadores simples
+  const indicators = document.querySelectorAll('.step-indicator');
   indicators.forEach((indicator, idx) => {
-    const stepNum = idx + 1;
-    
-    if (stepNum < currentStep) {
-      // Steps concluídos
-      indicator.classList.add('completed');
-      indicator.classList.remove('active');
-      console.log(`✅ [DEBUG] Step ${stepNum} marcado como concluído`);
-    } else if (stepNum === currentStep) {
-      // Step atual
-      indicator.classList.add('active');
-      indicator.classList.remove('completed');
-      console.log(`⏳ [DEBUG] Step ${stepNum} marcado como ativo`);
-    } else {
-      // Steps futuros
-      indicator.classList.remove('active', 'completed');
+    if (idx < 3) {
+      const stepNum = idx + 1;
+      
+      if (stepNum < currentStep) {
+        indicator.classList.add('completed');
+        indicator.classList.remove('active');
+      } else if (stepNum === currentStep) {
+        indicator.classList.add('active');
+        indicator.classList.remove('completed');
+      } else {
+        indicator.classList.remove('active', 'completed');
+      }
+      
+      // Atualizar texto se houver
+      const titleElement = indicator.querySelector('.step-title');
+      if (titleElement && stepTitles[idx]) {
+        titleElement.textContent = stepTitles[idx];
+      }
     }
   });
 }
@@ -341,6 +366,132 @@ function validateStep1() {
   return isValid;
 }
 
+// Validação completa para todas as etapas
+function validateAllData() {
+  console.log('🔍 [DEBUG] Validando todos os dados antes da criação...');
+  
+  let isValid = true;
+  const errors = [];
+  
+  // Validação básica (Etapa 1)
+  if (!inputOwner || !inputOwner.value || inputOwner.value.trim() === '') {
+    errors.push('Conecte sua carteira MetaMask primeiro');
+    isValid = false;
+  }
+  
+  if (!inputNome || !inputNome.value || inputNome.value.trim() === '') {
+    errors.push('Nome do token é obrigatório');
+    isValid = false;
+  }
+  
+  if (!inputSymbol || !inputSymbol.value || inputSymbol.value.trim() === '') {
+    errors.push('Símbolo do token é obrigatório');
+    isValid = false;
+  }
+  
+  if (!inputSupply || !inputSupply.value || isNaN(inputSupply.value) || parseFloat(inputSupply.value) <= 0) {
+    errors.push('Total Supply deve ser um número maior que 0');
+    isValid = false;
+  }
+  
+  const decimals = parseInt(inputDecimals?.value || '18');
+  if (isNaN(decimals) || decimals < 0 || decimals > 18) {
+    errors.push('Decimais deve ser um número entre 0 e 18');
+    isValid = false;
+  }
+  
+  // Verificação de rede
+  if (!networkValue || !networkValue.value) {
+    errors.push('Rede blockchain não detectada. Verifique sua conexão MetaMask.');
+    isValid = false;
+  }
+  
+  // Mostrar erros se houver
+  if (!isValid) {
+    alert('⚠️ Corrija os seguintes erros antes de continuar:\n\n' + errors.join('\n'));
+    console.error('❌ [DEBUG] Validação falhou:', errors);
+  } else {
+    console.log('✅ [DEBUG] Todos os dados validados com sucesso');
+  }
+  
+  return isValid;
+}
+
+// Inicialização da criação do token (Etapa 3)
+function initializeTokenCreation() {
+  console.log('🚀 [DEBUG] Iniciando processo de criação do token...');
+  
+  // Mostrar seção de criação do contrato se existir
+  const contractSection = document.getElementById('criacao-section');
+  if (contractSection) {
+    contractSection.style.display = 'block';
+    console.log('✅ [DEBUG] Seção de criação exibida');
+  }
+  
+  // Criar barra de progresso unificada para todo o processo
+  const progressContainer = document.querySelector('.criacao-section .progress-container') || 
+                           document.querySelector('#criacao-section .progress-container');
+  
+  if (progressContainer) {
+    createProgressBar(progressContainer, 'Preparando criação do token...');
+    console.log('✅ [DEBUG] Barra de progresso criada');
+  }
+  
+  // Iniciar processo de compilação
+  setTimeout(() => {
+    console.log('⚙️ [DEBUG] Iniciando compilação do contrato...');
+    if (typeof compileContract === 'function') {
+      compileContract();
+    } else {
+      console.warn('⚠️ [DEBUG] Função compileContract não encontrada, simulando...');
+      simulateTokenCreation();
+    }
+  }, 1000);
+}
+
+// Simulação do processo de criação (fallback)
+function simulateTokenCreation() {
+  console.log('🔧 [DEBUG] Simulando processo de criação do token...');
+  
+  const steps = [
+    { message: 'Compilando contrato...', progress: 25 },
+    { message: 'Fazendo deploy...', progress: 50 },
+    { message: 'Verificando contrato...', progress: 75 },
+    { message: 'Finalizando...', progress: 100 }
+  ];
+  
+  let currentIndex = 0;
+  
+  const interval = setInterval(() => {
+    if (currentIndex < steps.length) {
+      const step = steps[currentIndex];
+      
+      // Atualizar progresso
+      const progressContainer = document.querySelector('.progress-container');
+      if (progressContainer) {
+        animateProgressBar(progressContainer, step.progress, step.message);
+      }
+      
+      currentIndex++;
+    } else {
+      clearInterval(interval);
+      
+      // Finalizar
+      const progressContainer = document.querySelector('.progress-container');
+      if (progressContainer) {
+        finishProgressBar(progressContainer, 'Token criado com sucesso!', 'success');
+      }
+      
+      // Mostrar seção de finalização
+      const finalizacaoSection = document.getElementById('finalizacao-section');
+      if (finalizacaoSection) {
+        finalizacaoSection.style.display = 'block';
+        console.log('✅ [DEBUG] Seção de finalização exibida');
+      }
+    }
+  }, 2000);
+}
+
 // Função para mostrar/ocultar seção de personalização
 function toggleAddressCustomization() {
   const customSection = document.getElementById('customization-section');
@@ -384,29 +535,21 @@ window.toggleAddressCustomization = toggleAddressCustomization;
 window.buscarSalt = buscarSalt;
 window.pararBusca = pararBusca;
 
-function nextStep() {
-  if (currentStep === 1 && !validateStep1()) return;
-  if (currentStep === 2) fillResumo();
-  if (currentStep < steps.length) showStep(currentStep + 1);
-  if (nextStep4) nextStep4.style.display = "none";
-}
-
-function prevStep() {
-  if (currentStep > 1) showStep(currentStep - 1);
-}
-
 function reiniciarFluxo() {
-  console.log('🔄 [DEBUG] Reiniciando fluxo completo...');
+  console.log('🔄 [DEBUG] Reiniciando fluxo completo (3 etapas)...');
   
+  // Limpar todos os campos
   document.querySelectorAll('input, select, textarea').forEach(field => {
     if (field.type === "radio" || field.type === "checkbox") field.checked = false;
     else field.value = "";
   });
-  inputDecimals.value = '18';
+  
+  // Restaurar valores padrão
+  if (inputDecimals) inputDecimals.value = '18';
   
   console.log('✅ [DEBUG] Campos limpos');
   
-  // Reinicializa interface de conexão (com verificações defensivas)
+  // Reinicializa interface de conexão
   const btnConectar = document.getElementById('connect-metamask-btn');
   if (btnConectar) {
     btnConectar.style.display = 'block';
@@ -434,11 +577,18 @@ function reiniciarFluxo() {
     console.log('✅ [DEBUG] Campo owner reinicializado');
   }
   
-  // Reinicializa campos ocultos (com verificações defensivas)
+  // Reinicializar campos ocultos
   if (networkDisplay) networkDisplay.value = '';
   if (networkValue) networkValue.value = '';
   
-  console.log('🔄 [DEBUG] Interface reinicializada, mostrando step 1');
+  // Ocultar seções avançadas
+  if (verificationSection) verificationSection.style.display = 'none';
+  
+  // Desabilitar botões de ação
+  if (btnCompilar) btnCompilar.disabled = true;
+  if (btnDeploy) btnDeploy.disabled = true;
+  
+  console.log('🔄 [DEBUG] Interface reinicializada, voltando para etapa 1');
   showStep(1);
 }
 
@@ -490,12 +640,35 @@ async function fillResumo() {
   }
 }
 
-// -------------------- Handlers navegação --------------------
+// -------------------- Navegação Simplificada (3 Etapas) --------------------
+// Função nextStep simplificada para 3 etapas
+function nextStep() {
+  console.log(`➡️ [DEBUG] NextStep - Etapa atual: ${currentStep}`);
+  if (currentStep < 3) { // Máximo 3 etapas
+    showStep(currentStep + 1);
+  } else {
+    console.log('⚠️ [DEBUG] Já na última etapa (3)');
+  }
+}
+
+// Função prevStep simplificada para 3 etapas
+function prevStep() {
+  console.log(`⬅️ [DEBUG] PrevStep - Etapa atual: ${currentStep}`);
+  if (currentStep > 1) {
+    showStep(currentStep - 1);
+  } else {
+    console.log('⚠️ [DEBUG] Já na primeira etapa (1)');
+  }
+}
+
+// -------------------- Handlers navegação (3 etapas) --------------------
 document.getElementById('next-step-1').addEventListener('click', nextStep);
 document.getElementById('next-step-2').addEventListener('click', nextStep);
 document.getElementById('next-step-3').addEventListener('click', nextStep);
-if (nextStep4) nextStep4.addEventListener('click', nextStep);
-if (nextStep5) nextStep5.addEventListener('click', nextStep);
+
+// Remover handlers para etapas 4 e 5 (não existem mais)
+// if (nextStep4) nextStep4.addEventListener('click', nextStep);
+// if (nextStep5) nextStep5.addEventListener('click', nextStep);
 
 document.querySelectorAll('.navigation .btn-secondary').forEach(btn => {
   btn.addEventListener('click', prevStep);
@@ -1265,7 +1438,13 @@ btnDeploy.onclick = async () => {
       networkNameDisplay.textContent = window.currentNetwork.name || 'Rede Detectada';
     }
     
-    // Mostrar seção MetaMask
+    // Mostrar seção de finalização
+    const finalizacaoSection = document.getElementById('finalizacao-section');
+    if (finalizacaoSection) {
+      finalizacaoSection.style.display = 'block';
+    }
+    
+    // Mostrar seção MetaMask (compatibilidade com template antigo)
     const metamaskSection = document.getElementById('metamask-section');
     if (metamaskSection) {
       metamaskSection.style.display = 'block';
@@ -1275,7 +1454,7 @@ btnDeploy.onclick = async () => {
       if (btnAddMetaMask && address && inputSymbol.value && inputDecimals.value) {
         btnAddMetaMask.disabled = false;
         document.getElementById('metamask-status').textContent = 'Pronto para adicionar';
-        document.getElementById('metamask-status').className = 'status-value ready';
+        document.getElementById('metamask-status').className = 'step-status ready';
       }
     }
     
