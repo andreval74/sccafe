@@ -257,7 +257,7 @@
                 </div>
                 
                 <div class="d-flex justify-content-between mt-4">
-                  <button class="btn btn-outline-secondary">
+                  <button onclick="prevStep()" class="btn btn-outline-secondary">
                     <i class="bi bi-arrow-left me-1"></i>Anterior
                   </button>
                   <button id="next-step-2" class="btn btn-primary">
@@ -265,14 +265,15 @@
                   </button>
                 </div>
               </div>
-              <!-- Step 3: Resumo -->
+              <!-- Step 3: Resumo e Criação -->
               <div class="step-content" id="step-3">
                 <h3 class="mb-4">
-                  <i class="bi bi-clipboard-check text-success me-2"></i>Resumo do Token
+                  <i class="bi bi-clipboard-check text-success me-2"></i>Resumo e Criação do Token
                 </h3>
-                <p class="text-muted mb-4">Revise os dados antes do deploy.</p>
+                <p class="text-muted mb-4">Revise os dados e crie seu token.</p>
                 
-                <div class="card">
+                <!-- Resumo dos dados -->
+                <div class="card mb-4">
                   <div class="card-header bg-success text-white">
                     <h5 class="mb-0">
                       <i class="bi bi-clipboard-data me-2"></i>Resumo do Token
@@ -285,64 +286,44 @@
                   </div>
                 </div>
                 
-                <div class="d-flex justify-content-between mt-4">
-                  <button class="btn btn-outline-secondary">
-                    <i class="bi bi-arrow-left me-1"></i>Anterior
-                  </button>
-                  <button id="next-step-3" class="btn btn-primary">
-                    Próximo: Deploy <i class="bi bi-arrow-right ms-1"></i>
-                  </button>
-                </div>
-              </div>
-              <!-- Step 4: Deploy do Contrato -->
-              <div class="step-content" id="step-4">
-                <h3 class="mb-4">
-                  <i class="bi bi-rocket-takeoff text-primary me-2"></i>Deploy do Contrato
-                </h3>
-                <p class="text-muted mb-4">Agora vamos deployar seu token na blockchain. Certifique-se de ter BNB suficiente para o gas.</p>
-                
+                <!-- Seção de Criação -->
                 <div class="card mb-4">
-                  <div class="card-header bg-info text-white">
+                  <div class="card-header bg-primary text-white">
                     <h5 class="mb-0">
-                      <i class="bi bi-list-ol me-2"></i>Etapas do Deploy
+                      <i class="bi bi-rocket-takeoff me-2"></i>Criação do Token
                     </h5>
                   </div>
                   <div class="card-body">
-                    <ol class="mb-0">
-                      <li><strong>Gerar Contrato:</strong> Criar arquivo .sol com seus dados</li>
-                      <li><strong>Compilar:</strong> Transformar código em bytecode</li>
-                      <li><strong>Deploy:</strong> Enviar para a blockchain</li>
-                    </ol>
+                    <p class="mb-3">Agora vamos criar seu token na blockchain. Certifique-se de ter BNB suficiente para o gas.</p>
+                    
+                    <div class="d-flex flex-wrap gap-3 mb-4">
+                      <button id="btn-salvar-contrato" class="btn btn-success">
+                        <i class="bi bi-file-earmark-code me-1"></i>Gerar Contrato
+                      </button>
+                      <button id="btn-compilar-contrato" class="btn btn-warning" disabled>
+                        <i class="bi bi-tools me-1"></i>Compilar
+                      </button>
+                      <button id="btn-deploy-contrato" class="btn btn-primary" disabled>
+                        <i class="bi bi-rocket-takeoff me-1"></i>Deploy Token
+                      </button>
+                    </div>
+                    
+                    <!-- Status Sections -->
+                    <div id="contract-status" class="mb-3"></div>
+                    <div id="compile-status" class="mb-3"></div>
+                    <div id="deploy-status" class="mb-3"></div>
                   </div>
                 </div>
-
-                <div class="d-flex flex-wrap gap-3 mb-4">
-                  <button id="btn-salvar-contrato" class="btn btn-success">
-                    <i class="bi bi-file-earmark-code me-1"></i>Gerar Contrato (.sol)
-                  </button>
-                  <button id="btn-compilar-contrato" class="btn btn-warning" disabled>
-                    <i class="bi bi-tools me-1"></i>Compilar
-                  </button>
-                  <button id="btn-deploy-contrato" class="btn btn-primary" disabled>
-                    <i class="bi bi-rocket-takeoff me-1"></i>Deploy Token
-                  </button>
-                </div>
-                
-                <!-- Status Sections -->
-                <div id="contract-status" class="mb-3"></div>
-                <div id="compile-status" class="mb-3"></div>
-                <div id="deploy-status" class="mb-3"></div>
                 
                 <div class="d-flex justify-content-between mt-4">
-                  <button class="btn btn-outline-secondary">
+                  <button onclick="prevStep()" class="btn btn-outline-secondary">
                     <i class="bi bi-arrow-left me-1"></i>Anterior
                   </button>
-                  <button id="next-step-4" class="btn btn-primary" style="display: none;">
-                    Próximo: Verificação <i class="bi bi-arrow-right ms-1"></i>
+                  <button onclick="reiniciarFluxo()" class="btn btn-success" style="display: none;" id="btn-finalizado">
+                    <i class="bi bi-arrow-clockwise me-1"></i>Criar Outro Token
                   </button>
                 </div>
               </div>
-      </div>
 
               <!-- Step 5: Verificação do Contrato -->
               <div class="step-content" id="step-5">
@@ -478,7 +459,7 @@
                 </div>
 
                 <div class="d-flex flex-wrap gap-3 mb-4">
-                  <button id="btn-add-metamask" class="btn btn-success btn-lg">
+                  <button id="btn-add-metamask" class="btn btn-success">
                     <i class="bi bi-plus-circle me-1"></i>Adicionar no MetaMask
                   </button>
                   <button id="btn-share-link" class="btn btn-primary" style="display:none;">

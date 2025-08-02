@@ -225,6 +225,104 @@ let currentStep = 1;
 if (btnCompilar) btnCompilar.disabled = true;
 if (btnDeploy) btnDeploy.disabled = true;
 
+// -------------------- Sistema de Gerenciamento de Estados dos Botões --------------------
+
+/**
+ * Define o estado de um botão com feedback visual consistente
+ * @param {HTMLElement} button - O elemento do botão
+ * @param {string} state - Estado: 'disabled', 'enabled', 'processing', 'completed'
+ * @param {string} originalText - Texto original do botão (opcional)
+ */
+function setButtonState(button, state, originalText = null) {
+  if (!button) return;
+  
+  // Salvar texto original se não foi salvo ainda
+  if (!button.dataset.originalText && originalText) {
+    button.dataset.originalText = originalText;
+  }
+  
+  // Remover classes de estado anterior
+  button.classList.remove('btn-processing', 'btn-completed');
+  
+  switch (state) {
+    case 'disabled':
+      button.disabled = true;
+      button.style.cursor = 'not-allowed';
+      break;
+      
+    case 'enabled':
+      button.disabled = false;
+      button.style.cursor = 'pointer';
+      if (button.dataset.originalText) {
+        button.innerHTML = button.dataset.originalText;
+      }
+      break;
+      
+    case 'processing':
+      button.disabled = true;
+      button.classList.add('btn-processing');
+      button.style.cursor = 'not-allowed';
+      // Manter o texto mas adicionar indicador visual via CSS
+      break;
+      
+    case 'completed':
+      button.disabled = false;
+      button.classList.add('btn-completed');
+      button.style.cursor = 'pointer';
+      break;
+  }
+  
+  console.log(`🎯 [DEBUG] Botão ${button.id} estado alterado para: ${state}`);
+}
+
+/**
+ * Habilita o próximo botão na sequência
+ * @param {HTMLElement} currentButton - Botão atual que foi completado
+ * @param {HTMLElement} nextButton - Próximo botão a ser habilitado
+ */
+function enableNextButton(currentButton, nextButton) {
+  if (currentButton) {
+    setButtonState(currentButton, 'completed');
+  }
+  if (nextButton) {
+    setButtonState(nextButton, 'enabled');
+  }
+}
+
+// Inicializar estados dos botões
+function initializeButtonStates() {
+  console.log('🔄 [DEBUG] Inicializando estados dos botões...');
+  
+  // Salvar textos originais e definir estados iniciais
+  if (btnSalvarContrato) {
+    setButtonState(btnSalvarContrato, 'enabled', btnSalvarContrato.innerHTML);
+  }
+  
+  if (btnCompilar) {
+    setButtonState(btnCompilar, 'disabled', btnCompilar.innerHTML);
+  }
+  
+  if (btnDeploy) {
+    setButtonState(btnDeploy, 'disabled', btnDeploy.innerHTML);
+  }
+  
+  if (btnVerificationInfo) {
+    setButtonState(btnVerificationInfo, 'disabled', btnVerificationInfo.innerHTML);
+  }
+  
+  if (btnAutoVerify) {
+    setButtonState(btnAutoVerify, 'disabled', btnAutoVerify.innerHTML);
+  }
+  
+  const btnAddMetaMask = document.getElementById('btn-add-metamask');
+  if (btnAddMetaMask) {
+    setButtonState(btnAddMetaMask, 'disabled', btnAddMetaMask.innerHTML);
+  }
+}
+
+// Chamar inicialização
+initializeButtonStates();
+
 // Inicializa o novo layout de conexão (com verificações defensivas)
 if (walletStatus) {
   walletStatus.value = 'Clique em "Conectar" para iniciar';
@@ -252,24 +350,16 @@ function showStep(step) {
   });
   
   // Ocultar todos os steps
-  const allSteps = document.querySelectorAll('.step-content, .step');
+  const allSteps = document.querySelectorAll('.step-content');
   allSteps.forEach(s => s.style.display = 'none');
   
-  // Mapear etapas simplificadas
-  const stepMapping = {
-    1: ['step-1'], // Configuração
-    2: ['step-2'], // Personalização (opcional)
-    3: ['step-3'] // Resumo e Criação
-  };
-  
-  // Mostrar steps correspondentes à etapa
-  if (stepMapping[step]) {
-    stepMapping[step].forEach(stepId => {
-      const stepElement = document.getElementById(stepId);
-      if (stepElement) {
-        stepElement.style.display = 'block';
-      }
-    });
+  // Mostrar step específico (1, 2 ou 3)
+  const stepElement = document.getElementById(`step-${step}`);
+  if (stepElement) {
+    stepElement.style.display = 'block';
+  } else {
+    console.warn(`⚠️ [DEBUG] Step ${step} não encontrado`);
+    return;
   }
   
   // Atualizar timeline simplificada
@@ -705,10 +795,51 @@ function prevStep() {
   }
 }
 
+// Função para reiniciar o fluxo
+function reiniciarFluxo() {
+  console.log('🔄 [DEBUG] Reiniciando fluxo...');
+  
+  // Resetar step para 1
+  currentStep = 1;
+  showStep(1);
+  
+  // Limpar campos
+  if (inputNome) inputNome.value = '';
+  if (inputSymbol) inputSymbol.value = '';
+  if (inputDecimals) inputDecimals.value = '18';
+  if (inputSupply) inputSupply.value = '';
+  if (inputOwner) inputOwner.value = '';
+  if (inputImage) inputImage.value = '';
+  
+  // Resetar estados dos botões
+  initializeButtonStates();
+  
+  // Limpar status
+  if (contractStatus) contractStatus.innerHTML = '';
+  if (compileStatus) compileStatus.innerHTML = '';
+  if (deployStatus) deployStatus.innerHTML = '';
+  
+  // Ocultar botão finalizado
+  const btnFinalizado = document.getElementById('btn-finalizado');
+  if (btnFinalizado) {
+    btnFinalizado.style.display = 'none';
+  }
+  
+  // Limpar dados globais
+  window.contractAddress = '';
+  window.contratoSource = '';
+  
+  console.log('✅ [DEBUG] Fluxo reiniciado com sucesso');
+}
+
+// Tornar funções globais para uso em onclick
+window.reiniciarFluxo = reiniciarFluxo;
+window.prevStep = prevStep;
+
 // -------------------- Handlers navegação (3 etapas) --------------------
 document.getElementById('next-step-1').addEventListener('click', nextStep);
 document.getElementById('next-step-2').addEventListener('click', nextStep);
-document.getElementById('next-step-3').addEventListener('click', nextStep);
+// Note: next-step-3 não existe mais, pois step-3 é o final
 
 // Remover handlers para etapas 4 e 5 (não existem mais)
 // if (nextStep4) nextStep4.addEventListener('click', nextStep);
@@ -1109,6 +1240,9 @@ function updateLoadingProgress(percent, text) {
 btnSalvarContrato.onclick = () => {
   console.log('💾 [DEBUG] Iniciando geração do contrato...');
   
+  // Definir estado de processamento
+  setButtonState(btnSalvarContrato, 'processing');
+  
   // Atualiza status
   updateContractStatus('⏳ Gerando contrato...', 'processing');
   
@@ -1127,7 +1261,8 @@ btnSalvarContrato.onclick = () => {
     owner: ownerChecksum,
     image: inputImage.value
   }, () => {
-    btnCompilar.disabled = false;
+    // Marcar como concluído e habilitar próximo
+    enableNextButton(btnSalvarContrato, btnCompilar);
     
     // Atualiza status de sucesso
     updateContractStatus('✅ Contrato gerado e salvo com sucesso!', 'success');
@@ -1149,6 +1284,9 @@ btnCompilar.onclick = async () => {
   }
   
   console.log('🚀 [DEBUG] Iniciando compilação via API...');
+  
+  // Definir estado de processamento
+  setButtonState(btnCompilar, 'processing');
   updateCompileStatus('🔄 Compilando contrato...', 'processing');
   
   let progressData = startCompileProgressBar();
@@ -1158,6 +1296,9 @@ btnCompilar.onclick = async () => {
     console.log('✅ [DEBUG] Compilação concluída:', result);
     
     stopCompileProgressBar(progressData, true);
+    
+    // Marcar como concluído e habilitar próximo
+    enableNextButton(btnCompilar, btnDeploy);
     updateCompileStatus('✅ Contrato compilado com sucesso!', 'success');
     updateDeployStatus('⏳ Pronto para deploy', 'ready');
     
@@ -1165,7 +1306,9 @@ btnCompilar.onclick = async () => {
     console.error('❌ [DEBUG] Erro na compilação:', error);
     stopCompileProgressBar(progressData, false);
     updateCompileStatus('❌ Erro na compilação: ' + (error.message || error), 'error');
-    btnCompilar.disabled = false;
+    
+    // Voltar ao estado habilitado em caso de erro
+    setButtonState(btnCompilar, 'enabled');
   }
 };
 
@@ -1484,6 +1627,9 @@ function detectNetworkById(chainIdHex) {
 // -------------------- Deploy Handler --------------------
 btnDeploy.onclick = async () => {
   console.log('🚀 [DEBUG] Iniciando processo de deploy...');
+  
+  // Definir estado de processamento
+  setButtonState(btnDeploy, 'processing');
   updateDeployStatus('🔄 Fazendo deploy do contrato...', 'processing');
   
   let progressData = startDeployProgressBar();
@@ -1493,7 +1639,20 @@ btnDeploy.onclick = async () => {
     console.log('✅ [DEBUG] Deploy concluído com sucesso!');
     
     stopDeployProgressBar(progressData, true);
+    
+    // Marcar como concluído
+    setButtonState(btnDeploy, 'completed');
     updateDeployStatus('✅ Contrato implantado com sucesso!', 'success');
+    
+    // Mostrar botão de finalizar
+    const btnFinalizado = document.getElementById('btn-finalizado');
+    if (btnFinalizado) {
+      btnFinalizado.style.display = 'inline-block';
+    }
+    
+    // Habilitar botões de verificação
+    if (btnVerificationInfo) setButtonState(btnVerificationInfo, 'enabled');
+    if (btnAutoVerify) setButtonState(btnAutoVerify, 'enabled');
     
     // Atualizar informações do contrato no resumo
     const address = window.contractAddress || '';
@@ -1521,7 +1680,7 @@ btnDeploy.onclick = async () => {
       // Habilitar botão do MetaMask
       const btnAddMetaMask = document.getElementById('btn-add-metamask');
       if (btnAddMetaMask && address && inputSymbol.value && inputDecimals.value) {
-        btnAddMetaMask.disabled = false;
+        setButtonState(btnAddMetaMask, 'enabled');
         document.getElementById('metamask-status').textContent = 'Pronto para adicionar';
         document.getElementById('metamask-status').className = 'step-status ready';
       }
@@ -1557,7 +1716,9 @@ btnDeploy.onclick = async () => {
     console.error('❌ [DEBUG] Erro no deploy:', error);
     stopDeployProgressBar(progressData, false);
     updateDeployStatus('❌ Erro no deploy: ' + (error.message || error), 'error');
-    btnDeploy.disabled = false;
+    
+    // Voltar ao estado habilitado em caso de erro
+    setButtonState(btnDeploy, 'enabled');
   }
   
   // Após deploy, preencher campos do passo MetaMask
@@ -1567,15 +1728,18 @@ btnDeploy.onclick = async () => {
   }
   
   // Habilita o botão MetaMask se todos os campos estiverem preenchidos
+  const btnAddMetaMask = document.getElementById('btn-add-metamask');
   if (btnAddMetaMask) {
     if (address && inputSymbol.value && inputDecimals.value) {
-      btnAddMetaMask.disabled = false;
+      setButtonState(btnAddMetaMask, 'enabled');
     } else {
-      btnAddMetaMask.disabled = true;
+      setButtonState(btnAddMetaMask, 'disabled');
     }
   }
   
   // Esconde botão de compartilhar link e campo de link ao novo deploy
+  const btnShareLink = document.getElementById('btn-share-link');
+  const shareLinkField = document.getElementById('share-link-field');
   if (btnShareLink) btnShareLink.style.display = 'none';
   if (shareLinkField) shareLinkField.style.display = 'none';
 };
