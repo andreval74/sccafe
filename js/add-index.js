@@ -665,9 +665,23 @@ function reiniciarFluxo() {
   // Ocultar seções avançadas
   if (verificationSection) verificationSection.style.display = 'none';
   
-  // Desabilitar botões de ação
-  if (btnCompilar) btnCompilar.disabled = true;
-  if (btnDeploy) btnDeploy.disabled = true;
+  // Reinicializar estados dos botões
+  initializeButtonStates();
+  
+  // Limpar status
+  if (contractStatus) contractStatus.innerHTML = '';
+  if (compileStatus) compileStatus.innerHTML = '';
+  if (deployStatus) deployStatus.innerHTML = '';
+  
+  // Ocultar botão finalizado
+  const btnFinalizado = document.getElementById('btn-finalizado');
+  if (btnFinalizado) {
+    btnFinalizado.style.display = 'none';
+  }
+  
+  // Limpar dados globais
+  window.contractAddress = '';
+  window.contratoSource = '';
   
   console.log('🔄 [DEBUG] Interface reinicializada, voltando para etapa 1');
   showStep(1);
@@ -793,43 +807,6 @@ function prevStep() {
   } else {
     console.log('⚠️ [DEBUG] Já na primeira etapa (1)');
   }
-}
-
-// Função para reiniciar o fluxo
-function reiniciarFluxo() {
-  console.log('🔄 [DEBUG] Reiniciando fluxo...');
-  
-  // Resetar step para 1
-  currentStep = 1;
-  showStep(1);
-  
-  // Limpar campos
-  if (inputNome) inputNome.value = '';
-  if (inputSymbol) inputSymbol.value = '';
-  if (inputDecimals) inputDecimals.value = '18';
-  if (inputSupply) inputSupply.value = '';
-  if (inputOwner) inputOwner.value = '';
-  if (inputImage) inputImage.value = '';
-  
-  // Resetar estados dos botões
-  initializeButtonStates();
-  
-  // Limpar status
-  if (contractStatus) contractStatus.innerHTML = '';
-  if (compileStatus) compileStatus.innerHTML = '';
-  if (deployStatus) deployStatus.innerHTML = '';
-  
-  // Ocultar botão finalizado
-  const btnFinalizado = document.getElementById('btn-finalizado');
-  if (btnFinalizado) {
-    btnFinalizado.style.display = 'none';
-  }
-  
-  // Limpar dados globais
-  window.contractAddress = '';
-  window.contratoSource = '';
-  
-  console.log('✅ [DEBUG] Fluxo reiniciado com sucesso');
 }
 
 // Tornar funções globais para uso em onclick

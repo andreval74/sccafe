@@ -314,26 +314,40 @@
   color: #ffffff !important;
 }
 
-/* Standardized button sizes */
+/* Standardized button sizes - More specific rules */
 .token-creator-container .btn {
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 14px;
-  min-width: 140px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  transition: all 0.3s ease;
-  border: none;
-  text-decoration: none;
+  padding: 12px 24px !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+  font-size: 14px !important;
+  min-width: 140px !important;
+  max-width: none !important;
+  height: auto !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  transition: all 0.3s ease !important;
+  border: none !important;
+  text-decoration: none !important;
+  white-space: nowrap !important;
 }
 
 .token-creator-container .btn-lg {
-  padding: 16px 32px;
-  font-size: 16px;
-  min-width: 180px;
+  padding: 16px 32px !important;
+  font-size: 16px !important;
+  min-width: 180px !important;
+}
+
+/* Ensure all buttons in button groups have same height */
+.d-flex .btn {
+  flex-shrink: 0 !important;
+}
+
+.btn-group .btn,
+.d-flex.gap-3 .btn {
+  min-height: 44px !important;
+  line-height: 1.2 !important;
 }
 
 /* Processing state */
