@@ -9,77 +9,123 @@ import { initNetworkCommons } from './network-commons.js';
 import { verificarContratoManualmente } from './manual-verification.js';
 
 // Adiciona evento ao botão Conectar MetaMask
-console.log('🔍 Iniciando setup do botão MetaMask...');
+console.log('🔍 [DEBUG] Iniciando setup do botão MetaMask...');
+console.log('🔍 [DEBUG] Document ready state:', document.readyState);
+console.log('🔍 [DEBUG] Window.ethereum disponível:', !!window.ethereum);
+
 const btnConectar = document.getElementById('connect-metamask-btn');
-console.log('🔍 Botão encontrado:', btnConectar);
+console.log('🔍 [DEBUG] Botão encontrado:', btnConectar);
+console.log('🔍 [DEBUG] Botão é válido:', btnConectar instanceof HTMLElement);
 
 if (btnConectar) {
-  console.log('✅ Adicionando event listener ao botão...');
-  btnConectar.addEventListener('click', async () => {
-    console.log('🔗 Botão clicado! Iniciando conexão MetaMask...');
+  console.log('✅ [DEBUG] Adicionando event listener ao botão...');
+  
+  btnConectar.addEventListener('click', async (event) => {
+    console.log('🔗 [DEBUG] Botão clicado! Event:', event);
+    console.log('🔗 [DEBUG] Iniciando conexão MetaMask...');
+    
+    // Previne comportamento padrão
+    event.preventDefault();
     
     // Verifica se o MetaMask está disponível
     if (!window.ethereum) {
+      console.error('❌ [DEBUG] MetaMask não encontrado!');
       alert('MetaMask não encontrado! Por favor, instale a extensão MetaMask no seu navegador.');
       return;
     }
     
+    console.log('✅ [DEBUG] MetaMask disponível, iniciando conexão...');
+    
     // Adiciona classe de estado conectando
-    if (connectionSection) connectionSection.classList.add('connecting');
+    if (connectionSection) {
+      connectionSection.classList.add('connecting');
+      console.log('✅ [DEBUG] Classe connecting adicionada');
+    }
     
     // Atualiza status
-    if (walletStatus) walletStatus.value = 'Conectando com MetaMask...';
+    if (walletStatus) {
+      walletStatus.value = 'Conectando com MetaMask...';
+      console.log('✅ [DEBUG] Status atualizado para conectando');
+    }
     
     try {
+      console.log('🚀 [DEBUG] Chamando connectMetaMask...');
       // Primeiro conecta MetaMask
       await connectMetaMask(inputOwner);
-      console.log('✅ MetaMask conectado');
+      console.log('✅ [DEBUG] MetaMask conectado com sucesso');
       
+      console.log('🌐 [DEBUG] Detectando rede...');
       // Depois detecta a rede
       await detectNetworkAfterConnection();
-      console.log('✅ Rede detectada');
+      console.log('✅ [DEBUG] Rede detectada com sucesso');
       
+      console.log('👂 [DEBUG] Iniciando monitoramento...');
       // Inicia monitoramento de mudanças (só após conexão)
       listenMetaMask(inputOwner);
-      console.log('✅ Monitoramento iniciado');
+      console.log('✅ [DEBUG] Monitoramento iniciado');
       
+      console.log('🎨 [DEBUG] Atualizando interface...');
       // Atualiza interface
       updateConnectionInterface();
-      console.log('✅ Interface atualizada');
+      console.log('✅ [DEBUG] Interface atualizada com sucesso');
       
     } catch (error) {
-      console.error('❌ Erro na conexão:', error);
+      console.error('❌ [DEBUG] Erro na conexão:', error);
+      console.error('❌ [DEBUG] Stack trace:', error.stack);
       if (walletStatus) walletStatus.value = 'Erro na conexão. Tente novamente.';
       if (connectionSection) connectionSection.classList.remove('connecting');
     }
   });
+  
+  console.log('✅ [DEBUG] Event listener adicionado com sucesso');
 } else {
-  console.warn('⚠️ Botão conectar não encontrado - ID: connect-metamask-btn');
+  console.warn('⚠️ [DEBUG] Botão conectar não encontrado - ID: connect-metamask-btn');
+  console.log('🔍 [DEBUG] Elementos disponíveis com ID:', 
+    Array.from(document.querySelectorAll('[id]')).map(el => el.id));
 }
 
 // Inicializa apenas o sistema de redes (sem detectar automaticamente)
 async function initNetworkSystem() {
+  console.log('🔧 [DEBUG] Iniciando sistema de redes...');
   try {
     // Apenas inicializa sistema de redes comum (sem detectar rede)
-    await initNetworkCommons();
-    console.log('🌐 Sistema de redes carregado, aguardando conexão do usuário...');
+    if (typeof initNetworkCommons === 'function') {
+      await initNetworkCommons();
+      console.log('✅ [DEBUG] initNetworkCommons executado');
+    } else {
+      console.warn('⚠️ [DEBUG] initNetworkCommons não encontrado');
+    }
+    
+    console.log('🌐 [DEBUG] Sistema de redes carregado, aguardando conexão do usuário...');
   } catch (error) {
-    console.log('⚠️ Erro ao inicializar sistema de redes:', error);
+    console.error('❌ [DEBUG] Erro ao inicializar sistema de redes:', error);
+    console.error('❌ [DEBUG] Stack trace:', error.stack);
   }
 }
 
 // Detecta rede somente após conexão explícita do usuário
 async function detectNetworkAfterConnection() {
+  console.log('🌐 [DEBUG] Iniciando detecção de rede após conexão...');
   try {
+    console.log('🔍 [DEBUG] Chamando detectCurrentNetwork...');
     await detectCurrentNetwork();
+    console.log('✅ [DEBUG] detectCurrentNetwork concluído');
+    
+    console.log('🔄 [DEBUG] Atualizando informações de rede...');
     updateNetworkInfo(); // Usa a nova função para o layout atualizado
+    console.log('✅ [DEBUG] updateNetworkInfo concluído');
     
     // Inicia monitoramento para mudanças de rede
     if (typeof setupNetworkMonitoring === 'function') {
+      console.log('👂 [DEBUG] Iniciando setupNetworkMonitoring...');
       setupNetworkMonitoring(); // Remove parâmetro desnecessário
+      console.log('✅ [DEBUG] setupNetworkMonitoring concluído');
+    } else {
+      console.warn('⚠️ [DEBUG] setupNetworkMonitoring não encontrado');
     }
   } catch (error) {
-    console.log('❌ Erro ao detectar rede:', error);
+    console.error('❌ [DEBUG] Erro ao detectar rede:', error);
+    console.error('❌ [DEBUG] Stack trace:', error.stack);
   }
 }
 
@@ -91,6 +137,7 @@ function updateConnectionInterface() {
   if (connectionSection) {
     connectionSection.classList.remove('connecting');
     connectionSection.classList.add('connected-state');
+    console.log('✅ Estado de conexão atualizado na UI');
   }
   
   if (walletStatus) {
@@ -101,17 +148,15 @@ function updateConnectionInterface() {
   // Preenche o campo proprietário e marca como preenchido
   if (inputOwner && inputOwner.value) {
     inputOwner.classList.add('filled');
-    console.log('✅ Campo proprietário preenchido e marcado');
+    console.log('✅ Campo proprietário preenchido:', inputOwner.value);
   }
   
-  // Atualiza texto do botão
+  // Atualiza texto do botão (sem ícone)
   const btnConectar = document.getElementById('connect-metamask-btn');
   if (btnConectar) {
-    btnConectar.innerHTML = `
-      <img src="imgs/metamask-fox.svg" alt="MetaMask" class="metamask-icon">
-      Conectado
-    `;
+    btnConectar.textContent = 'CONECTADO';
     btnConectar.disabled = true;
+    btnConectar.style.backgroundColor = '#28a745';
     console.log('✅ Botão atualizado para estado conectado');
   }
   
@@ -306,41 +351,49 @@ function prevStep() {
 }
 
 function reiniciarFluxo() {
+  console.log('🔄 [DEBUG] Reiniciando fluxo completo...');
+  
   document.querySelectorAll('input, select, textarea').forEach(field => {
     if (field.type === "radio" || field.type === "checkbox") field.checked = false;
     else field.value = "";
   });
   inputDecimals.value = '18';
   
+  console.log('✅ [DEBUG] Campos limpos');
+  
   // Reinicializa interface de conexão (com verificações defensivas)
   const btnConectar = document.getElementById('connect-metamask-btn');
   if (btnConectar) {
     btnConectar.style.display = 'block';
     btnConectar.disabled = false;
-    btnConectar.innerHTML = `
-      <img src="imgs/metamask-fox.svg" alt="MetaMask" class="metamask-icon">
-      Conectar MetaMask
-    `;
+    btnConectar.textContent = 'CONECTAR';
+    btnConectar.style.backgroundColor = '';
+    console.log('✅ [DEBUG] Botão conectar reinicializado');
   }
   
   if (connectionSection) {
     connectionSection.classList.remove('connecting', 'connected-state');
+    console.log('✅ [DEBUG] Classes de conexão removidas');
   }
   
-  if (walletStatus) walletStatus.value = 'Clique em "Conectar" para iniciar';
+  if (walletStatus) {
+    walletStatus.value = 'Clique em "Conectar" para iniciar';
+    console.log('✅ [DEBUG] Status da carteira reinicializado');
+  }
   
   if (inputOwner) {
     inputOwner.readOnly = true;
     inputOwner.classList.remove('filled');
     inputOwner.value = '';
     inputOwner.placeholder = 'Será preenchido após conectar carteira';
+    console.log('✅ [DEBUG] Campo owner reinicializado');
   }
   
   // Reinicializa campos ocultos (com verificações defensivas)
   if (networkDisplay) networkDisplay.value = '';
   if (networkValue) networkValue.value = '';
   
-  console.log('🔄 Interface reinicializada');
+  console.log('🔄 [DEBUG] Interface reinicializada, mostrando step 1');
   showStep(1);
 }
 
@@ -797,21 +850,16 @@ if (radioPersonalizado) {
   radioPersonalizado.addEventListener('change', toggleAddressCustomization);
 }
 
-// -------------------- Inicialização --------------------
-function initNetworkSystem() {
-  console.log('🔧 Inicializando sistema de redes...');
-  if (typeof initNetworkCommons === 'function') {
-    initNetworkCommons();
-  }
-  if (typeof setupNetworkMonitoring === 'function') {
-    setupNetworkMonitoring();
-  }
-  console.log('✅ Sistema de redes inicializado');
-}
-
-// Aguarda DOM estar pronto antes de inicializar
+// -------------------- Aguarda DOM estar pronto antes de inicializar --------------------
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('🎬 DOM carregado - inicializando sistema...');
+  console.log('🎬 [DEBUG] DOM carregado - inicializando sistema...');
+  console.log('🔍 [DEBUG] Elementos principais:', {
+    btnConectar: !!document.getElementById('connect-metamask-btn'),
+    inputOwner: !!document.getElementById('ownerAddress'),
+    walletStatus: !!document.getElementById('wallet-status'),
+    connectionSection: !!document.querySelector('.connection-section')
+  });
+  
   showStep(1);
   toggleAddressCustomization();
   initNetworkSystem();
@@ -820,10 +868,17 @@ document.addEventListener('DOMContentLoaded', () => {
 // Se DOM já estiver pronto (no caso de module loading)
 if (document.readyState === 'loading') {
   // DOM ainda carregando, aguarda evento
-  console.log('⏳ Aguardando DOM carregar...');
+  console.log('⏳ [DEBUG] Aguardando DOM carregar...');
 } else {
   // DOM já pronto, executa imediatamente
-  console.log('🚀 DOM pronto - inicializando imediatamente...');
+  console.log('🚀 [DEBUG] DOM pronto - inicializando imediatamente...');
+  console.log('🔍 [DEBUG] Elementos principais:', {
+    btnConectar: !!document.getElementById('connect-metamask-btn'),
+    inputOwner: !!document.getElementById('ownerAddress'),
+    walletStatus: !!document.getElementById('wallet-status'),
+    connectionSection: !!document.querySelector('.connection-section')
+  });
+  
   showStep(1);
   toggleAddressCustomization();
   initNetworkSystem();
