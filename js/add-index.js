@@ -462,25 +462,31 @@ function simulateTokenCreation() {
   
   let currentIndex = 0;
   
+  // Obter referência da progress bar criada anteriormente
+  const progressContainer = document.querySelector('.progress-bar-container');
+  if (!progressContainer) {
+    console.warn('⚠️ [DEBUG] Progress bar não encontrada para simulação');
+    return;
+  }
+  
+  const progressData = {
+    progressBar: progressContainer.querySelector('.progress-bar'),
+    container: progressContainer
+  };
+  
   const interval = setInterval(() => {
     if (currentIndex < steps.length) {
       const step = steps[currentIndex];
       
       // Atualizar progresso
-      const progressContainer = document.querySelector('.progress-container');
-      if (progressContainer) {
-        animateProgressBar(progressContainer, step.progress, step.message);
-      }
+      animateProgressBar(progressData, step.progress, step.message);
       
       currentIndex++;
     } else {
       clearInterval(interval);
       
       // Finalizar
-      const progressContainer = document.querySelector('.progress-container');
-      if (progressContainer) {
-        finishProgressBar(progressContainer, 'Token criado com sucesso!', 'success');
-      }
+      finishProgressBar(progressData, 'Token criado com sucesso!', 'success');
       
       // Mostrar seção de finalização
       const finalizacaoSection = document.getElementById('finalizacao-section');
@@ -708,9 +714,19 @@ function updateDeployStatus(message, type) {
 }
 
 // Função unificada para criar barra de progresso
-function createProgressBar(containerId, color = '#f85d23') {
-  const container = document.getElementById(containerId);
-  if (!container) return null;
+function createProgressBar(containerOrId, initialMessage = 'Processando...') {
+  let container;
+  
+  if (typeof containerOrId === 'string') {
+    container = document.getElementById(containerOrId);
+  } else {
+    container = containerOrId;
+  }
+  
+  if (!container) {
+    console.warn('⚠️ [DEBUG] Container não encontrado para progress bar');
+    return null;
+  }
   
   // Remove barra existente se houver
   const existingBar = container.querySelector('.progress-bar-container');
@@ -733,7 +749,7 @@ function createProgressBar(containerId, color = '#f85d23') {
   progressBar.style.cssText = `
     width: 0%;
     height: 100%;
-    background-color: ${color};
+    background-color: #f85d23;
     border-radius: 2px;
     transition: width 0.3s ease;
     background-image: linear-gradient(45deg, rgba(255,255,255,0.2) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0.2) 75%, transparent 75%, transparent);
@@ -741,68 +757,86 @@ function createProgressBar(containerId, color = '#f85d23') {
     animation: progress-animation 1s linear infinite;
   `;
   
+  // Adicionar mensagem de status se fornecida
+  if (initialMessage) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'progress-message';
+    messageDiv.textContent = initialMessage;
+    messageDiv.style.cssText = `
+      font-size: 12px;
+      color: #666;
+      margin-top: 4px;
+    `;
+    progressBarContainer.appendChild(messageDiv);
+  }
+  
   progressBarContainer.appendChild(progressBar);
   container.appendChild(progressBarContainer);
   
-  return progressBar;
+  return { progressBar, container: progressBarContainer };
 }
 
 // Função para animar barra de progresso
-function animateProgressBar(progressBar, duration = 3000) {
-  if (!progressBar) return null;
+function animateProgressBar(progressData, percentage, message = null) {
+  if (!progressData || !progressData.progressBar) return;
   
-  let progress = 0;
-  const increment = 100 / (duration / 100);
+  const { progressBar, container } = progressData;
   
-  const interval = setInterval(() => {
-    progress += increment;
-    if (progress >= 100) {
-      progress = 100;
-      clearInterval(interval);
+  // Atualizar progresso
+  progressBar.style.width = `${percentage}%`;
+  
+  // Atualizar mensagem se fornecida
+  if (message) {
+    const messageDiv = container.querySelector('.progress-message');
+    if (messageDiv) {
+      messageDiv.textContent = message;
     }
-    progressBar.style.width = `${progress}%`;
-  }, 100);
-  
-  return interval;
+  }
 }
 
 // Função para finalizar barra de progresso
-function finishProgressBar(progressBar, success = true) {
-  if (!progressBar) return;
+function finishProgressBar(progressData, message = 'Concluído!', type = 'success') {
+  if (!progressData || !progressData.progressBar) return;
+  
+  const { progressBar, container } = progressData;
   
   progressBar.style.width = '100%';
-  progressBar.style.backgroundColor = success ? '#22c55e' : '#dc2626';
+  progressBar.style.backgroundColor = type === 'success' ? '#22c55e' : '#dc2626';
   progressBar.style.animation = 'none';
   
-  // Remove a barra após 2 segundos
+  // Atualizar mensagem final
+  const messageDiv = container.querySelector('.progress-message');
+  if (messageDiv) {
+    messageDiv.textContent = message;
+    messageDiv.style.color = type === 'success' ? '#22c55e' : '#dc2626';
+  }
+  
+  // Remove a barra após 3 segundos
   setTimeout(() => {
-    const container = progressBar.closest('.progress-bar-container');
-    if (container) container.remove();
-  }, 2000);
+    if (container && container.parentNode) {
+      container.remove();
+    }
+  }, 3000);
 }
 
 function startCompileProgressBar() {
-  const progressBar = createProgressBar('compile-status');
-  return animateProgressBar(progressBar, 4000);
+  return createProgressBar('compile-status', 'Compilando contrato...');
 }
 
-function stopCompileProgressBar(interval, success) {
-  if (interval) clearInterval(interval);
-  const container = document.getElementById('compile-status');
-  const progressBar = container?.querySelector('.progress-bar');
-  finishProgressBar(progressBar, success);
+function stopCompileProgressBar(progressData, success) {
+  if (progressData) {
+    finishProgressBar(progressData, success ? 'Compilação concluída!' : 'Erro na compilação', success ? 'success' : 'error');
+  }
 }
 
 function startDeployProgressBar() {
-  const progressBar = createProgressBar('deploy-status');
-  return animateProgressBar(progressBar, 5000);
+  return createProgressBar('deploy-status', 'Fazendo deploy...');
 }
 
-function stopDeployProgressBar(interval, success) {
-  if (interval) clearInterval(interval);
-  const container = document.getElementById('deploy-status');
-  const progressBar = container?.querySelector('.progress-bar');
-  finishProgressBar(progressBar, success);
+function stopDeployProgressBar(progressData, success) {
+  if (progressData) {
+    finishProgressBar(progressData, success ? 'Deploy concluído!' : 'Erro no deploy', success ? 'success' : 'error');
+  }
 }
 
 // Função de verificação automática
@@ -1079,22 +1113,19 @@ btnCompilar.onclick = async () => {
   console.log('🚀 [DEBUG] Iniciando compilação via API...');
   updateCompileStatus('🔄 Compilando contrato...', 'processing');
   
-  let progressInterval = startCompileProgressBar();
+  let progressData = startCompileProgressBar();
   
   try {
     const result = await compilarContrato(inputNome.value, btnCompilar, compileStatus, btnDeploy);
     console.log('✅ [DEBUG] Compilação concluída:', result);
     
-    stopCompileProgressBar(progressInterval, true);
+    stopCompileProgressBar(progressData, true);
     updateCompileStatus('✅ Contrato compilado com sucesso!', 'success');
     updateDeployStatus('⏳ Pronto para deploy', 'ready');
     
-    // Não mostra mais botão de verificação aqui
-    // Será mostrado apenas após o deploy
-    
   } catch (error) {
     console.error('❌ [DEBUG] Erro na compilação:', error);
-    stopCompileProgressBar(progressInterval, false);
+    stopCompileProgressBar(progressData, false);
     updateCompileStatus('❌ Erro na compilação: ' + (error.message || error), 'error');
     btnCompilar.disabled = false;
   }
@@ -1114,7 +1145,7 @@ if (btnVerificationInfo) {
     // Simula mostrar verificação manual
     const contractData = {
       isValid: true,
-      sourceCode: window.contratoSource || '',
+      sourceCode: contratoSource || '',
       contractName: window.contratoName || '',
       compilerVersion: `v${window.resolvedCompilerVersion || '0.8.30'}+commit.d5af09b8`,
       optimizationUsed: false,
@@ -1417,13 +1448,13 @@ btnDeploy.onclick = async () => {
   console.log('🚀 [DEBUG] Iniciando processo de deploy...');
   updateDeployStatus('🔄 Fazendo deploy do contrato...', 'processing');
   
-  let progressInterval = startDeployProgressBar();
+  let progressData = startDeployProgressBar();
   
   try {
     await deployContrato(btnDeploy, deployStatus);
     console.log('✅ [DEBUG] Deploy concluído com sucesso!');
     
-    stopDeployProgressBar(progressInterval, true);
+    stopDeployProgressBar(progressData, true);
     updateDeployStatus('✅ Contrato implantado com sucesso!', 'success');
     
     // Atualizar informações do contrato no resumo
@@ -1486,7 +1517,7 @@ btnDeploy.onclick = async () => {
     
   } catch (error) {
     console.error('❌ [DEBUG] Erro no deploy:', error);
-    stopDeployProgressBar(progressInterval, false);
+    stopDeployProgressBar(progressData, false);
     updateDeployStatus('❌ Erro no deploy: ' + (error.message || error), 'error');
     btnDeploy.disabled = false;
   }
@@ -1522,7 +1553,7 @@ async function verificarContratoAutomaticamente(contractAddress, chainId) {
       console.log('❌ [DEBUG] API não disponível para esta rede');
       await showManualVerificationInterface({
         contractAddress: contractAddress,
-        sourceCode: window.contratoSource || '',
+        sourceCode: contratoSource || '',
         compilerVersion: 'v0.8.19+commit.7dd6d404',
         optimizationUsed: true,
         runs: 200,
@@ -1541,7 +1572,7 @@ async function verificarContratoAutomaticamente(contractAddress, chainId) {
     // Preparar dados do contrato para verificação
     const contractData = {
       contractAddress: contractAddress,
-      sourceCode: window.contratoSource || '',
+      sourceCode: contratoSource || '',
       compilerVersion: 'v0.8.19+commit.7dd6d404',
       optimizationUsed: true,
       runs: 200,
@@ -1561,13 +1592,16 @@ async function verificarContratoAutomaticamente(contractAddress, chainId) {
     await new Promise(resolve => setTimeout(resolve, 2000));
     updateLoadingProgress(75, 'Aguardando resposta do explorador...');
     
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    updateLoadingProgress(100, 'Verificação concluída!');
+    
     // Para redes de teste, mostrar interface manual após tentativa
     if (chainId === 97) { // BSC Testnet
-      updateLoadingProgress(100, 'Verificação automática não disponível para testnet');
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
       console.log('ℹ️ [DEBUG] Testnet detectada - mostrando verificação manual');
       await showManualVerificationInterface(contractData);
+    } else {
+      // Para mainnets, tentar mostrar sucesso
+      await showVerificationSuccess(contractAddress, explorerAPI.explorer, explorerAPI.name);
     }
     
   } catch (error) {
@@ -1575,7 +1609,7 @@ async function verificarContratoAutomaticamente(contractAddress, chainId) {
     // Em caso de erro, mostrar interface manual
     await showManualVerificationInterface({
       contractAddress: contractAddress,
-      sourceCode: window.contratoSource || '',
+      sourceCode: contratoSource || '',
       compilerVersion: 'v0.8.19+commit.7dd6d404',
       optimizationUsed: true,
       runs: 200,
