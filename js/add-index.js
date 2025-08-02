@@ -272,54 +272,39 @@ function showStep(step) {
     });
   }
   
-  // Atualizar indicadores se existirem (mas de forma simplificada)
-  const indicators = document.querySelectorAll('.step-indicator');
-  indicators.forEach((indicator, idx) => {
-    if (idx < 3) { // Apenas 3 indicadores
-      indicator.classList.toggle('active', idx === (step - 1));
-      indicator.classList.toggle('completed', idx < (step - 1));
-    } else {
-      // Ocultar indicadores extras
-      indicator.style.display = 'none';
-    }
-  });
+  // Atualizar timeline simplificada
+  updateTimelineStatus(step);
+  
+  // Se for etapa 3 (resumo), preencher dados
+  if (step === 3) {
+    setTimeout(() => {
+      fillResumo();
+    }, 100);
+  }
   
   currentStep = step;
 }
 
-// Remover timeline complexa e usar indicadores simples
+// Atualizar timeline simplificada (3 etapas)
 function updateTimelineStatus(currentStep) {
-  console.log(`🎯 [DEBUG] Atualizando para etapa ${currentStep} (simplificado)`);
+  console.log(`🎯 [DEBUG] Atualizando timeline simplificada para etapa ${currentStep}`);
   
-  const stepTitles = [
-    'Configuração',
-    'Personalização', 
-    'Criação & Deploy'
-  ];
-  
-  // Atualizar apenas indicadores simples
-  const indicators = document.querySelectorAll('.step-indicator');
-  indicators.forEach((indicator, idx) => {
-    if (idx < 3) {
-      const stepNum = idx + 1;
-      
-      if (stepNum < currentStep) {
-        indicator.classList.add('completed');
-        indicator.classList.remove('active');
-      } else if (stepNum === currentStep) {
-        indicator.classList.add('active');
-        indicator.classList.remove('completed');
-      } else {
-        indicator.classList.remove('active', 'completed');
-      }
-      
-      // Atualizar texto se houver
-      const titleElement = indicator.querySelector('.step-title');
-      if (titleElement && stepTitles[idx]) {
-        titleElement.textContent = stepTitles[idx];
-      }
+  // Atualizar indicadores simples (3 etapas)
+  const stepIndicators = document.querySelectorAll('.step-simple');
+  stepIndicators.forEach((indicator, idx) => {
+    const stepNum = idx + 1;
+    
+    // Remover classes existentes
+    indicator.classList.remove('active', 'completed');
+    
+    if (stepNum < currentStep) {
+      indicator.classList.add('completed');
+    } else if (stepNum === currentStep) {
+      indicator.classList.add('active');
     }
   });
+  
+  console.log(`✅ [DEBUG] Timeline atualizada - Etapa ${currentStep} de 3`);
 }
 
 // Validação do Step 1
@@ -614,35 +599,81 @@ async function fillResumo() {
     }
     
     const resumoData = {
-      'summary-nome': inputNome.value,
-      'summary-symbol': inputSymbol.value,
-      'summary-decimals': inputDecimals.value,
-      'summary-supply': inputSupply.value,
-      'summary-owner': ownerChecksum,
-      'summary-image': inputImage.value || "Não definido",
-      'summary-network': networkDisplay ? networkDisplay.value : "Não detectada",
-      'summary-address-type': (radioPersonalizado && radioPersonalizado.checked) ? "Personalizado" : "Padrão"
+      'summary-nome': inputNome.value || 'Nome não definido',
+      'summary-symbol': inputSymbol.value || 'SYM',
+      'summary-decimals': inputDecimals.value || '18',
+      'summary-supply': inputSupply.value ? Number(inputSupply.value).toLocaleString() : '0',
+      'summary-owner': ownerChecksum || 'Conecte sua carteira',
+      'summary-image': inputImage.value || '',
+      'summary-network': networkDisplay ? networkDisplay.value : 'Rede não detectada',
+      'summary-address-type': (radioPersonalizado && radioPersonalizado.checked) ? 'Personalizado' : 'Padrão'
     };
+    
+    console.log('📋 [DEBUG] Dados do resumo:', resumoData);
     
     // Carrega e preenche o template
     await fillTemplate('resumo-template', resumoData, summaryBox);
+    
+    // Atualizar imagem se disponível
+    if (resumoData['summary-image']) {
+      const imageContainer = document.getElementById('summary-image-container');
+      const imagePreview = document.getElementById('summary-image-preview');
+      const imageLink = document.getElementById('summary-image');
+      
+      if (imageContainer && imagePreview && imageLink) {
+        imageContainer.style.display = 'block';
+        imagePreview.src = resumoData['summary-image'];
+        imageLink.href = resumoData['summary-image'];
+        imageLink.textContent = resumoData['summary-image'];
+      }
+    }
     
     console.log('✅ [DEBUG] Resumo preenchido com template externo');
     
   } catch (error) {
     console.error('❌ [DEBUG] Erro ao carregar template do resumo:', error);
     
-    // Fallback: mantém funcionalidade básica
-    summaryBox.innerHTML = `
-      <div class="alert alert-warning">
-        <h5>Resumo do Token</h5>
-        <p><strong>Nome:</strong> ${inputNome.value}</p>
-        <p><strong>Símbolo:</strong> ${inputSymbol.value}</p>
-        <p><strong>Decimais:</strong> ${inputDecimals.value}</p>
-        <p><strong>Supply:</strong> ${inputSupply.value}</p>
-        <p><em>Erro ao carregar template completo. Usando versão simplificada.</em></p>
-      </div>
-    `;
+    // Fallback: conteúdo simples mas funcional
+    if (summaryBox) {
+      summaryBox.innerHTML = `
+        <div class="alert alert-info">
+          <h5><i class="bi bi-clipboard-check me-2"></i>Resumo do Token</h5>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <strong>Nome:</strong> ${inputNome.value || 'Não definido'}
+            </div>
+            <div class="col-md-6">
+              <strong>Símbolo:</strong> ${inputSymbol.value || 'Não definido'}
+            </div>
+            <div class="col-md-6">
+              <strong>Decimais:</strong> ${inputDecimals.value || '18'}
+            </div>
+            <div class="col-md-6">
+              <strong>Supply:</strong> ${inputSupply.value ? Number(inputSupply.value).toLocaleString() : '0'}
+            </div>
+            <div class="col-12">
+              <strong>Proprietário:</strong><br>
+              <code style="word-break: break-all;">${inputOwner.value || 'Conecte sua carteira'}</code>
+            </div>
+          </div>
+          <div class="mt-3">
+            <button id="btn-criar-token" class="btn btn-primary">
+              <i class="bi bi-rocket-takeoff me-2"></i>Criar Token
+            </button>
+          </div>
+        </div>
+      `;
+      
+      // Adicionar event listener para o botão
+      const btnCriarToken = document.getElementById('btn-criar-token');
+      if (btnCriarToken) {
+        btnCriarToken.addEventListener('click', () => {
+          if (validateAllData()) {
+            initializeTokenCreation();
+          }
+        });
+      }
+    }
   }
 }
 
@@ -650,6 +681,13 @@ async function fillResumo() {
 // Função nextStep simplificada para 3 etapas
 function nextStep() {
   console.log(`➡️ [DEBUG] NextStep - Etapa atual: ${currentStep}`);
+  
+  // Validar antes de prosseguir
+  if (currentStep === 1 && !validateStep1()) {
+    console.log('❌ [DEBUG] Validação da etapa 1 falhou');
+    return;
+  }
+  
   if (currentStep < 3) { // Máximo 3 etapas
     showStep(currentStep + 1);
   } else {

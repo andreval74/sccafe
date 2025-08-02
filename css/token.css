@@ -922,3 +922,105 @@
     margin-bottom: 16px;
   }
 }
+
+/* ====== TIMELINE SIMPLIFICADA (3 ETAPAS) ====== */
+.progress-steps-simple {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 2rem;
+  padding: 1rem;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 10px;
+  margin: 1rem 0;
+}
+
+.step-simple {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.step-simple:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  top: 20px;
+  right: -1.5rem;
+  width: 2rem;
+  height: 2px;
+  background: #dee2e6;
+  transition: background 0.3s ease;
+}
+
+.step-simple.active::after,
+.step-simple.completed::after {
+  background: var(--accent-color);
+}
+
+.step-number {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #dee2e6;
+  color: #6c757d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 16px;
+  transition: all 0.3s ease;
+}
+
+.step-simple.active .step-number {
+  background: var(--accent-color);
+  color: white;
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(248, 93, 35, 0.3);
+}
+
+.step-simple.completed .step-number {
+  background: #10b981;
+  color: white;
+}
+
+.step-title {
+  font-size: 12px;
+  font-weight: 500;
+  color: #6c757d;
+  text-align: center;
+  transition: color 0.3s ease;
+}
+
+.step-simple.active .step-title {
+  color: var(--accent-color);
+  font-weight: 600;
+}
+
+.step-simple.completed .step-title {
+  color: #10b981;
+}
+
+@media (max-width: 768px) {
+  .progress-steps-simple {
+    gap: 1rem;
+    padding: 0.8rem;
+  }
+  
+  .step-simple:not(:last-child)::after {
+    right: -0.8rem;
+    width: 1rem;
+  }
+  
+  .step-number {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+  }
+  
+  .step-title {
+    font-size: 10px;
+  }
+}

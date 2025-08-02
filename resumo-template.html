@@ -1,0 +1,224 @@
+<!-- Template de Resumo do Token -->
+<div class="token-summary-container">
+  <div class="row g-4">
+    <!-- Informações Básicas -->
+    <div class="col-md-6">
+      <div class="summary-card">
+        <div class="summary-icon">
+          <i class="bi bi-coin"></i>
+        </div>
+        <div class="summary-content">
+          <h6>Token</h6>
+          <div class="summary-value">
+            <strong id="summary-nome">Nome do Token</strong>
+            <span class="summary-symbol">($<span id="summary-symbol">SYMBOL</span>)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Supply e Decimais -->
+    <div class="col-md-6">
+      <div class="summary-card">
+        <div class="summary-icon">
+          <i class="bi bi-stack"></i>
+        </div>
+        <div class="summary-content">
+          <h6>Supply Total</h6>
+          <div class="summary-value">
+            <strong id="summary-supply">1,000,000</strong>
+            <span class="summary-decimals">(<span id="summary-decimals">18</span> decimais)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Proprietário -->
+    <div class="col-12">
+      <div class="summary-card">
+        <div class="summary-icon">
+          <i class="bi bi-person-badge"></i>
+        </div>
+        <div class="summary-content">
+          <h6>Proprietário</h6>
+          <div class="summary-value">
+            <code id="summary-owner" class="address-display">0x...</code>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Rede -->
+    <div class="col-md-6">
+      <div class="summary-card">
+        <div class="summary-icon">
+          <i class="bi bi-globe"></i>
+        </div>
+        <div class="summary-content">
+          <h6>Rede</h6>
+          <div class="summary-value">
+            <strong id="summary-network">BSC Testnet</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tipo de Endereço -->
+    <div class="col-md-6">
+      <div class="summary-card">
+        <div class="summary-icon">
+          <i class="bi bi-gear"></i>
+        </div>
+        <div class="summary-content">
+          <h6>Tipo</h6>
+          <div class="summary-value">
+            <strong id="summary-address-type">Padrão</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Imagem (opcional) -->
+    <div class="col-12" id="summary-image-container" style="display: none;">
+      <div class="summary-card">
+        <div class="summary-icon">
+          <i class="bi bi-image"></i>
+        </div>
+        <div class="summary-content">
+          <h6>Imagem do Token</h6>
+          <div class="summary-value">
+            <img id="summary-image-preview" src="" alt="Token Logo" class="token-image-preview">
+            <a id="summary-image" href="#" target="_blank" class="text-truncate d-block">URL da imagem</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Aviso de Verificação -->
+  <div class="alert alert-info mt-4">
+    <div class="d-flex align-items-center">
+      <i class="bi bi-info-circle me-2"></i>
+      <div>
+        <strong>Verifique todos os dados!</strong>
+        <p class="mb-0 small">Após o deploy, essas informações não poderão ser alteradas.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Botões de Ação -->
+  <div class="d-flex justify-content-between mt-4">
+    <button class="btn btn-outline-secondary" onclick="prevStep()">
+      <i class="bi bi-arrow-left me-1"></i>Voltar
+    </button>
+    <button id="btn-criar-token" class="btn btn-primary btn-lg">
+      <i class="bi bi-rocket-takeoff me-2"></i>Criar Token
+    </button>
+  </div>
+</div>
+
+<style>
+.token-summary-container {
+  padding: 1rem;
+}
+
+.summary-card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  transition: all 0.3s ease;
+  height: 100%;
+}
+
+.summary-card:hover {
+  border-color: var(--accent-color);
+  box-shadow: 0 4px 12px rgba(248, 93, 35, 0.1);
+}
+
+.summary-icon {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, var(--accent-color), #ff6b35);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.summary-content {
+  flex: 1;
+}
+
+.summary-content h6 {
+  color: #6b7280;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.summary-value {
+  font-size: 16px;
+  color: #111827;
+}
+
+.summary-symbol {
+  color: #6b7280;
+  font-weight: normal;
+  margin-left: 0.5rem;
+}
+
+.summary-decimals {
+  color: #6b7280;
+  font-size: 14px;
+  margin-left: 0.5rem;
+}
+
+.address-display {
+  background: #f3f4f6;
+  padding: 0.5rem;
+  border-radius: 6px;
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  word-break: break-all;
+  border: 1px solid #e5e7eb;
+}
+
+.token-image-preview {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  object-fit: cover;
+  margin-right: 1rem;
+  border: 2px solid #e5e7eb;
+}
+
+@media (max-width: 768px) {
+  .summary-card {
+    padding: 1rem;
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .summary-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+    margin: 0 auto;
+  }
+  
+  .token-image-preview {
+    width: 40px;
+    height: 40px;
+    margin: 0 auto 0.5rem;
+  }
+}
+</style>
