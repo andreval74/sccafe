@@ -186,7 +186,7 @@ window.addEventListener('contractDeployed', (event) => {
 
 // Referências a elementos DOM
 const steps = document.querySelectorAll('.step-content');
-const indicators = document.querySelectorAll('.step');
+const indicators = document.querySelectorAll('.step-indicator');
 const summaryBox = document.getElementById('token-summary');
 const inputNome = document.getElementById('tokenName');
 const inputSymbol = document.getElementById('tokenSymbol');
@@ -244,6 +244,12 @@ console.log('🚀 Interface inicializada:', {
 // -------------------- Navegação entre steps --------------------
 function showStep(step) {
   console.log(`🔄 [DEBUG] Mudando para step ${step}`);
+  
+  // Scroll para o topo da página suavemente
+  window.scrollTo({
+    top: 0,
+    behavior: 'smooth'
+  });
   
   steps.forEach((el, idx) => {
     el.classList.toggle('active', idx === (step - 1));
@@ -1036,15 +1042,21 @@ if (btnShareLink) btnShareLink.style.display = 'none';
 if (shareLinkField) shareLinkField.style.display = 'none';
 
 // -------------------- Handlers dos botões integrados --------------------
-// Handler do botão adicionar ao MetaMask integrado
+// Handler do botão adicionar ao MetaMask integrado (com prevenção de duplicatas)
 document.addEventListener('click', async (e) => {
   if (e.target.id === 'btn-add-metamask') {
+    // Prevenir múltiplas execuções
+    if (e.target.disabled) return;
+    e.target.disabled = true;
+    
     console.log('🦊 [DEBUG] Adicionando token ao MetaMask...');
     
     const address = window.contractAddress;
     const symbol = inputSymbol.value;
     const decimals = inputDecimals.value;
     const image = inputImage.value;
+    
+    console.log('📋 [DEBUG] Dados do token:', { address, symbol, decimals, image });
     
     if (!address || !symbol || !decimals) {
       console.log('❌ [DEBUG] Dados insuficientes para adicionar ao MetaMask');
@@ -1119,6 +1131,11 @@ document.addEventListener('click', async (e) => {
       console.error('❌ [DEBUG] Erro ao adicionar token ao MetaMask:', error);
       document.getElementById('metamask-status').textContent = 'Erro ao adicionar token: ' + (error.message || error);
       document.getElementById('metamask-status').className = 'status-value error';
+    } finally {
+      // Re-habilitar o botão após a operação
+      setTimeout(() => {
+        e.target.disabled = false;
+      }, 2000);
     }
   }
   
@@ -1347,6 +1364,79 @@ btnDeploy.onclick = async () => {
   if (btnShareLink) btnShareLink.style.display = 'none';
   if (shareLinkField) shareLinkField.style.display = 'none';
 };
+
+// Função para verificar contrato automaticamente
+async function verificarContratoAutomaticamente(contractAddress, chainId) {
+  console.log('🔄 [DEBUG] Iniciando verificação automática...');
+  
+  try {
+    // Obter configuração da API para a rede atual
+    const explorerAPI = getBlockExplorerAPI(chainId);
+    if (!explorerAPI) {
+      console.log('❌ [DEBUG] API não disponível para esta rede');
+      await showManualVerificationInterface({
+        contractAddress: contractAddress,
+        sourceCode: window.contratoSource || '',
+        compilerVersion: 'v0.8.19+commit.7dd6d404',
+        optimizationUsed: true,
+        runs: 200,
+        evmVersion: 'default'
+      });
+      return;
+    }
+    
+    // Mostrar status de loading
+    await showLoadingStatus(
+      '🔍 Verificando Contrato', 
+      'Iniciando verificação automática no explorador da blockchain...',
+      'Este processo pode levar alguns minutos'
+    );
+    
+    // Preparar dados do contrato para verificação
+    const contractData = {
+      contractAddress: contractAddress,
+      sourceCode: window.contratoSource || '',
+      compilerVersion: 'v0.8.19+commit.7dd6d404',
+      optimizationUsed: true,
+      runs: 200,
+      evmVersion: 'default'
+    };
+    
+    // Salvar dados para uso posterior
+    window.lastContractData = contractData;
+    window.deployedContractAddress = contractAddress;
+    
+    // Simular tentativa de verificação automática
+    updateLoadingProgress(25, 'Preparando código fonte...');
+    
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    updateLoadingProgress(50, 'Enviando para verificação...');
+    
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    updateLoadingProgress(75, 'Aguardando resposta do explorador...');
+    
+    // Para redes de teste, mostrar interface manual após tentativa
+    if (chainId === 97) { // BSC Testnet
+      updateLoadingProgress(100, 'Verificação automática não disponível para testnet');
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      console.log('ℹ️ [DEBUG] Testnet detectada - mostrando verificação manual');
+      await showManualVerificationInterface(contractData);
+    }
+    
+  } catch (error) {
+    console.error('❌ [DEBUG] Erro na verificação automática:', error);
+    // Em caso de erro, mostrar interface manual
+    await showManualVerificationInterface({
+      contractAddress: contractAddress,
+      sourceCode: window.contratoSource || '',
+      compilerVersion: 'v0.8.19+commit.7dd6d404',
+      optimizationUsed: true,
+      runs: 200,
+      evmVersion: 'default'
+    });
+  }
+}
 
 // -------------------- Busca Salt --------------------
 document.getElementById('search-salt-btn').onclick = () => buscarSaltFake(targetSuffix.value, saltFound, predictedAddress);

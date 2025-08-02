@@ -84,7 +84,7 @@ export async function fillTemplate(templateName, data, targetElement) {
   });
   
   console.log(`✅ [TEMPLATE] Template "${templateName}" preenchido com dados`);
-  return document.querySelector(typeof targetElement === 'string' ? targetElement : targetElement);
+  return targetElement;
 }
 
 /**
