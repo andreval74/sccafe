@@ -1,4 +1,5 @@
 import { connectMetaMask, fetchTokenData, formatarNumero, getNetworkName, getExplorerUrl } from './shared/token-global.js';
+import { processarArquivoSol, atualizarInfosContrato, limparArquivoSol } from './shared/sol-processor.js';
 import { detectContract } from './api-manager.js';
 
 let currentProvider = null;
@@ -233,6 +234,12 @@ function mostrarDadosContrato(data, origem = 'detectado') {
     const tokenInfoSection = document.getElementById('token-info-section');
     const detectionSection = document.getElementById('detection-section');
     const sectionTitle = document.getElementById('section-title');
+    const uploadSection = document.getElementById('upload-section');
+    
+    // Mostra/esconde seção de upload baseado no status de verificação
+    if (uploadSection) {
+        uploadSection.style.display = data.verified ? 'none' : 'block';
+    }
     
     if (!tokenInfoSection) {
         console.error('❌ Seção token-info-section não encontrada');
@@ -512,6 +519,47 @@ function initializeApp() {
         });
     }
 }
+
+// Expõe funções globalmente
+window.processarArquivoSol = async function(input) {
+    await processarArquivoSol(input);
+};
+
+window.limparArquivoSol = function() {
+    limparArquivoSol();
+};
+
+window.iniciarVerificacaoAutomatica = async function() {
+    if (!window.currentSolInfo) {
+        alert('❌ Por favor, carregue o arquivo .sol primeiro');
+        return;
+    }
+    
+    try {
+        // Implementar lógica de verificação automática
+        alert('🚀 Iniciando verificação automática...');
+        // TODO: Implementar verificação
+    } catch (error) {
+        console.error('❌ Erro na verificação automática:', error);
+        alert('❌ Erro na verificação automática: ' + error.message);
+    }
+};
+
+window.iniciarVerificacaoManual = async function() {
+    if (!window.currentSolInfo) {
+        alert('❌ Por favor, carregue o arquivo .sol primeiro');
+        return;
+    }
+    
+    try {
+        // Implementar lógica de verificação manual
+        alert('🔍 Iniciando verificação manual...');
+        // TODO: Implementar verificação
+    } catch (error) {
+        console.error('❌ Erro na verificação manual:', error);
+        alert('❌ Erro na verificação manual: ' + error.message);
+    }
+};
 
 // Aguarda o carregamento completo do DOM
 if (document.readyState === 'loading') {
