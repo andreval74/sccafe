@@ -145,27 +145,6 @@ function showCopyFeedback(element, success) {
 }
 
 /**
- * Formata números grandes
- */
-function formatarNumero(numero) {
-    if (!numero) return '0';
-    
-    const num = parseFloat(numero.toString().replace(/,/g, ''));
-    
-    if (num >= 1e12) {
-        return (num / 1e12).toFixed(2) + ' T';
-    } else if (num >= 1e9) {
-        return (num / 1e9).toFixed(2) + ' B';
-    } else if (num >= 1e6) {
-        return (num / 1e6).toFixed(2) + ' M';
-    } else if (num >= 1e3) {
-        return (num / 1e3).toFixed(2) + ' K';
-    } else {
-        return num.toLocaleString();
-    }
-}
-
-/**
  * Obtém rede atual
  */
 function getCurrentNetwork() {
@@ -482,7 +461,7 @@ function monitorarVerificacao(guid) {
 /**
  * Inicialização quando DOM carrega
  */
-document.addEventListener('DOMContentLoaded', function() {
+function initialize() {
     console.log('🚀 add-token.js carregado');
     
     // Verifica endereço na URL
@@ -491,16 +470,37 @@ document.addEventListener('DOMContentLoaded', function() {
     // Configura botão de conexão MetaMask
     const connectBtn = document.getElementById('connect-metamask-btn');
     if (connectBtn) {
-        connectBtn.addEventListener('click', connectToMetaMask);
+        connectBtn.addEventListener('click', window.connectToMetaMask);
+    } else {
+        console.error('❌ Botão de conexão MetaMask não encontrado');
     }
     
     // Configura validação visual do input (sem auto-detecção)
+    const addressInput = document.getElementById('contract-address');
+}
+
+// Inicialização do aplicativo
+function initializeApp() {
+    console.log('🚀 add-token.js carregado');
+    
+    // Verifica endereço na URL
+    verificarEnderecoNaURL();
+    
+    // Configura botão de conexão MetaMask
+    const connectBtn = document.getElementById('connect-metamask-btn');
+    if (connectBtn) {
+        console.log('✅ Configurando botão de conexão MetaMask');
+        connectBtn.addEventListener('click', window.connectToMetaMask);
+    } else {
+        console.error('❌ Botão de conexão MetaMask não encontrado');
+    }
+    
+    // Configura validação visual do input
     const addressInput = document.getElementById('contract-address');
     if (addressInput) {
         addressInput.addEventListener('input', function() {
             const address = this.value.trim();
             if (address.match(/^0x[a-fA-F0-9]{40}$/)) {
-                // Apenas valida visualmente, sem auto-detectar
                 this.classList.add('is-valid');
                 this.classList.remove('is-invalid');
             } else if (address.length > 0) {
@@ -511,4 +511,11 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
-});
+}
+
+// Aguarda o carregamento completo do DOM
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeApp);
+} else {
+    initializeApp();
+}
