@@ -1,5 +1,7 @@
-// Importa apenas a função disponível do API Manager
+import { connectMetaMask, fetchTokenData, formatarNumero, getNetworkName, getExplorerUrl } from './shared/token-global.js';
 import { detectContract } from './api-manager.js';
+
+let currentProvider = null;
 
 /**
  * Adiciona token ao MetaMask
@@ -211,41 +213,31 @@ function verificarEnderecoNaURL() {
  */
 window.connectToMetaMask = async function() {
     try {
-        if (!window.ethereum) {
-            alert('❌ MetaMask não detectado! Por favor, instale a extensão.');
-            return;
+        const connection = await connectMetaMask();
+        currentProvider = connection.provider;
+        
+        console.log('✅ MetaMask conectado:', connection.address);
+        
+        // Atualiza UI
+        const walletStatus = document.getElementById('wallet-status');
+        const connectBtn = document.getElementById('connect-metamask-btn');
+        const networkSpan = document.getElementById('current-network');
+        
+        if (walletStatus) {
+            walletStatus.value = `${connection.address.substring(0, 6)}...${connection.address.substring(38)}`;
         }
-
-        // Solicita conexão
-        const accounts = await window.ethereum.request({
-            method: 'eth_requestAccounts'
-        });
-
-        if (accounts.length > 0) {
-            const walletAddress = accounts[0];
-            console.log('✅ MetaMask conectado:', walletAddress);
-            
-            // Atualiza UI
-            const walletStatus = document.getElementById('wallet-status');
-            const connectBtn = document.getElementById('connect-metamask-btn');
-            const networkSpan = document.getElementById('current-network');
-            
-            if (walletStatus) {
-                walletStatus.value = `${walletAddress.substring(0, 6)}...${walletAddress.substring(38)}`;
-            }
-            
-            if (connectBtn) {
-                connectBtn.textContent = 'CONECTADO';
-                connectBtn.className = 'btn btn-success btn-sm';
-                connectBtn.disabled = true;
-            }
-            
-            if (networkSpan) {
-                networkSpan.textContent = getCurrentNetwork();
-            }
-            
-            return walletAddress;
+        
+        if (connectBtn) {
+            connectBtn.textContent = 'CONECTADO';
+            connectBtn.className = 'btn btn-success btn-sm';
+            connectBtn.disabled = true;
         }
+        
+        if (networkSpan) {
+            networkSpan.textContent = connection.networkName;
+        }
+        
+        return connection.address;
         
     } catch (error) {
         console.error('❌ Erro ao conectar MetaMask:', error);
@@ -403,21 +395,35 @@ window.detectarContrato = async function() {
         return;
     }
     
+    if (!currentProvider) {
+        alert('❌ Por favor, conecte-se ao MetaMask primeiro');
+        return;
+    }
+    
     try {
         detectionStatus.innerHTML = `
             <div class="alert alert-info">
                 <div class="d-flex align-items-center">
                     <div class="spinner-border spinner-border-sm me-2" role="status"></div>
-                    <span>🔍 Detectando contrato em múltiplas redes...</span>
+                    <span>🔍 Detectando contrato na rede atual...</span>
                 </div>
             </div>
         `;
         
-        // Importa e usa o detectContract
-        const { detectContract } = await import('./api-manager.js');
-        const contractData = await detectContract(address);
+        // Busca dados do token na rede atual
+        const tokenData = await fetchTokenData(address, currentProvider);
         
-        if (contractData) {
+        if (tokenData) {
+            // Adiciona informações da rede
+            const chainId = window.ethereum.chainId;
+            const contractData = {
+                ...tokenData,
+                network: getNetworkName(chainId),
+                chainId,
+                verified: false, // Por padrão, consideramos não verificado
+                address // Garante que temos o endereço correto
+            };
+            
             // Mostra sucesso temporário
             detectionStatus.innerHTML = `
                 <div class="alert alert-success">
