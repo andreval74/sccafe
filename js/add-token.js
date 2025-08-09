@@ -204,17 +204,21 @@ window.connectToMetaMask = async function() {
         const networkSpan = document.getElementById('current-network');
         
         if (walletStatus) {
-            walletStatus.value = `${connection.address.substring(0, 6)}...${connection.address.substring(38)}`;
+            walletStatus.value = connection.address;
+            walletStatus.style.backgroundColor = '#e8f5e9';  // Verde claro
+            walletStatus.style.color = '#2e7d32';  // Verde escuro
+            walletStatus.style.fontWeight = 'bold';
         }
         
         if (connectBtn) {
-            connectBtn.textContent = 'CONECTADO';
-            connectBtn.className = 'btn btn-success btn-sm';
+            connectBtn.innerHTML = '<i class="bi bi-check-circle"></i> CONECTADO';
+            connectBtn.className = 'btn btn-success';
             connectBtn.disabled = true;
         }
         
         if (networkSpan) {
             networkSpan.textContent = connection.networkName;
+            networkSpan.className = 'fw-bold text-success';
         }
         
         return connection.address;
@@ -228,18 +232,84 @@ window.connectToMetaMask = async function() {
 /**
  * Mostra dados do contrato na interface
  */
-function mostrarDadosContrato(data, origem = 'detectado') {
+async function mostrarDadosContrato(data, origem = 'detectado') {
     console.log('🎯 Mostrando dados do contrato:', data);
     
     const tokenInfoSection = document.getElementById('token-info-section');
     const detectionSection = document.getElementById('detection-section');
     const sectionTitle = document.getElementById('section-title');
     const uploadSection = document.getElementById('upload-section');
+    const detectionStatus = document.getElementById('detection-status');
+    
+    // Atualiza status de detecção/verificação
+    if (detectionStatus) {
+        const statusClass = data.verified ? 'success' : 'warning';
+        const statusIcon = data.verified ? 'check-circle-fill' : 'exclamation-triangle-fill';
+        const statusText = data.verified ? 'Contrato Verificado' : 'Contrato Não Verificado';
+        
+        detectionStatus.innerHTML = `
+            <div class="card border-${statusClass} mb-3">
+                <div class="card-header bg-${statusClass} text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="bi bi-${statusIcon} me-2"></i>${statusText}
+                        </h5>
+                        ${data.verified ? `
+                            <a href="${data.explorerUrl}" target="_blank" class="btn btn-light btn-sm">
+                                <i class="bi bi-box-arrow-up-right"></i> Ver no Explorer
+                            </a>
+                        ` : ''}
+                    </div>
+                </div>
+                <div class="card-body">
+                    ${data.verified ? `
+                        <div class="alert alert-success mb-0">
+                            <i class="bi bi-info-circle me-2"></i>
+                            Este contrato já está verificado na rede. Todas as informações foram obtidas do explorer.
+                        </div>
+                    ` : `
+                        <div class="alert alert-warning mb-3">
+                            <i class="bi bi-info-circle me-2"></i>
+                            Este contrato ainda não foi verificado. Por favor, faça upload do arquivo fonte (.sol) para verificação.
+                        </div>
+                        <div id="upload-area">
+                            <div class="input-group">
+                                <input type="file" class="form-control" id="solFileInput" accept=".sol" 
+                                       onchange="window.processarArquivoSol(this)">
+                                <button class="btn btn-outline-secondary" type="button" onclick="window.limparArquivoSol()">
+                                    <i class="bi bi-x"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `}
+                </div>
+            </div>
+        `;
+    }
+    
+    // Tenta obter informações do contrato verificado se aplicável
+    if (data.verified) {
+        try {
+            const explorerData = await fetchContractFromExplorer(data.address, data.chainId);
+            Object.assign(data, explorerData);
+        } catch (error) {
+            console.error('❌ Erro ao buscar dados do explorer:', error);
+        }
+    }
     
     // Mostra/esconde seção de upload baseado no status de verificação
     if (uploadSection) {
         uploadSection.style.display = data.verified ? 'none' : 'block';
     }
+    
+    // Atualiza botões de ação
+    const addToMetaMaskBtn = document.getElementById('add-to-metamask-btn');
+    const verifyAutomaticBtn = document.getElementById('verify-automatic-btn');
+    const verifyManualBtn = document.getElementById('verify-manual-btn');
+    
+    if (addToMetaMaskBtn) addToMetaMaskBtn.disabled = false;
+    if (verifyAutomaticBtn) verifyAutomaticBtn.disabled = data.verified;
+    if (verifyManualBtn) verifyManualBtn.disabled = data.verified;
     
     if (!tokenInfoSection) {
         console.error('❌ Seção token-info-section não encontrada');
@@ -388,10 +458,12 @@ window.detectarContrato = async function() {
     
     try {
         detectionStatus.innerHTML = `
-            <div class="alert alert-info">
-                <div class="d-flex align-items-center">
-                    <div class="spinner-border spinner-border-sm me-2" role="status"></div>
-                    <span>🔍 Detectando contrato na rede atual...</span>
+            <div class="card border-info mb-3">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="spinner-border text-info me-2" role="status"></div>
+                        <h5 class="mb-0">Detectando contrato na rede atual...</h5>
+                    </div>
                 </div>
             </div>
         `;

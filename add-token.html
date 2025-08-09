@@ -52,15 +52,15 @@
                   </h5>
                   <div class="d-flex gap-3 align-items-center">
                     <input type="text" class="form-control" id="wallet-status" 
-                           placeholder="Clique em 'Conectar' para iniciar" readonly>
-                    <button id="connect-metamask-btn" type="button" class="connect-btn">
-                      CONECTAR
+                           placeholder="Clique em 'Conectar' para iniciar" style="font-family: monospace;" readonly>
+                    <button id="connect-metamask-btn" type="button" class="btn btn-outline-warning">
+                      <i class="bi bi-wallet2"></i> CONECTAR
                     </button>
                   </div>
                   <div class="row mt-2">
                     <div class="col-md-6">
                       <small class="text-muted">
-                        <i class="bi bi-wifi"></i> Rede: <span id="current-network">Não conectado</span>
+                        <i class="bi bi-wifi"></i> Rede: <span id="current-network" class="fw-bold">Não conectado</span>
                       </small>
                     </div>
                   </div>
@@ -268,19 +268,36 @@
             <!-- Ações Disponíveis -->
             <div class="row g-2">
               <div class="col-md-4">
-                <button class="btn btn-success w-100" onclick="addTokenToMetaMask()">
+                <button id="add-to-metamask-btn" class="btn btn-success w-100" onclick="addTokenToMetaMask()" disabled>
                   <i class="bi bi-plus-circle me-1"></i>Adicionar ao MetaMask
                 </button>
               </div>
               <div class="col-md-4">
-                <button class="btn btn-primary w-100" onclick="iniciarVerificacaoAutomatica()">
+                <button id="verify-automatic-btn" class="btn btn-primary w-100" onclick="iniciarVerificacaoAutomatica()" disabled>
                   <i class="bi bi-robot me-1"></i>Verificação Automática
                 </button>
               </div>
               <div class="col-md-4">
-                <button class="btn btn-outline-primary w-100" onclick="iniciarVerificacaoManual()">
+                <button id="verify-manual-btn" class="btn btn-outline-primary w-100" onclick="iniciarVerificacaoManual()" disabled>
                   <i class="bi bi-shield-check me-1"></i>Verificação Manual
                 </button>
+              </div>
+              
+              <!-- Área do Código Fonte -->
+              <div class="col-12 mt-4">
+                <div class="card">
+                  <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0">Código Fonte do Contrato</h6>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="copiarCodigoFonte()">
+                      <i class="bi bi-clipboard"></i> Copiar
+                    </button>
+                  </div>
+                  <div class="card-body">
+                    <pre id="contract-source" class="bg-light p-3" style="max-height: 400px; overflow-y: auto; font-size: 0.85rem;">
+Carregando código fonte...
+                    </pre>
+                  </div>
+                </div>
               </div>
             </div>
             
