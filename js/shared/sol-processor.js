@@ -1,26 +1,31 @@
-/**
- * Processa e analisa arquivos .sol
- */
-
-/**
- * Processa arquivo .sol
- */
-export async function processarArquivoSol(input) {
+// Processador de arquivos .sol
+const SolProcessor = {
     const file = input.files[0];
     if (!file) return;
 
     try {
         const reader = new FileReader();
-        reader.onload = function(e) {
-            const codigo = e.target.result;
-            
-            // Extrai informações do código
-            const infos = extrairInfosContrato(codigo);
-            
-            // Mostra prévia do código
-            document.getElementById('codigo-preview').style.display = 'block';
-            document.getElementById('nome-arquivo').textContent = file.name;
-            document.getElementById('codigo-fonte').textContent = codigo;
+        return new Promise((resolve, reject) => {
+            reader.onload = function(e) {
+                try {
+                    const codigo = e.target.result;
+                    
+                    // Extrai informações do código
+                    const infos = extrairInfosContrato(codigo);
+                    
+                    // Mostra detalhes do contrato
+                    const detailsSection = document.getElementById('contract-details');
+                    if (detailsSection) {
+                        detailsSection.style.display = 'block';
+                    }
+                    
+                    // Atualiza os campos com as informações
+                    document.getElementById('contract-name').textContent = `Contrato: ${infos.nome || file.name}`;
+                    document.getElementById('compiler-version-display').textContent = infos.version || 'Não detectado';
+                    document.getElementById('optimization-display').textContent = infos.optimizacao ? 'Sim' : 'Não';
+                    document.getElementById('license-display').textContent = infos.licenca || 'Não especificada';
+                    document.getElementById('libraries-display').textContent = infos.libraries?.length > 0 ? infos.libraries.join(', ') : 'Nenhuma';
+                    document.getElementById('codigo-fonte').textContent = codigo;
             
             // Salva informações para uso na verificação
             window.currentSolInfo = {

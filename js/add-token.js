@@ -248,40 +248,85 @@ async function mostrarDadosContrato(data, origem = 'detectado') {
         const statusText = data.verified ? 'Contrato Verificado' : 'Contrato Não Verificado';
         
         detectionStatus.innerHTML = `
-            <div class="card border-${statusClass} mb-3">
-                <div class="card-header bg-${statusClass} text-white">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">
-                            <i class="bi bi-${statusIcon} me-2"></i>${statusText}
-                        </h5>
-                        ${data.verified ? `
-                            <a href="${data.explorerUrl}" target="_blank" class="btn btn-light btn-sm">
-                                <i class="bi bi-box-arrow-up-right"></i> Ver no Explorer
-                            </a>
-                        ` : ''}
+            <div class="alert alert-${statusClass} mb-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <i class="bi bi-${statusIcon} me-2"></i>
+                        <strong>${statusText}</strong>
                     </div>
-                </div>
-                <div class="card-body">
                     ${data.verified ? `
-                        <div class="alert alert-success mb-0">
-                            <i class="bi bi-info-circle me-2"></i>
-                            Este contrato já está verificado na rede. Todas as informações foram obtidas do explorer.
-                        </div>
-                    ` : `
-                        <div class="alert alert-warning mb-3">
+                        <a href="${data.explorerUrl}" target="_blank" class="btn btn-light btn-sm">
+                            <i class="bi bi-box-arrow-up-right"></i> Ver no Explorer
+                        </a>
+                    ` : ''}
+                </div>
+            </div>
+            ${!data.verified ? `
+                <!-- Upload do Código Fonte -->
+                <div class="card border-warning">
+                    <div class="card-body">
+                        <div class="mb-3">
                             <i class="bi bi-info-circle me-2"></i>
                             Este contrato ainda não foi verificado. Por favor, faça upload do arquivo fonte (.sol) para verificação.
                         </div>
-                        <div id="upload-area">
-                            <div class="input-group">
-                                <input type="file" class="form-control" id="solFileInput" accept=".sol" 
-                                       onchange="window.processarArquivoSol(this)">
-                                <button class="btn btn-outline-secondary" type="button" onclick="window.limparArquivoSol()">
-                                    <i class="bi bi-x"></i>
-                                </button>
+                        <div class="input-group">
+                            <input type="file" class="form-control" id="solFileInput" accept=".sol" 
+                                   onchange="window.processarArquivoSol(this)">
+                            <button class="btn btn-outline-secondary" type="button" onclick="window.limparArquivoSol()">
+                                <i class="bi bi-x"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            ` : ''}
+            
+            <!-- Dados do Contrato (aparecem após upload do arquivo) -->
+            <div id="contract-details" style="display: none;" class="mt-3">
+                <div class="card">
+                    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0" id="contract-name">Informações do Contrato</h6>
+                        <div>
+                            <button class="btn btn-success btn-sm me-2" onclick="window.iniciarVerificacaoAutomatica()">
+                                <i class="bi bi-robot"></i> Verificação Automática
+                            </button>
+                            <button class="btn btn-primary btn-sm" onclick="window.iniciarVerificacaoManual()">
+                                <i class="bi bi-shield-check"></i> Verificação Manual
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Versão do Compilador</label>
+                                <div id="compiler-version-display" class="form-control-plaintext">-</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Otimização</label>
+                                <div id="optimization-display" class="form-control-plaintext">-</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Licença</label>
+                                <div id="license-display" class="form-control-plaintext">-</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Bibliotecas</label>
+                                <div id="libraries-display" class="form-control-plaintext">-</div>
                             </div>
                         </div>
-                    `}
+                        
+                        <!-- Código Fonte -->
+                        <div class="card bg-light">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <span>Código Fonte</span>
+                                <button class="btn btn-sm btn-outline-secondary" onclick="window.copiarCodigoFonte()">
+                                    <i class="bi bi-clipboard"></i> Copiar
+                                </button>
+                            </div>
+                            <div class="card-body p-0">
+                                <pre id="codigo-fonte" class="m-0 p-3" style="max-height: 300px; overflow-y: auto;"></pre>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         `;
