@@ -129,13 +129,15 @@ export function updateNetworkInfo() {
   const walletStatus = document.getElementById('wallet-status');
   const inputOwner = document.getElementById('ownerAddress');
   const networkStatus = document.getElementById('network-status');
+  const currentNetworkSpan = document.getElementById('current-network'); // Novo elemento
   
   console.log('🔍 [DEBUG] Elementos encontrados:', {
     networkDisplay: !!networkDisplay,
     networkValue: !!networkValue,
     walletStatus: !!walletStatus,
     inputOwner: !!inputOwner,
-    networkStatus: !!networkStatus
+    networkStatus: !!networkStatus,
+    currentNetworkSpan: !!currentNetworkSpan
   });
   
   if (currentNetwork) {
@@ -151,6 +153,13 @@ export function updateNetworkInfo() {
     if (networkStatus) {
       networkStatus.innerHTML = `<i class="bi bi-check-circle text-success"></i> Conectado`;
       console.log('✅ [DEBUG] networkStatus atualizado');
+    }
+    
+    // Atualiza o span da rede atual na seção de conexão
+    if (currentNetworkSpan) {
+      currentNetworkSpan.textContent = currentNetwork.name;
+      currentNetworkSpan.className = 'fw-bold text-success';
+      console.log('✅ [DEBUG] current-network span atualizado:', currentNetwork.name);
     }
     
     // Atualiza o campo oculto com dados completos para o sistema

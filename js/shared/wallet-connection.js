@@ -19,6 +19,9 @@ function updateConnectionInterface(status = '') {
     const walletStatus = document.getElementById('wallet-status');
     const btnConectar = document.getElementById('connect-metamask-btn');
     const ownerInput = document.getElementById('ownerAddress');
+    const currentNetworkSpan = document.getElementById('current-network');
+
+    console.log('🔄 Atualizando interface de conexão com status:', status);
 
     // Remove estado de carregamento
     if (connectionSection) {
@@ -43,6 +46,7 @@ function updateConnectionInterface(status = '') {
             default:
                 walletStatus.value = status || 'Clique em Conectar para iniciar';
         }
+        console.log('✅ Wallet status atualizado:', walletStatus.value);
     }
 
     // Se houver um campo de proprietário, atualiza ele também
@@ -50,13 +54,25 @@ function updateConnectionInterface(status = '') {
         ownerInput.classList.add('filled');
     }
 
+    // Atualiza o span da rede se disponível
+    if (currentNetworkSpan && status === 'connected') {
+        // A rede será atualizada pela função updateNetworkInfo do network-manager
+        console.log('✅ Preparado para atualização da rede via network-manager');
+    }
+
     // Atualiza botão
     if (btnConectar) {
         if (status === 'connected') {
-            btnConectar.textContent = 'CONECTADO';
+            btnConectar.innerHTML = '<i class="bi bi-check-circle"></i> CONECTADO';
             btnConectar.disabled = true;
             btnConectar.className = 'btn btn-success';
+            console.log('✅ Botão marcado como conectado');
+        } else if (status === 'connecting') {
+            btnConectar.innerHTML = '<i class="spinner-border spinner-border-sm"></i> CONECTANDO...';
+            btnConectar.disabled = true;
+            btnConectar.className = 'btn btn-warning';
         } else {
+            btnConectar.innerHTML = '<i class="bi bi-wallet2"></i> CONECTAR';
             btnConectar.disabled = isConnecting;
             btnConectar.className = 'btn btn-outline-warning';
         }
@@ -78,13 +94,29 @@ export async function setupWalletConnection() {
             return;
         }
 
-        // Carrega o template
-        const response = await fetch('/templates/wallet-connection.html');
+        console.log('✅ Seção de conexão encontrada');
+
+        // Verifica se já existe conteúdo na seção (HTML já presente na página)
+        const existingButton = document.getElementById('connect-metamask-btn');
+        if (existingButton) {
+            console.log('✅ Interface de conexão já presente, configurando botões...');
+            // Apenas configura o botão existente
+            existingButton.addEventListener('click', handleConnection);
+            console.log('✅ Botão de conexão configurado');
+            return;
+        }
+
+        // Se não existe, tenta carregar template
+        console.log('📄 Carregando template wallet-connection...');
+        const response = await fetch('./templates/wallet-connection.html');
         if (!response.ok) {
-            throw new Error(`Erro ao carregar template: ${response.status}`);
+            console.warn(`⚠️ Template não encontrado (${response.status}), usando fallback`);
+            createFallbackInterface();
+            return;
         }
         
         const template = await response.text();
+        console.log('✅ Template carregado com sucesso');
         
         // Método seguro para inserir HTML sem causar speculation rule warning
         // Cria um elemento temporário e move seus filhos para evitar problemas
