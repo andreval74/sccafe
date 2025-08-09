@@ -1,8 +1,3 @@
-
-
-    
-    
-
 // Estado global do workflow
 window.tokenWorkflow = {
     contratoGerado: false,
@@ -29,7 +24,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     console.log('🔗 DOM carregado, aguardando template resumo-template...');
     
-        // Importa funções dinâmicamente para torná-las globais
+    // Importa funções dinâmicamente para torná-las globais
     loadSystemFunctions();
     
     // Carrega o template
@@ -47,7 +42,6 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('⚠️ Erro ao carregar resumo-template:', error);
             console.log('ℹ️ Sistema funcionará sem o template resumo');
         });
-    }
 });
 
 // Carrega funções do sistema dinamicamente
