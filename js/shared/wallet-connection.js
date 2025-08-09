@@ -20,6 +20,7 @@ function updateConnectionInterface(status = '') {
     const btnConectar = document.getElementById('connect-metamask-btn');
     const ownerInput = document.getElementById('ownerAddress');
     const currentNetworkSpan = document.getElementById('current-network');
+    const networkInfoSection = document.getElementById('network-info-section');
 
     console.log('🔄 Atualizando interface de conexão com status:', status);
 
@@ -28,6 +29,17 @@ function updateConnectionInterface(status = '') {
         connectionSection.classList.remove('connecting');
         if (status === 'connected') {
             connectionSection.classList.add('connected-state');
+        }
+    }
+    
+    // Controla a visibilidade das informações de rede
+    if (networkInfoSection) {
+        if (status === 'connected') {
+            networkInfoSection.style.display = 'block';
+            console.log('✅ Informações de rede mostradas após conexão');
+        } else {
+            networkInfoSection.style.display = 'none';
+            console.log('🔒 Informações de rede escondidas - não conectado');
         }
     }
     
@@ -52,7 +64,7 @@ function updateConnectionInterface(status = '') {
                 walletStatus.classList.remove('wallet-status-connected');
                 break;
             default:
-                walletStatus.value = status || 'Clique em Conectar para iniciar';
+                walletStatus.value = status || 'Clique em "Conectar" para iniciar';
                 walletStatus.classList.remove('wallet-status-connected');
         }
         console.log('✅ Wallet status atualizado:', walletStatus.value);
@@ -63,10 +75,13 @@ function updateConnectionInterface(status = '') {
         ownerInput.classList.add('filled');
     }
 
-    // Atualiza o span da rede se disponível
+    // Atualiza o span da rede se disponível (só quando conectado)
     if (currentNetworkSpan && status === 'connected') {
         // A rede será atualizada pela função updateNetworkInfo do network-manager
         console.log('✅ Preparado para atualização da rede via network-manager');
+    } else if (currentNetworkSpan && status !== 'connected') {
+        // Limpa a rede quando não conectado
+        currentNetworkSpan.textContent = '-';
     }
 
     // Atualiza botão
@@ -112,6 +127,9 @@ export async function setupWalletConnection() {
             // Apenas configura o botão existente
             existingButton.addEventListener('click', handleConnection);
             console.log('✅ Botão de conexão configurado');
+            
+            // Configura listeners globais para mudanças de conta
+            setupGlobalListeners();
             return;
         }
 
@@ -121,6 +139,7 @@ export async function setupWalletConnection() {
         if (!response.ok) {
             console.warn(`⚠️ Template não encontrado (${response.status}), usando fallback`);
             createFallbackInterface();
+            setupGlobalListeners();
             return;
         }
         
@@ -149,6 +168,9 @@ export async function setupWalletConnection() {
             console.warn('⚠️ Botão de conexão não encontrado no template');
         }
         
+        // Configura listeners globais para mudanças de conta
+        setupGlobalListeners();
+        
         console.log('✅ Componente de conexão configurado com sucesso');
         
     } catch (error) {
@@ -156,6 +178,7 @@ export async function setupWalletConnection() {
         
         // Fallback: cria interface básica se falhar
         createFallbackInterface();
+        setupGlobalListeners();
     }
 }
 
@@ -179,10 +202,13 @@ function createFallbackInterface() {
                         <i class="bi bi-wallet2"></i> CONECTAR
                     </button>
                 </div>
-                <div class="row mt-2">
-                    <div class="col-md-6">
-                        <small class="text-muted">
-                            <i class="bi bi-wifi"></i> Rede: <span id="current-network" class="fw-bold">Não conectado</span>
+                <div class="row mt-2" id="network-info-section" style="display: none;">
+                    <div class="col-md-12">
+                        <small class="text-muted network-info">
+                            <i class="bi bi-wifi"></i> Rede: <span id="current-network" class="fw-bold">-</span>
+                            <span id="chain-id-display" class="chain-id ms-2">
+                                <i class="bi bi-link-45deg"></i> Chain ID: <span id="chain-id-value">-</span>
+                            </span>
                         </small>
                     </div>
                 </div>
@@ -263,4 +289,67 @@ async function handleConnection(event) {
  */
 export function getCurrentProvider() {
     return currentProvider;
+}
+
+/**
+ * Configura listeners globais para mudanças no MetaMask
+ */
+function setupGlobalListeners() {
+    if (!window.ethereum) return;
+    
+    console.log('🎧 Configurando listeners globais para MetaMask...');
+    
+    // Listener para mudanças de conta
+    window.ethereum.on('accountsChanged', function (accounts) {
+        console.log('🔄 Conta alterada:', accounts[0]);
+        
+        const walletStatus = document.getElementById('wallet-status');
+        const ownerInput = document.getElementById('ownerAddress');
+        
+        if (accounts.length > 0 && accounts[0]) {
+            // Atualiza campo da carteira
+            if (walletStatus) {
+                walletStatus.value = accounts[0];
+                walletStatus.classList.add('wallet-status-connected');
+                console.log('✅ Campo da carteira atualizado:', accounts[0]);
+            }
+            
+            // Atualiza campo de owner se existir
+            if (ownerInput) {
+                ownerInput.value = accounts[0];
+                console.log('✅ Campo owner atualizado:', accounts[0]);
+            }
+        } else {
+            // Conta desconectada
+            if (walletStatus) {
+                walletStatus.value = 'Carteira desconectada';
+                walletStatus.classList.remove('wallet-status-connected');
+            }
+            
+            // Esconde informações de rede
+            const networkInfoSection = document.getElementById('network-info-section');
+            if (networkInfoSection) {
+                networkInfoSection.style.display = 'none';
+            }
+            
+            // Restaura botão para estado desconectado
+            const btnConectar = document.getElementById('connect-metamask-btn');
+            if (btnConectar) {
+                btnConectar.innerHTML = '<i class="bi bi-wallet2"></i> CONECTAR';
+                btnConectar.disabled = false;
+                btnConectar.className = 'btn btn-outline-warning';
+            }
+        }
+    });
+    
+    // Listener para mudanças de rede
+    window.ethereum.on('chainChanged', function (chainId) {
+        console.log('🔄 Rede alterada:', chainId);
+        // A detecção será feita pelo network-manager
+        detectCurrentNetwork().then(() => {
+            updateNetworkInfo();
+        });
+    });
+    
+    console.log('✅ Listeners globais configurados');
 }

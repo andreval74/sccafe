@@ -39,7 +39,15 @@ export function listenMetaMask(inputOwner) {
   if (!window.ethereum) return;
   
   window.ethereum.on('accountsChanged', function (accounts) {
-    if (accounts[0] && inputOwner) inputOwner.value = accounts[0];
+    if (accounts[0] && inputOwner) {
+      inputOwner.value = accounts[0];
+      // Atualiza também o campo de status da carteira
+      const walletStatus = document.getElementById('wallet-status');
+      if (walletStatus) {
+        walletStatus.value = accounts[0];
+        console.log('✅ Campo da carteira atualizado para nova conta:', accounts[0]);
+      }
+    }
   });
   
   window.ethereum.on('chainChanged', async function (chainId) {

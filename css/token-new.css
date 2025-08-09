@@ -37,16 +37,26 @@
 .network-info {
   font-size: 0.875rem;
   color: #6c757d !important; /* Cinza */
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Fonte padrão */
+  font-weight: 500;
 }
 
 .network-info .chain-id {
   color: #6c757d !important; /* Cinza também */
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Fonte padrão */
   font-weight: 500;
 }
 
 .network-info #current-network {
   color: #6c757d !important; /* Nome da rede em cinza */
-  font-weight: 600;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Fonte padrão */
+  font-weight: 500;
+}
+
+.network-info #chain-id-value {
+  color: #6c757d !important; /* Valor do Chain ID em cinza */
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Fonte padrão */
+  font-weight: 500;
 }
 
 /*--------------------------------------------------------------
@@ -194,9 +204,41 @@
 }
 
 .connect-btn:disabled {
-  background: var(--token-success);
+  background: #6c757d !important; /* Cinza quando conectado */
+  color: white !important;
   cursor: not-allowed;
   transform: none;
+  box-shadow: none;
+}
+
+/* Botão outline warning (não conectado) - colorido por padrão */
+.btn-outline-warning {
+  background: var(--token-primary) !important;
+  border-color: var(--token-primary) !important;
+  color: var(--contrast-color) !important;
+  font-weight: 600;
+  border-radius: 50px;
+  padding: 12px 24px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px color-mix(in srgb, var(--token-primary), transparent 75%);
+}
+
+.btn-outline-warning:hover {
+  background: color-mix(in srgb, var(--token-primary), #000 15%) !important;
+  border-color: color-mix(in srgb, var(--token-primary), #000 15%) !important;
+  color: var(--contrast-color) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px color-mix(in srgb, var(--token-primary), transparent 70%);
+}
+
+/* Botão success (conectado) - cinza */
+.btn-success {
+  background: #6c757d !important;
+  border-color: #6c757d !important;
+  color: white !important;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 .btn-primary {

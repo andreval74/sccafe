@@ -132,6 +132,7 @@ export function updateNetworkInfo() {
   const currentNetworkSpan = document.getElementById('current-network'); // Novo elemento
   const chainIdDisplay = document.getElementById('chain-id-display'); // Container do Chain ID
   const chainIdValue = document.getElementById('chain-id-value'); // Valor do Chain ID
+  const networkInfoSection = document.getElementById('network-info-section'); // Seção da informação de rede
   
   console.log('🔍 [DEBUG] Elementos encontrados:', {
     networkDisplay: !!networkDisplay,
@@ -141,11 +142,18 @@ export function updateNetworkInfo() {
     networkStatus: !!networkStatus,
     currentNetworkSpan: !!currentNetworkSpan,
     chainIdDisplay: !!chainIdDisplay,
-    chainIdValue: !!chainIdValue
+    chainIdValue: !!chainIdValue,
+    networkInfoSection: !!networkInfoSection
   });
   
   if (currentNetwork) {
     console.log('✅ [DEBUG] Atualizando com rede:', currentNetwork.name);
+    
+    // Mostra a seção de informações de rede apenas quando conectado
+    if (networkInfoSection) {
+      networkInfoSection.style.display = 'block';
+      console.log('✅ [DEBUG] Seção de rede mostrada');
+    }
     
     // Atualiza o campo visível da rede
     if (networkDisplay) {

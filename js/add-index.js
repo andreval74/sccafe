@@ -13,6 +13,13 @@ import { loadTemplate, injectTemplate, fillTemplate } from './template-loader.js
 // Inicializa o sistema quando o DOM estiver pronto
 document.addEventListener('DOMContentLoaded', async () => {
     try {
+        // Esconde as informações de rede inicialmente
+        const networkInfoSection = document.getElementById('network-info-section');
+        if (networkInfoSection) {
+            networkInfoSection.style.display = 'none';
+            console.log('🔒 Informações de rede escondidas no início');
+        }
+        
         // Inicializa o componente de conexão da carteira
         await setupWalletConnection();
         
