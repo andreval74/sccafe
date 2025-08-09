@@ -1,24 +1,26 @@
 /**
  * Sistema de Verificação Automática Simplificado
  * Versão limpa focada na resolução do erro BSCScan
+ * Traduzido e comentado em português
  */
 
 /**
  * Função principal para iniciar verificação automática
+ * Gerencia todo o fluxo de verificação do contrato
  */
 window.iniciarVerificacaoAutomatica = async function() {
     try {
         console.log('🚀 Iniciando verificação automática...');
         
-        // Limpar status anterior
+        // Limpar status anterior de verificações
         clearVerificationStatus();
         
-        // Obter dados necessários
+        // Obter dados necessários do localStorage
         const contractAddress = localStorage.getItem('tokenAddress');
         const sourceCode = localStorage.getItem('contratoSource');
         const compilerVersion = localStorage.getItem('resolvedCompilerVersion') || '0.8.19';
         
-        // Validações básicas
+        // Validações básicas dos dados necessários
         if (!contractAddress) {
             showError('❌ Endereço do contrato não encontrado. Faça o deploy primeiro.');
             return;
@@ -31,11 +33,11 @@ window.iniciarVerificacaoAutomatica = async function() {
 
         updateStatus('🔍 Detectando contrato...', 'info');
         
-        // Detectar nome do contrato (priorizar USDT018)
+        // Detectar nome do contrato no código fonte (priorizar USDT018)
         const contractName = detectContractFromSource(sourceCode);
         updateStatus(`🎯 Contrato detectado: ${contractName}`, 'success');
 
-        // Detectar Chain ID
+        // Detectar Chain ID da rede atual
         const chainId = await detectChainId();
         updateStatus(`🌐 Rede: Chain ID ${chainId}`, 'info');
 

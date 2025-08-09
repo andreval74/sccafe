@@ -1,13 +1,22 @@
-// Estado global do workflow
+/**
+ * Sistema de Botões Funcionais - SCCafe Token Creator
+ * Gerencia toda a funcionalidade dos botões e workflow de criação de tokens
+ * Versão: 2.0 - Integrado com sistema modular
+ */
+
+// Estado global do workflow de criação de tokens
 window.tokenWorkflow = {
-    contratoGerado: false,
-    contratoCompilado: false,
-    contratoDeployado: false,
-    contratoAddress: null,
-    networkName: null
+    contratoGerado: false,      // Indica se o contrato foi gerado
+    contratoCompilado: false,   // Indica se o contrato foi compilado
+    contratoDeployado: false,   // Indica se o contrato foi deployado
+    contratoAddress: null,      // Endereço do contrato deployado
+    networkName: null           // Nome da rede onde foi deployado
 };
 
-// Aguarda o carregamento completo da página e template
+/**
+ * Aguarda o carregamento completo da página e template
+ * Inicializa o sistema de botões após o DOM estar pronto
+ */
 document.addEventListener('DOMContentLoaded', function() {
     // Verifica se estamos na página que precisa do template resumo-template
     const currentPage = window.location.pathname;
@@ -27,7 +36,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Importa funções dinâmicamente para torná-las globais
     loadSystemFunctions();
     
-    // Carrega o template
+    // Carrega o template de resumo de criação
     fetch('/templates/resumo-template.html')
         .then(response => response.text())
         .then(template => {
@@ -44,25 +53,29 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 });
 
-// Carrega funções do sistema dinamicamente
+/**
+ * Carrega funções do sistema dinamicamente
+ * Importa módulos necessários e torna funções disponíveis globalmente
+ */
 async function loadSystemFunctions() {
     try {
         console.log('🔧 Carregando funções REAIS do sistema...');
         
-        // Importa módulos dinamicamente (força reload para garantir versão mais recente)
-        const timestamp = Date.now(); // Cache busting
+        // Importa módulos dinamicamente com cache busting para garantir versão mais recente
+        const timestamp = Date.now(); // Evita cache do navegador
         
+        // Carrega módulos principais do sistema
         const contractsModule = await import(`./add-contratos-verified.js?t=${timestamp}`);
         const deployModule = await import(`./add-deploy.js?t=${timestamp}`);
         const utilsModule = await import(`./add-utils.js?t=${timestamp}`);
         
-        // Torna funções globais
+        // Torna funções disponíveis globalmente para compatibilidade
         window.salvarContrato = contractsModule.salvarContrato;
         window.compilarContrato = contractsModule.compilarContrato;
         window.deployContrato = deployModule.deployContrato;
         window.marcarConcluido = utilsModule.marcarConcluido;
         
-        // Verifica se todas as funções foram carregadas
+        // Verifica se todas as funções foram carregadas corretamente
         const funcoes = {
             'salvarContrato': !!window.salvarContrato,
             'compilarContrato': !!window.compilarContrato,
@@ -75,13 +88,14 @@ async function loadSystemFunctions() {
         const funcionaisDisponiveis = Object.values(funcoes).filter(v => v).length;
         console.log(`✅ ${funcionaisDisponiveis}/4 funções do sistema carregadas e disponíveis globalmente`);
         
+        // Valida se o carregamento foi bem-sucedido
         if (funcionaisDisponiveis < 3) {
             throw new Error(`Apenas ${funcionaisDisponiveis}/4 funções foram carregadas com sucesso`);
         }
         
     } catch (error) {
         console.error('❌ ERRO CRÍTICO ao carregar funções do sistema:', error);
-        console.log('� Verifique se os arquivos existem:');
+        console.log('🔍 Verifique se os arquivos existem:');
         console.log('   - js/add-contratos-verified.js');
         console.log('   - js/add-deploy.js');
         console.log('   - js/add-utils.js');
@@ -95,10 +109,15 @@ async function loadSystemFunctions() {
     }
 }
 
+/**
+ * Configura os handlers (manipuladores) dos botões principais
+ * Conecta cada botão à sua respectiva função de callback
+ */
+
 function setupButtonHandlers() {
     console.log('🔧 Configurando handlers dos botões...');
     
-    // Debug: listar todos os elementos encontrados
+    // Debug: lista todos os elementos encontrados no DOM
     console.log('🔍 Elementos no DOM:', {
         'btn-salvar-contrato': !!document.getElementById('btn-salvar-contrato'),
         'btn-compilar-contrato': !!document.getElementById('btn-compilar-contrato'),
@@ -106,7 +125,7 @@ function setupButtonHandlers() {
         'containers': document.querySelectorAll('.token-creator-simplified, .etapa-card').length
     });
     
-    // Botão Gerar Contrato
+    // Configura Botão Gerar Contrato
     const btnGerar = document.getElementById('btn-salvar-contrato');
     if (btnGerar) {
         btnGerar.onclick = handleGerarContrato;
@@ -115,7 +134,7 @@ function setupButtonHandlers() {
         console.warn('❌ Botão btn-salvar-contrato não encontrado!');
     }
     
-    // Botão Compilar
+    // Configura Botão Compilar
     const btnCompilar = document.getElementById('btn-compilar-contrato');
     if (btnCompilar) {
         btnCompilar.onclick = handleCompilarContrato;
@@ -124,7 +143,7 @@ function setupButtonHandlers() {
         console.warn('❌ Botão btn-compilar-contrato não encontrado!');
     }
     
-    // Botão Deploy
+    // Configura Botão Deploy
     const btnDeploy = document.getElementById('btn-deploy-contrato');
     if (btnDeploy) {
         btnDeploy.onclick = handleDeployContrato;
@@ -133,30 +152,35 @@ function setupButtonHandlers() {
         console.warn('❌ Botão btn-deploy-contrato não encontrado!');
     }
     
-    // Botão Adicionar ao MetaMask
+    // Configura Botão Adicionar ao MetaMask
     const btnMetaMask = document.getElementById('btn-add-metamask');
     if (btnMetaMask) {
         btnMetaMask.onclick = adicionarAoMetaMask;
         console.log('✅ Botão MetaMask conectado');
     }
     
-    // Botão Criar Novo Token
+    // Configura Botão Criar Novo Token
     const btnNovoToken = document.getElementById('btn-criar-novo-token');
     if (btnNovoToken) {
         btnNovoToken.onclick = criarNovoToken;
         console.log('✅ Botão Novo Token conectado');
     }
     
-    // Conta botões encontrados
+    // Conta quantos botões foram encontrados e configurados
     const botoes = [btnGerar, btnCompilar, btnDeploy].filter(btn => btn);
     console.log(`🎉 ${botoes.length}/3 botões principais conectados!`);
     
     if (botoes.length === 3) {
-        console.log('� Sistema de botões totalmente funcional!');
+        console.log('🚀 Sistema de botões totalmente funcional!');
     }
 }
 
-// Atualizar status visual e progresso
+/**
+ * Atualiza o status visual de uma etapa
+ * @param {string} statusId - ID do elemento de status
+ * @param {string} text - Texto a ser exibido
+ * @param {string} className - Classe CSS para estilização
+ */
 function updateStatus(statusId, text, className = '') {
     const statusElement = document.getElementById(statusId);
     if (statusElement) {
@@ -165,6 +189,11 @@ function updateStatus(statusId, text, className = '') {
     }
 }
 
+/**
+ * Atualiza a barra de progresso de uma etapa
+ * @param {string} progressId - ID do elemento de progresso
+ * @param {number} percentage - Porcentagem de progresso (0-100)
+ */
 function updateProgress(progressId, percentage) {
     const progressElement = document.getElementById(progressId);
     if (progressElement) {
@@ -172,7 +201,10 @@ function updateProgress(progressId, percentage) {
     }
 }
 
-// Função para marcar botão como concluído (cópia da função original)
+/**
+ * Marca um botão como concluído (cópia da função original para compatibilidade)
+ * @param {HTMLElement} btn - Elemento do botão a ser marcado como concluído
+ */
 function marcarConcluido(btn) {
     if (btn) {
         btn.classList.add('completed');
@@ -180,7 +212,10 @@ function marcarConcluido(btn) {
     }
 }
 
-// Função global para reconfigurar event listeners (pode ser chamada externamente)
+/**
+ * Função global para reconfigurar event listeners
+ * Pode ser chamada externamente para reinicializar os botões
+ */
 window.configureButtonListeners = function() {
     console.log('🔧 Reconfigurando event listeners dos botões...');
     setupButtonHandlers();

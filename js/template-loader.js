@@ -3,6 +3,7 @@
 
 /**
  * Cache de templates carregados
+ * Evita carregar o mesmo template múltiplas vezes
  */
 const templateCache = new Map();
 
@@ -12,7 +13,7 @@ const templateCache = new Map();
  * @returns {Promise<string>} - Conteúdo HTML do template
  */
 export async function loadTemplate(templateName) {
-  // Verifica se já está no cache
+  // Verifica se já está no cache para evitar requisições desnecessárias
   if (templateCache.has(templateName)) {
     return templateCache.get(templateName);
   }
@@ -25,7 +26,7 @@ export async function loadTemplate(templateName) {
     
     const html = await response.text();
     
-    // Armazena no cache
+    // Armazena no cache para próximas utilizações
     templateCache.set(templateName, html);
     
     console.log(`✅ [TEMPLATE] Template "${templateName}" carregado com sucesso`);
@@ -46,7 +47,7 @@ export async function loadTemplate(templateName) {
 export async function injectTemplate(templateName, targetElement) {
   const html = await loadTemplate(templateName);
   
-  // Resolve o elemento se for string
+  // Resolve o elemento se for string (seletor CSS)
   const element = typeof targetElement === 'string' 
     ? document.querySelector(targetElement) 
     : targetElement;
@@ -62,16 +63,16 @@ export async function injectTemplate(templateName, targetElement) {
 }
 
 /**
- * Preenche um template com dados
+ * Preenche um template com dados dinâmicos
  * @param {string} templateName - Nome do template
- * @param {Object} data - Dados para preencher
- * @param {HTMLElement|string} targetElement - Onde injetar
+ * @param {Object} data - Dados para preencher nos campos
+ * @param {HTMLElement|string} targetElement - Onde injetar o template
  * @returns {Promise<HTMLElement>} - Elemento preenchido
  */
 export async function fillTemplate(templateName, data, targetElement) {
   await injectTemplate(templateName, targetElement);
   
-  // Preenche os campos com os dados
+  // Preenche os campos com os dados fornecidos
   Object.entries(data).forEach(([key, value]) => {
     const element = document.getElementById(key);
     if (element) {
@@ -88,7 +89,7 @@ export async function fillTemplate(templateName, data, targetElement) {
 }
 
 /**
- * Limpa o cache de templates (útil para desenvolvimento)
+ * Limpa o cache de templates (útil para desenvolvimento e debugging)
  */
 export function clearTemplateCache() {
   templateCache.clear();
@@ -97,6 +98,7 @@ export function clearTemplateCache() {
 
 /**
  * Pré-carrega templates comuns para melhor performance
+ * Carrega templates frequentemente usados no início da aplicação
  */
 export async function preloadTemplates() {
   const commonTemplates = [
@@ -107,6 +109,7 @@ export async function preloadTemplates() {
   console.log('⏳ [TEMPLATE] Pré-carregando templates comuns...');
   
   try {
+    // Carrega todos os templates em paralelo
     await Promise.all(
       commonTemplates.map(template => loadTemplate(template))
     );
