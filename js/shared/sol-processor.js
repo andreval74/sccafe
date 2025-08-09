@@ -1,154 +1,96 @@
-// Processador de arquivos .sol
-const SolProcessor = {
-    const file = input.files[0];
-    if (!file) return;
+/**
+ * sol-processor.js
+ * Módulo para processamento de arquivos Solidity (.sol)
+ */
 
-    try {
-        const reader = new FileReader();
+export class SolProcessor {
+    /**
+     * Lê o conteúdo de um arquivo como texto
+     * @param {File} file - O arquivo a ser lido
+     * @returns {Promise<string>} Conteúdo do arquivo
+     */
+    static lerArquivo(file) {
         return new Promise((resolve, reject) => {
-            reader.onload = function(e) {
-                try {
-                    const codigo = e.target.result;
-                    
-                    // Extrai informações do código
-                    const infos = extrairInfosContrato(codigo);
-                    
-                    // Mostra detalhes do contrato
-                    const detailsSection = document.getElementById('contract-details');
-                    if (detailsSection) {
-                        detailsSection.style.display = 'block';
-                    }
-                    
-                    // Atualiza os campos com as informações
-                    document.getElementById('contract-name').textContent = `Contrato: ${infos.nome || file.name}`;
-                    document.getElementById('compiler-version-display').textContent = infos.version || 'Não detectado';
-                    document.getElementById('optimization-display').textContent = infos.optimizacao ? 'Sim' : 'Não';
-                    document.getElementById('license-display').textContent = infos.licenca || 'Não especificada';
-                    document.getElementById('libraries-display').textContent = infos.libraries?.length > 0 ? infos.libraries.join(', ') : 'Nenhuma';
-                    document.getElementById('codigo-fonte').textContent = codigo;
-            
-            // Salva informações para uso na verificação
-            window.currentSolInfo = {
-                codigo: codigo,
-                nome: file.name,
-                ...infos
-            };
-            
-            // Atualiza UI com informações extraídas
-            atualizarInfosContrato(infos);
+            const reader = new FileReader();
+            reader.onload = e => resolve(e.target.result);
+            reader.onerror = e => reject(new Error('Erro ao ler arquivo'));
+            reader.readAsText(file);
+        });
+    }
+
+    /**
+     * Extrai informações do contrato do código fonte
+     * @param {string} codigo - Código fonte do contrato
+     * @returns {Object} Informações do contrato
+     */
+    static extrairInfosContrato(codigo) {
+        const infos = {
+            version: '',
+            nome: '',
+            optimizacao: false,
+            licenca: '',
+            imports: [],
+            libraries: [],
+            codigo: codigo
         };
-        reader.readAsText(file);
-    } catch (error) {
-        console.error('❌ Erro ao processar arquivo:', error);
-        alert('❌ Erro ao processar arquivo: ' + error.message);
-    }
-}
+        
+        try {
+            // Extrai versão do compilador
+            const versionMatch = codigo.match(/pragma solidity\s*(.*?);/);
+            if (versionMatch) {
+                infos.version = versionMatch[1].trim();
+            }
+            
+            // Extrai nome do contrato
+            const contractMatch = codigo.match(/contract\s+(\w+)/);
+            if (contractMatch) {
+                infos.nome = contractMatch[1];
+            }
+            
+            // Verifica se tem otimização
+            infos.optimizacao = codigo.includes('optimizer') || codigo.includes('optimization');
+            
+            // Extrai licença
+            const licenseMatch = codigo.match(/SPDX-License-Identifier:\s*(.*)/);
+            if (licenseMatch) {
+                infos.licenca = licenseMatch[1].trim();
+            }
 
-/**
- * Extrai informações do contrato do código fonte
- */
-function extrairInfosContrato(codigo) {
-    const infos = {
-        version: '',
-        nome: '',
-        optimizacao: false,
-        licenca: '',
-        imports: [],
-        libraries: []
-    };
-    
-    try {
-        // Extrai versão do compilador
-        const versionMatch = codigo.match(/pragma solidity\s*(.*?);/);
-        if (versionMatch) {
-            infos.version = versionMatch[1];
+            // Extrai imports
+            const importRegex = /import\s+["'](.+?)["'];/g;
+            let importMatch;
+            while ((importMatch = importRegex.exec(codigo)) !== null) {
+                infos.imports.push(importMatch[1]);
+            }
+
+            // Extrai libraries
+            const libraryRegex = /library\s+(\w+)/g;
+            let libraryMatch;
+            while ((libraryMatch = libraryRegex.exec(codigo)) !== null) {
+                infos.libraries.push(libraryMatch[1]);
+            }
+            
+        } catch (error) {
+            console.error('❌ Erro ao extrair informações:', error);
         }
         
-        // Extrai nome do contrato
-        const contractMatch = codigo.match(/contract\s+(\w+)/);
-        if (contractMatch) {
-            infos.nome = contractMatch[1];
-        }
-        
-        // Verifica se tem otimização
-        infos.optimizacao = codigo.includes('optimizer') || codigo.includes('optimization');
-        
-        // Extrai licença
-        const licenseMatch = codigo.match(/SPDX-License-Identifier:\s*(.*)/);
-        if (licenseMatch) {
-            infos.licenca = licenseMatch[1];
-        }
-
-        // Extrai imports
-        const importRegex = /import\s+["'](.+?)["'];/g;
-        let importMatch;
-        while ((importMatch = importRegex.exec(codigo)) !== null) {
-            infos.imports.push(importMatch[1]);
-        }
-
-        // Extrai libraries
-        const libraryRegex = /library\s+(\w+)/g;
-        let libraryMatch;
-        while ((libraryMatch = libraryRegex.exec(codigo)) !== null) {
-            infos.libraries.push(libraryMatch[1]);
-        }
-        
-    } catch (error) {
-        console.error('❌ Erro ao extrair informações:', error);
+        return infos;
     }
-    
-    return infos;
-}
 
-/**
- * Atualiza UI com informações do contrato
- */
-export function atualizarInfosContrato(infos) {
-    // Atualiza campos de compilação
-    if (document.getElementById('compiler-version-display')) {
-        document.getElementById('compiler-version-display').textContent = infos.version || 'Não detectado';
-    }
-    if (document.getElementById('optimization-display')) {
-        document.getElementById('optimization-display').textContent = infos.optimizacao ? 'Sim' : 'Não';
-    }
-    
-    // Atualiza campos adicionais se existirem
-    const elementos = {
-        'contract-name-display': infos.nome || 'Não detectado',
-        'license-display': infos.licenca || 'Não especificada',
-        'imports-display': infos.imports.length > 0 ? infos.imports.join(', ') : 'Nenhum',
-        'libraries-display': infos.libraries.length > 0 ? infos.libraries.join(', ') : 'Nenhuma'
-    };
-    
-    Object.entries(elementos).forEach(([id, valor]) => {
-        const elemento = document.getElementById(id);
-        if (elemento) elemento.textContent = valor;
-    });
-}
+    /**
+     * Processa um arquivo .sol
+     * @param {File} file - O arquivo .sol a ser processado
+     * @returns {Promise<Object>} Informações do contrato
+     */
+    static async processarArquivo(file) {
+        if (!file) throw new Error('Arquivo não fornecido');
 
-/**
- * Limpa arquivo .sol
- */
-export function limparArquivoSol() {
-    const input = document.getElementById('solFileInput');
-    if (input) input.value = '';
-    
-    document.getElementById('codigo-preview').style.display = 'none';
-    document.getElementById('codigo-fonte').textContent = '';
-    window.currentSolInfo = null;
-    
-    // Limpa campos de informação
-    const campos = [
-        'compiler-version-display',
-        'optimization-display',
-        'contract-name-display',
-        'license-display',
-        'imports-display',
-        'libraries-display'
-    ];
-    
-    campos.forEach(id => {
-        const elemento = document.getElementById(id);
-        if (elemento) elemento.textContent = '-';
-    });
+        try {
+            const codigo = await this.lerArquivo(file);
+            return this.extrairInfosContrato(codigo);
+        } catch (erro) {
+            console.error('Erro ao processar arquivo:', erro);
+            throw erro;
+        }
+    }
 }
