@@ -29,49 +29,24 @@ document.addEventListener('DOMContentLoaded', function() {
     
     console.log('🔗 DOM carregado, aguardando template resumo-template...');
     
-    // Importa funções dinâmicamente para torná-las globais
+        // Importa funções dinâmicamente para torná-las globais
     loadSystemFunctions();
     
-    // Função para aguardar template específico
-    function waitForTemplate() {
-        const templateContainer = document.querySelector('#summary-box, [data-template="resumo-template"], .token-creator-simplified');
-        
-        if (templateContainer && templateContainer.querySelector('#btn-salvar-contrato')) {
-            console.log('🎯 Template resumo-template carregado! Conectando botões...');
-            setupButtonHandlers();
-            return true;
-        }
-        return false;
-    }
-    
-    // Tenta imediatamente só se precisar do template
-    if (!waitForTemplate()) {
-        // Se não encontrou, aguarda com MutationObserver
-        const observer = new MutationObserver((mutations) => {
-            if (waitForTemplate()) {
-                observer.disconnect(); // Para de observar após encontrar
+    // Carrega o template
+    fetch('/templates/resumo-template.html')
+        .then(response => response.text())
+        .then(template => {
+            const templateContainer = document.querySelector('#summary-box, [data-template="resumo-template"], .token-creator-simplified');
+            if (templateContainer) {
+                templateContainer.innerHTML = template;
+                console.log('🎯 Template resumo-template carregado! Conectando botões...');
+                setupButtonHandlers();
             }
+        })
+        .catch(error => {
+            console.log('⚠️ Erro ao carregar resumo-template:', error);
+            console.log('ℹ️ Sistema funcionará sem o template resumo');
         });
-        
-        // Observa mudanças no DOM inteiro
-        observer.observe(document.body, {
-            childList: true,
-            subtree: true,
-            attributes: true
-        });
-        
-        // Fallback: tenta a cada 2 segundos por 10 segundos
-        let attempts = 0;
-        const fallbackInterval = setInterval(() => {
-            attempts++;
-            if (waitForTemplate() || attempts > 5) {
-                clearInterval(fallbackInterval);
-                observer.disconnect(); // Para o observer também
-                if (attempts > 5) {
-                    console.log('ℹ️ Template resumo-template não encontrado, sistema funcionará sem ele');
-                }
-            }
-        }, 2000);
     }
 });
 

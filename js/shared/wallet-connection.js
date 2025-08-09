@@ -74,7 +74,10 @@ export async function setupWalletConnection() {
         // Procura pelo local onde o template deve ser injetado
         const connectionSection = document.querySelector('.connection-section');
         if (connectionSection) {
-            connectionSection.innerHTML = template;
+            // Usa um parser temporário para evitar o aviso de speculation rule
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(template, 'text/html');
+            connectionSection.replaceChildren(...doc.body.children);
             
             // Configura o botão de conexão
             const btnConectar = document.getElementById('connect-metamask-btn');

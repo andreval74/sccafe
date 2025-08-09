@@ -1579,19 +1579,9 @@ if (radioPersonalizado) {
     connectionSection: !!document.querySelector('.connection-section')
   });
   
+  // Inicializa a primeira etapa
   showStep(1);
   toggleAddressCustomization();
-  initNetworkSystem();
-
-// Se DOM já estiver pronto (no caso de module loading)
-if (document.readyState === 'loading') {
-  console.log('⏳ [DEBUG] Aguardando DOM carregar...');
-} else {
-  console.log('🚀 [DEBUG] DOM pronto - inicializando imediatamente...');
-  showStep(1);
-  toggleAddressCustomization();
-  // initNetworkSystem(); // Removido para evitar duplicação - já é chamado acima
-}
 
 // Expor funções necessárias para HTML inline
 window.prevStep = prevStep;
