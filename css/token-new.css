@@ -29,18 +29,23 @@
   font-weight: 600;
 }
 
+/* Remove o fundo verde do card inteiro - apenas o campo da carteira fica verde */
 .connection-section.connected-state .card {
-  border-color: var(--token-success) !important;
-  background: linear-gradient(135deg, #d4edda 0%, #f8f9fa 100%);
+  border-color: #28a745 !important;
 }
 
 .network-info {
   font-size: 0.875rem;
-  color: var(--token-secondary);
+  color: #6c757d !important; /* Cinza */
 }
 
 .network-info .chain-id {
-  color: var(--token-info);
+  color: #6c757d !important; /* Cinza também */
+  font-weight: 500;
+}
+
+.network-info #current-network {
+  color: #6c757d !important; /* Nome da rede em cinza */
   font-weight: 600;
 }
 

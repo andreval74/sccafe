@@ -162,7 +162,7 @@ export function updateNetworkInfo() {
     // Atualiza o span da rede atual na seção de conexão
     if (currentNetworkSpan) {
       currentNetworkSpan.textContent = currentNetwork.name;
-      currentNetworkSpan.className = 'fw-bold text-success';
+      currentNetworkSpan.className = 'fw-bold'; // Remove text-success para manter cinza
       console.log('✅ [DEBUG] current-network span atualizado:', currentNetwork.name);
     }
     
@@ -203,7 +203,7 @@ export function updateNetworkInfo() {
     
     if (currentNetworkSpan) {
       currentNetworkSpan.textContent = 'Não conectado';
-      currentNetworkSpan.className = 'fw-bold text-muted';
+      currentNetworkSpan.className = 'fw-bold'; // Mantém cinza também para desconectado
     }
     
     // Estado desconectado
