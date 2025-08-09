@@ -1,8 +1,31 @@
-import { connectMetaMask, fetchTokenData, formatarNumero, getNetworkName, getExplorerUrl } from './shared/token-global.js';
+import { connectMetaMask, listenMetaMask } from './add-metamask.js';
 import { processarArquivoSol, atualizarInfosContrato, limparArquivoSol } from './shared/sol-processor.js';
-import { detectContract } from './api-manager.js';
+import { detectContract } from './shared/contract-detector.js';
+import { getNetworkName, getExplorerUrl } from './shared/token-global.js';
 
+// Estado atual do provider
 let currentProvider = null;
+
+// Setup do botão de conexão MetaMask
+document.addEventListener('DOMContentLoaded', () => {
+    const btnConectar = document.getElementById('connect-metamask-btn');
+    if (btnConectar) {
+        btnConectar.addEventListener('click', async (event) => {
+            event.preventDefault();
+            if (!window.ethereum) {
+                alert('MetaMask não encontrado! Por favor, instale a extensão MetaMask no seu navegador.');
+                return;
+            }
+            try {
+                currentProvider = await connectMetaMask();
+                listenMetaMask(currentProvider);
+            } catch (error) {
+                console.error('❌ Erro ao conectar MetaMask:', error);
+                alert('Erro ao conectar com MetaMask: ' + error.message);
+            }
+        });
+    }
+});
 
 /**
  * Adiciona token ao MetaMask

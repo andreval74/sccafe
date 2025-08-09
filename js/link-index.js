@@ -1,4 +1,5 @@
 // ADDTOKEN-INDEX.JS - Só para a tela de cadastro/geração do link
+import { detectContract } from './shared/contract-detector.js';
 
 let allNetworks = [];
 let selectedNetwork = null;
