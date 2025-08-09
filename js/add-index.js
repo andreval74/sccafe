@@ -1,163 +1,23 @@
 import { marcarConcluido, clearErrors, markErrors } from './add-utils.js';
 import { salvarContrato, compilarContrato, contratoSource, debugContractState, showVerificationInfo } from './add-contratos-verified.js';
 import { deployContrato } from './add-deploy.js';
-import { connectMetaMask, listenMetaMask, adicionarTokenMetaMask, montarTokenData, gerarLinkToken, switchOrAddNetwork } from './add-metamask.js';
+import { adicionarTokenMetaMask, montarTokenData, gerarLinkToken, switchOrAddNetwork } from './add-metamask.js';
 import { buscarSaltFake, pararBuscaSalt } from './add-salt.js';
 import { detectCurrentNetwork, currentNetwork, setupNetworkMonitoring, updateNetworkInfo } from './network-manager.js';
+import { setupWalletConnection, getCurrentProvider } from './shared/wallet-connection.js';
 // import { showVerificationInterface } from './verification-ui.js';
 // import { initNetworkCommons, getBlockExplorerAPI } from './network-commons.js';
 // import { verificarContratoManualmente } from './manual-verification.js';
 import { loadTemplate, injectTemplate, fillTemplate } from './template-loader.js';
 
-// Adiciona evento ao botão Conectar MetaMask
-console.log('🔍 [DEBUG] Iniciando setup do botão MetaMask...');
-console.log('🔍 [DEBUG] Document ready state:', document.readyState);
-console.log('🔍 [DEBUG] Window.ethereum disponível:', !!window.ethereum);
-
-const btnConectar = document.getElementById('connect-metamask-btn');
-console.log('🔍 [DEBUG] Botão encontrado:', btnConectar);
-console.log('🔍 [DEBUG] Botão é válido:', btnConectar instanceof HTMLElement);
-
-if (btnConectar) {
-  console.log('✅ [DEBUG] Adicionando event listener ao botão...');
-  
-  btnConectar.addEventListener('click', async (event) => {
-    console.log('🔗 [DEBUG] Botão clicado! Event:', event);
-    console.log('🔗 [DEBUG] Iniciando conexão MetaMask...');
+// Inicializa conexão da carteira e sistema de redes quando o DOM estiver pronto
+document.addEventListener('DOMContentLoaded', async () => {
+    // Inicializa o componente de conexão da carteira
+    await setupWalletConnection();
     
-    // Previne comportamento padrão
-    event.preventDefault();
-    
-    // Verifica se o MetaMask está disponível
-    if (!window.ethereum) {
-      console.error('❌ [DEBUG] MetaMask não encontrado!');
-      alert('MetaMask não encontrado! Por favor, instale a extensão MetaMask no seu navegador.');
-      return;
-    }
-    
-    console.log('✅ [DEBUG] MetaMask disponível, iniciando conexão...');
-    
-    // Adiciona classe de estado conectando
-    if (connectionSection) {
-      connectionSection.classList.add('connecting');
-      console.log('✅ [DEBUG] Classe connecting adicionada');
-    }
-    
-    // Atualiza status
-    if (walletStatus) {
-      walletStatus.value = 'Conectando com MetaMask...';
-      console.log('✅ [DEBUG] Status atualizado para conectando');
-    }
-    
-    try {
-      console.log('🚀 [DEBUG] Chamando connectMetaMask...');
-      // Primeiro conecta MetaMask
-      await connectMetaMask(inputOwner);
-      console.log('✅ [DEBUG] MetaMask conectado com sucesso');
-      
-      console.log('🌐 [DEBUG] Detectando rede...');
-      // Depois detecta a rede
-      await detectNetworkAfterConnection();
-      console.log('✅ [DEBUG] Rede detectada com sucesso');
-      
-      console.log('👂 [DEBUG] Iniciando monitoramento...');
-      // Inicia monitoramento de mudanças (só após conexão)
-      listenMetaMask(inputOwner);
-      console.log('✅ [DEBUG] Monitoramento iniciado');
-      
-      console.log('🎨 [DEBUG] Atualizando interface...');
-      // Atualiza interface
-      updateConnectionInterface();
-      console.log('✅ [DEBUG] Interface atualizada com sucesso');
-      
-    } catch (error) {
-      console.error('❌ [DEBUG] Erro na conexão:', error);
-      console.error('❌ [DEBUG] Stack trace:', error.stack);
-      if (walletStatus) walletStatus.value = 'Erro na conexão. Tente novamente.';
-      if (connectionSection) connectionSection.classList.remove('connecting');
-    }
-  });
-  
-  console.log('✅ [DEBUG] Event listener adicionado com sucesso');
-} else {
-  console.warn('⚠️ [DEBUG] Botão conectar não encontrado - ID: connect-metamask-btn');
-  console.log('🔍 [DEBUG] Elementos disponíveis com ID:', 
-    Array.from(document.querySelectorAll('[id]')).map(el => el.id));
-}
-
-// Inicializa apenas o sistema de redes (sem detectar automaticamente)
-async function initNetworkSystem() {
-  console.log('🔧 [DEBUG] Iniciando sistema de redes...');
-  try {
-    // Sistema de redes básico já carregado com network-manager.js
-    console.log('✅ [DEBUG] Sistema de redes básico carregado');
-    
-    console.log('🌐 [DEBUG] Sistema de redes carregado, aguardando conexão do usuário...');
-  } catch (error) {
-    console.error('❌ [DEBUG] Erro ao inicializar sistema de redes:', error);
-    console.error('❌ [DEBUG] Stack trace:', error.stack);
-  }
-}
-
-// Detecta rede somente após conexão explícita do usuário
-async function detectNetworkAfterConnection() {
-  console.log('🌐 [DEBUG] Iniciando detecção de rede após conexão...');
-  try {
-    console.log('🔍 [DEBUG] Chamando detectCurrentNetwork...');
-    await detectCurrentNetwork();
-    console.log('✅ [DEBUG] detectCurrentNetwork concluído');
-    
-    console.log('🔄 [DEBUG] Atualizando informações de rede...');
-    updateNetworkInfo(); // Usa a nova função para o layout atualizado
-    console.log('✅ [DEBUG] updateNetworkInfo concluído');
-    
-    // Inicia monitoramento para mudanças de rede
-    if (typeof setupNetworkMonitoring === 'function') {
-      console.log('👂 [DEBUG] Iniciando setupNetworkMonitoring...');
-      setupNetworkMonitoring(); // Remove parâmetro desnecessário
-      console.log('✅ [DEBUG] setupNetworkMonitoring concluído');
-    } else {
-      console.warn('⚠️ [DEBUG] setupNetworkMonitoring não encontrado');
-    }
-  } catch (error) {
-    console.error('❌ [DEBUG] Erro ao detectar rede:', error);
-    console.error('❌ [DEBUG] Stack trace:', error.stack);
-  }
-}
-
-// Atualiza a interface de conexão com as informações
-function updateConnectionInterface() {
-  console.log('🔄 Atualizando interface de conexão...');
-  
-  // Remove estado de carregamento
-  if (connectionSection) {
-    connectionSection.classList.remove('connecting');
-    connectionSection.classList.add('connected-state');
-    console.log('✅ Estado de conexão atualizado na UI');
-  }
-  
-  if (walletStatus) {
-    walletStatus.value = 'Carteira conectada com sucesso!';
-    console.log('✅ Status da carteira atualizado');
-  }
-  
-  // Preenche o campo proprietário e marca como preenchido
-  if (inputOwner && inputOwner.value) {
-    inputOwner.classList.add('filled');
-    console.log('✅ Campo proprietário preenchido:', inputOwner.value);
-  }
-  
-  // Atualiza texto do botão (sem ícone)
-  const btnConectar = document.getElementById('connect-metamask-btn');
-  if (btnConectar) {
-    btnConectar.textContent = 'CONECTADO';
-    btnConectar.disabled = true;
-    btnConectar.style.backgroundColor = '#28a745';
-    console.log('✅ Botão atualizado para estado conectado');
-  }
-  
-  console.log('🎉 Interface de conexão atualizada com sucesso!');
-}
+    // Inicializa o monitoramento de rede após a conexão
+    setupNetworkMonitoring();
+});
 
 // Listener para evento de deploy concluído
 window.addEventListener('contractDeployed', (event) => {

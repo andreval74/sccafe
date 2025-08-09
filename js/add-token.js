@@ -1,31 +1,10 @@
-import { connectMetaMask, listenMetaMask } from './add-metamask.js';
 import { processarArquivoSol, atualizarInfosContrato, limparArquivoSol } from './shared/sol-processor.js';
 import { detectContract } from './shared/contract-detector.js';
 import { getNetworkName, getExplorerUrl } from './shared/token-global.js';
+import { setupWalletConnection, getCurrentProvider } from './shared/wallet-connection.js';
 
-// Estado atual do provider
-let currentProvider = null;
-
-// Setup do botão de conexão MetaMask
-document.addEventListener('DOMContentLoaded', () => {
-    const btnConectar = document.getElementById('connect-metamask-btn');
-    if (btnConectar) {
-        btnConectar.addEventListener('click', async (event) => {
-            event.preventDefault();
-            if (!window.ethereum) {
-                alert('MetaMask não encontrado! Por favor, instale a extensão MetaMask no seu navegador.');
-                return;
-            }
-            try {
-                currentProvider = await connectMetaMask();
-                listenMetaMask(currentProvider);
-            } catch (error) {
-                console.error('❌ Erro ao conectar MetaMask:', error);
-                alert('Erro ao conectar com MetaMask: ' + error.message);
-            }
-        });
-    }
-});
+// Inicializa conexão da carteira quando o DOM estiver pronto
+document.addEventListener('DOMContentLoaded', setupWalletConnection);
 
 /**
  * Adiciona token ao MetaMask
