@@ -34,26 +34,12 @@ export async function connectMetaMask(inputOwner) {
 /**
  * Monitora eventos de troca de conta e rede do MetaMask.
  * Atualiza o input de owner em tempo real.
+ * NOTA: Esta função não é mais usada - listeners centralizados no wallet-connection.js
  */
 export function listenMetaMask(inputOwner) {
-  if (!window.ethereum) return;
-  
-  window.ethereum.on('accountsChanged', function (accounts) {
-    if (accounts[0] && inputOwner) {
-      inputOwner.value = accounts[0];
-      // Atualiza também o campo de status da carteira
-      const walletStatus = document.getElementById('wallet-status');
-      if (walletStatus) {
-        walletStatus.value = accounts[0];
-        console.log('✅ Campo da carteira atualizado para nova conta:', accounts[0]);
-      }
-    }
-  });
-  
-  window.ethereum.on('chainChanged', async function (chainId) {
-    // A detecção de rede é feita pelo network-manager
-    console.log('🔄 Rede alterada, network-manager detectará automaticamente...');
-  });
+  console.log('⚠️ listenMetaMask é depreciada - listeners centralizados no wallet-connection.js');
+  // Função mantida para compatibilidade, mas não faz nada
+  // Os listeners estão centralizados no setupGlobalListeners() do wallet-connection.js
 }
 
 // ------------------------------------------------------------

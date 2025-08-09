@@ -266,9 +266,8 @@ async function handleConnection(event) {
         updateNetworkInfo();
         console.log('✅ Rede detectada e informações atualizadas');
         
-        // Configura listeners para mudanças de conta e rede
-        listenMetaMask(currentProvider);
-        console.log('✅ Listeners configurados');
+        // Os listeners já foram configurados no setupGlobalListeners()
+        console.log('✅ Listeners já configurados globalmente');
         
         // Atualiza interface para estado conectado
         updateConnectionInterface('connected');
@@ -299,57 +298,87 @@ function setupGlobalListeners() {
     
     console.log('🎧 Configurando listeners globais para MetaMask...');
     
+    // Remove listeners existentes para evitar duplicação
+    window.ethereum.removeAllListeners('accountsChanged');
+    window.ethereum.removeAllListeners('chainChanged');
+    
     // Listener para mudanças de conta
-    window.ethereum.on('accountsChanged', function (accounts) {
-        console.log('🔄 Conta alterada:', accounts[0]);
+    window.ethereum.on('accountsChanged', async function (accounts) {
+        console.log('🔄 Evento accountsChanged:', accounts);
         
         const walletStatus = document.getElementById('wallet-status');
         const ownerInput = document.getElementById('ownerAddress');
+        const networkInfoSection = document.getElementById('network-info-section');
+        const btnConectar = document.getElementById('connect-metamask-btn');
         
         if (accounts.length > 0 && accounts[0]) {
+            console.log('✅ Nova conta detectada:', accounts[0]);
+            
             // Atualiza campo da carteira
             if (walletStatus) {
                 walletStatus.value = accounts[0];
                 walletStatus.classList.add('wallet-status-connected');
-                console.log('✅ Campo da carteira atualizado:', accounts[0]);
+                console.log('✅ Campo wallet-status atualizado:', accounts[0]);
             }
             
             // Atualiza campo de owner se existir
             if (ownerInput) {
                 ownerInput.value = accounts[0];
-                console.log('✅ Campo owner atualizado:', accounts[0]);
+                console.log('✅ Campo ownerAddress atualizado:', accounts[0]);
             }
+            
+            // Mantém botão como conectado
+            if (btnConectar) {
+                btnConectar.innerHTML = '<i class="bi bi-check-circle"></i> CONECTADO';
+                btnConectar.disabled = true;
+                btnConectar.className = 'btn btn-success';
+            }
+            
+            // Detecta rede da nova conta
+            await detectCurrentNetwork();
+            updateNetworkInfo();
+            
         } else {
-            // Conta desconectada
+            console.log('❌ Carteira desconectada');
+            
+            // Limpa campos
             if (walletStatus) {
-                walletStatus.value = 'Carteira desconectada';
+                walletStatus.value = 'Clique em "Conectar" para iniciar';
                 walletStatus.classList.remove('wallet-status-connected');
             }
             
+            if (ownerInput) {
+                ownerInput.value = '';
+            }
+            
             // Esconde informações de rede
-            const networkInfoSection = document.getElementById('network-info-section');
             if (networkInfoSection) {
                 networkInfoSection.style.display = 'none';
             }
             
             // Restaura botão para estado desconectado
-            const btnConectar = document.getElementById('connect-metamask-btn');
             if (btnConectar) {
                 btnConectar.innerHTML = '<i class="bi bi-wallet2"></i> CONECTAR';
                 btnConectar.disabled = false;
                 btnConectar.className = 'btn btn-outline-warning';
             }
+            
+            // Limpa dados de rede
+            currentNetwork = null;
         }
     });
     
     // Listener para mudanças de rede
-    window.ethereum.on('chainChanged', function (chainId) {
+    window.ethereum.on('chainChanged', async function (chainId) {
         console.log('🔄 Rede alterada:', chainId);
-        // A detecção será feita pelo network-manager
-        detectCurrentNetwork().then(() => {
+        
+        // Só processa se houver carteira conectada
+        const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+        if (accounts && accounts.length > 0) {
+            await detectCurrentNetwork();
             updateNetworkInfo();
-        });
+        }
     });
     
-    console.log('✅ Listeners globais configurados');
+    console.log('✅ Listeners globais configurados (sem duplicação)');
 }

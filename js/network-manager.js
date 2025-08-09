@@ -345,28 +345,14 @@ export function getVerificationData() {
 
 /**
  * Monitora mudanças de rede
+ * NOTA: Listeners centralizados no wallet-connection.js
  */
 export function setupNetworkMonitoring() {
   if (!window.ethereum) return;
 
-  // Detecta rede inicial
-  detectCurrentNetwork().then(() => {
-    updateNetworkInfo(); // Usa a nova função
-  });
-
-  // Monitora mudanças de rede
-  window.ethereum.on('chainChanged', async (chainId) => {
-    console.log('🔄 Rede alterada para:', parseInt(chainId, 16));
-    await detectCurrentNetwork();
-    updateNetworkInfo(); // Usa a nova função
-  });
-
-  // Monitora mudanças de conta
-  window.ethereum.on('accountsChanged', async (accounts) => {
-    if (accounts.length > 0) {
-      console.log('👤 Conta alterada para:', accounts[0]);
-      await detectCurrentNetwork();
-      updateNetworkInfo(); // Usa a nova função
-    }
-  });
+  console.log('🎧 Network monitoring configurado (listeners centralizados no wallet-connection.js)');
+  console.log('ℹ️ A detecção de rede será feita apenas após conexão da carteira');
+  
+  // NÃO configura listeners aqui - estão centralizados no wallet-connection.js
+  // NÃO detecta rede inicial - só após conexão
 }

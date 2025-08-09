@@ -13,24 +13,41 @@ import { loadTemplate, injectTemplate, fillTemplate } from './template-loader.js
 // Inicializa o sistema quando o DOM estiver pronto
 document.addEventListener('DOMContentLoaded', async () => {
     try {
-        // Esconde as informações de rede inicialmente
+        // Limpa qualquer informação de rede residual e esconde seção
         const networkInfoSection = document.getElementById('network-info-section');
+        const currentNetworkSpan = document.getElementById('current-network');
+        const chainIdValue = document.getElementById('chain-id-value');
+        
         if (networkInfoSection) {
             networkInfoSection.style.display = 'none';
-            console.log('🔒 Informações de rede escondidas no início');
+            console.log('🔒 Seção de rede escondida no início');
         }
+        
+        if (currentNetworkSpan) {
+            currentNetworkSpan.textContent = '-';
+            console.log('🧹 Nome da rede limpo');
+        }
+        
+        if (chainIdValue) {
+            chainIdValue.textContent = '-';
+            console.log('🧹 Chain ID limpo');
+        }
+        
+        // Garante que currentNetwork seja null inicialmente
+        const { currentNetwork } = await import('./network-manager.js');
+        console.log('🔍 Estado inicial da rede:', currentNetwork);
         
         // Inicializa o componente de conexão da carteira
         await setupWalletConnection();
         
-        // Inicializa o monitoramento de rede após a conexão
+        // Inicializa o monitoramento de rede (apenas configuração, sem detecção)
         setupNetworkMonitoring();
         
         // Inicializa a primeira etapa
         showStep(1);
         toggleAddressCustomization();
         
-        console.log('✅ Sistema inicializado com sucesso');
+        console.log('✅ Sistema inicializado com sucesso - rede será detectada apenas após conexão');
     } catch (error) {
         console.error('❌ Erro ao inicializar sistema:', error);
     }
