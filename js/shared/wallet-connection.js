@@ -36,15 +36,24 @@ function updateConnectionInterface(status = '') {
         switch(status) {
             case 'connecting':
                 walletStatus.value = 'Conectando com MetaMask...';
+                walletStatus.classList.remove('wallet-status-connected');
                 break;
             case 'connected':
-                walletStatus.value = 'Carteira conectada com sucesso!';
+                // Busca o endereço completo da carteira
+                if (ownerInput && ownerInput.value) {
+                    walletStatus.value = ownerInput.value; // Endereço completo
+                } else {
+                    walletStatus.value = 'Carteira conectada com sucesso!';
+                }
+                walletStatus.classList.add('wallet-status-connected');
                 break;
             case 'error':
                 walletStatus.value = 'Erro na conexão. Tente novamente.';
+                walletStatus.classList.remove('wallet-status-connected');
                 break;
             default:
                 walletStatus.value = status || 'Clique em Conectar para iniciar';
+                walletStatus.classList.remove('wallet-status-connected');
         }
         console.log('✅ Wallet status atualizado:', walletStatus.value);
     }
@@ -215,6 +224,16 @@ async function handleConnection(event) {
         // Conecta com MetaMask
         currentProvider = await connectMetaMask();
         console.log('✅ MetaMask conectado');
+        
+        // Busca o endereço da carteira conectada
+        const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+        if (accounts && accounts.length > 0) {
+            const ownerInput = document.getElementById('ownerAddress');
+            if (ownerInput) {
+                ownerInput.value = accounts[0];
+                console.log('✅ Endereço da carteira salvo:', accounts[0]);
+            }
+        }
         
         // Detecta a rede atual
         await detectCurrentNetwork();

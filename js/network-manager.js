@@ -130,6 +130,8 @@ export function updateNetworkInfo() {
   const inputOwner = document.getElementById('ownerAddress');
   const networkStatus = document.getElementById('network-status');
   const currentNetworkSpan = document.getElementById('current-network'); // Novo elemento
+  const chainIdDisplay = document.getElementById('chain-id-display'); // Container do Chain ID
+  const chainIdValue = document.getElementById('chain-id-value'); // Valor do Chain ID
   
   console.log('🔍 [DEBUG] Elementos encontrados:', {
     networkDisplay: !!networkDisplay,
@@ -137,7 +139,9 @@ export function updateNetworkInfo() {
     walletStatus: !!walletStatus,
     inputOwner: !!inputOwner,
     networkStatus: !!networkStatus,
-    currentNetworkSpan: !!currentNetworkSpan
+    currentNetworkSpan: !!currentNetworkSpan,
+    chainIdDisplay: !!chainIdDisplay,
+    chainIdValue: !!chainIdValue
   });
   
   if (currentNetwork) {
@@ -162,6 +166,13 @@ export function updateNetworkInfo() {
       console.log('✅ [DEBUG] current-network span atualizado:', currentNetwork.name);
     }
     
+    // Mostra o Chain ID ao lado da rede
+    if (chainIdDisplay && chainIdValue) {
+      chainIdValue.textContent = currentNetwork.chainId;
+      chainIdDisplay.style.display = 'inline';
+      console.log('✅ [DEBUG] Chain ID exibido:', currentNetwork.chainId);
+    }
+    
     // Atualiza o campo oculto com dados completos para o sistema
     if (networkValue) {
       const networkData = {
@@ -173,17 +184,27 @@ export function updateNetworkInfo() {
       console.log('✅ [DEBUG] networkValue atualizado:', networkData);
     }
     
-    // Atualiza o status da carteira para incluir rede
+    // Atualiza o status da carteira para mostrar endereço completo quando conectado
     if (walletStatus && inputOwner && inputOwner.value) {
       const address = inputOwner.value;
-      const newStatus = `Conectado: ${address.slice(0, 6)}...${address.slice(-4)} | ${currentNetwork.name}`;
-      walletStatus.value = newStatus;
-      console.log('✅ [DEBUG] walletStatus atualizado:', newStatus);
+      walletStatus.value = address; // Endereço completo
+      walletStatus.classList.add('wallet-status-connected');
+      console.log('✅ [DEBUG] walletStatus atualizado com endereço completo:', address);
     }
     
     console.log('✅ [DEBUG] Interface atualizada com rede:', currentNetwork.name);
   } else {
     console.log('⚠️ [DEBUG] currentNetwork é null, limpando campos');
+    
+    // Estado desconectado - esconde Chain ID
+    if (chainIdDisplay) {
+      chainIdDisplay.style.display = 'none';
+    }
+    
+    if (currentNetworkSpan) {
+      currentNetworkSpan.textContent = 'Não conectado';
+      currentNetworkSpan.className = 'fw-bold text-muted';
+    }
     
     // Estado desconectado
     if (networkDisplay) {

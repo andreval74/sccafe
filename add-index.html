@@ -18,6 +18,7 @@
   
   <!-- Custom Token CSS -->
   <link href="css/token.css" rel="stylesheet">
+  <link href="css/token-new.css" rel="stylesheet">
 </head>
 <body>
   <!-- Header Include -->
@@ -35,15 +36,7 @@
                 <div class="d-flex justify-content-between align-items-center mb-3">
                   <div>
                     <h1><i class="bi bi-rocket-takeoff me-2"></i>Criador de Tokens</h1>
-                    <p class="mb-0">Crie seu token ERC-20 em 3 etapas simples</p>
-                  </div>
-                  <div>
-                    <a href="cole-bytecode.html" class="btn btn-outline-primary me-2">
-                      <i class="bi bi-code-square me-1"></i>Cole Bytecode
-                    </a>
-                    <a href="reverse-bytecode.html" class="btn btn-outline-secondary">
-                      <i class="bi bi-gear me-1"></i>Eng. Reversa
-                    </a>
+                    <p class="mb-0">Crie seu token e contrato inteligente ERC-20</p>
                   </div>
                 </div>
               </div>
@@ -82,8 +75,9 @@
                       </div>
                       <div class="row mt-2">
                         <div class="col-md-6">
-                          <small class="text-muted">
+                          <small class="text-muted network-info">
                             <i class="bi bi-wifi"></i> Rede: <span id="current-network" class="fw-bold">Não conectado</span>
+                            <span id="chain-id-display" class="chain-id ms-1" style="display: none;">(ID: <span id="chain-id-value"></span>)</span>
                           </small>
                         </div>
                       </div>
