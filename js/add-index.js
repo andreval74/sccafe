@@ -10,13 +10,23 @@ import { setupWalletConnection, getCurrentProvider } from './shared/wallet-conne
 // import { verificarContratoManualmente } from './manual-verification.js';
 import { loadTemplate, injectTemplate, fillTemplate } from './template-loader.js';
 
-// Inicializa conexão da carteira e sistema de redes quando o DOM estiver pronto
+// Inicializa o sistema quando o DOM estiver pronto
 document.addEventListener('DOMContentLoaded', async () => {
-    // Inicializa o componente de conexão da carteira
-    await setupWalletConnection();
-    
-    // Inicializa o monitoramento de rede após a conexão
-    setupNetworkMonitoring();
+    try {
+        // Inicializa o componente de conexão da carteira
+        await setupWalletConnection();
+        
+        // Inicializa o monitoramento de rede após a conexão
+        setupNetworkMonitoring();
+        
+        // Inicializa a primeira etapa
+        showStep(1);
+        toggleAddressCustomization();
+        
+        console.log('✅ Sistema inicializado com sucesso');
+    } catch (error) {
+        console.error('❌ Erro ao inicializar sistema:', error);
+    }
 });
 
 // Listener para evento de deploy concluído
@@ -1578,10 +1588,6 @@ if (radioPersonalizado) {
     walletStatus: !!document.getElementById('wallet-status'),
     connectionSection: !!document.querySelector('.connection-section')
   });
-  
-  // Inicializa a primeira etapa
-  showStep(1);
-  toggleAddressCustomization();
 
 // Expor funções necessárias para HTML inline
 window.prevStep = prevStep;
