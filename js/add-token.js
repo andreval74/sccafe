@@ -680,6 +680,77 @@ window.iniciarVerificacaoManual = async function() {
     }
 };
 
+/**
+ * Cola endereço do clipboard
+ */
+window.colarEndereco = async function() {
+    try {
+        const text = await navigator.clipboard.readText();
+        const addressInput = document.getElementById('contract-address');
+        if (addressInput && text.startsWith('0x') && text.length === 42) {
+            addressInput.value = text;
+            console.log('✅ Endereço colado com sucesso');
+        } else {
+            alert('❌ Endereço inválido no clipboard');
+        }
+    } catch (error) {
+        console.error('❌ Erro ao colar endereço:', error);
+        alert('❌ Erro ao acessar clipboard');
+    }
+};
+
+/**
+ * Detecta contrato usando a rede conectada
+ */
+window.detectarContratoRedeConectada = async function() {
+    const provider = getCurrentProvider();
+    if (!provider) {
+        alert('❌ Conecte a carteira primeiro');
+        return;
+    }
+    
+    const addressInput = document.getElementById('contract-address');
+    if (!addressInput.value) {
+        alert('❌ Informe o endereço do contrato');
+        return;
+    }
+    
+    // Usa a função de detecção existente
+    await detectarContrato();
+};
+
+/**
+ * Inicia verificação automática
+ */
+window.iniciarVerificacaoAutomatica = function() {
+    if (!window.currentContractData) {
+        alert('❌ Dados do contrato não disponíveis');
+        return;
+    }
+    
+    console.log('🚀 Iniciando verificação automática...');
+    scrollToVerification();
+    // Aqui seria implementada a lógica de verificação automática
+    alert('🔄 Verificação automática em desenvolvimento');
+};
+
+/**
+ * Inicia verificação manual
+ */
+window.iniciarVerificacaoManual = function() {
+    if (!window.currentContractData) {
+        alert('❌ Dados do contrato não disponíveis');
+        return;
+    }
+    
+    console.log('📝 Iniciando verificação manual...');
+    const uploadSection = document.getElementById('sol-upload-section');
+    if (uploadSection) {
+        uploadSection.style.display = 'block';
+        uploadSection.scrollIntoView({ behavior: 'smooth' });
+    }
+};
+
 // Aguarda o carregamento completo do DOM
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initializeApp);

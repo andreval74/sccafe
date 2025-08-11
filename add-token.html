@@ -4,14 +4,56 @@
 <head>
   <meta charset="utf-8">
   <meta content="width=device-width, initial-scale=1.0" name="viewport">
-  <title>SCCAFE - Verificação de Contratos</title>
-  <link href="imgs/sccafe-32x32.png" rel="icon" sizes="32x32">
+  <title>SCCAFE - Verificação de Contratos<              <div class="col-md-6">
+                <div class="info-item">
+                  <label class="fw-bold">🚀 Optimization</label>
+                  <div class="info-value" id="optimization-display">-</div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="info-item">
+                  <label class="fw-bold">🔄 Runs (Optimizer)</label>
+                  <div class="info-value" id="optimizer-runs-display">-</div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="info-item">
+                  <label class="fw-bold">🎯 EVM Version</label>
+                  <div class="info-value" id="evm-version-display">-</div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="info-item">
+                  <label class="fw-bold">📄 License Type</label>
+                  <div class="info-value" id="license-type-display">-</div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="info-item">
+                  <label class="fw-bold">📋 ABI Disponível</label>
+                  <div class="info-value" id="abi-status-display">-</div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="info-item">
+                  <label class="fw-bold">🔗 Chain ID</label>
+                  <div class="info-value" id="chain-id-display">-</div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="info-item">
+                  <label class="fw-bold">✅ Status Verificação</label>
+                  <div class="info-value" id="verification-status-display">-</div>
+                </div>
+              </div>ref="imgs/sccafe-32x32.png" rel="icon" sizes="32x32">
   <link href="imgs/sccafe-16x16.png" rel="icon" sizes="16x16">
   <link href="imgs/sccafe-192x192.png" rel="apple-touch-icon">
   <link href="assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
   <link href="assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
   <link href="assets/css/main.css" rel="stylesheet">
   <link href="css/token.css" rel="stylesheet">
+  <!-- Ethers.js v5.7.2 -->
+  <script src="https://cdn.ethers.io/lib/ethers-5.7.2.umd.min.js"></script>
 </head>
 <body class="bg-light text-dark">
   <div id="header-include" class="fixed-top"></div>
@@ -71,23 +113,28 @@
             <!-- Input do Contrato -->
             <div class="mb-4">
               <label for="contract-address" class="form-label fw-bold">
-                <i class="bi bi-file-earmark-code me-1"></i>Endereço do Contrato
+                <i class="bi bi-geo-alt me-1"></i>Endereço do Contrato
               </label>
               <div class="input-group">
-                <span class="input-group-text">
-                  <i class="bi bi-hash"></i>
-                </span>
-                <input type="text" class="form-control form-control-lg" id="contract-address" 
+                <input type="text" class="form-control" id="contract-address" 
                        placeholder="0x..." maxlength="42">
-                <button class="btn btn-primary" type="button" onclick="detectarContrato()">
-                  <i class="bi bi-search me-1"></i>Detectar
+                <button class="btn btn-outline-secondary" onclick="colarEndereco()">
+                  <i class="bi bi-clipboard me-1"></i>Colar
                 </button>
               </div>
-              <div class="form-text">
-                <small class="text-muted">
-                  <i class="bi bi-info-circle me-1"></i>
-                  Cole o endereço do contrato (42 caracteres começando com 0x)
-                </small>
+            </div>
+            
+            <!-- Botões de Detecção -->
+            <div class="row g-2 mb-4">
+              <div class="col-md-6">
+                <button class="btn btn-primary w-100" onclick="detectarContrato()">
+                  <i class="bi bi-robot me-1"></i>Detectar Auto
+                </button>
+              </div>
+              <div class="col-md-6">
+                <button class="btn btn-success w-100" onclick="detectarContratoRedeConectada()">
+                  <i class="bi bi-wifi me-1"></i>Rede Atual
+                </button>
               </div>
             </div>
             
@@ -281,7 +328,6 @@ Carregando código fonte...
   <script src="assets/js/include.js"></script>
   <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>  
-  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
   <script src="assets/js/main.js"></script>
   <script src="js/api-key-manager.js"></script>
   <script src="js/contract-detector.js"></script>
