@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste de Endereços Conhecidos</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .teste { margin: 20px 0; padding: 15px; border: 1px solid #ccc; }
+        .resultado { background: #f0f0f0; padding: 10px; margin: 10px 0; }
+        button { padding: 10px 20px; margin: 5px; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Teste de Endereços Conhecidos</h1>
+    
+    <div class="teste">
+        <h3>Endereço que você está testando:</h3>
+        <p><strong>0x85eAf5Bc66Bf19470fe70Ae91104febab6660614</strong></p>
+        <button onclick="testarEndereco('0x85eAf5Bc66Bf19470fe70Ae91104febab6660614')">Testar Este Endereço</button>
+        <div id="resultado1" class="resultado"></div>
+    </div>
+    
+    <div class="teste">
+        <h3>Endereço original BBB123415:</h3>
+        <p><strong>0x7580183C90ecd4330d0c395D2F0a5A5689d2Aa2</strong></p>
+        <button onclick="testarEndereco('0x7580183C90ecd4330d0c395D2F0a5A5689d2Aa2')">Testar BBB123415</button>
+        <div id="resultado2" class="resultado"></div>
+    </div>
+
+    <script src="https://cdn.ethers.io/lib/ethers-5.7.2.umd.min.js"></script>
+    <script src="js/api-manager.js"></script>
+    <script>
+        let resultadoContador = 1;
+        
+        async function testarEndereco(endereco) {
+            const divResultado = document.getElementById(`resultado${resultadoContador}`);
+            divResultado.innerHTML = '🔄 Testando...';
+            
+            try {
+                console.log(`🧪 TESTE - Detectando endereço: ${endereco}`);
+                const resultado = await detectContract(endereco);
+                
+                if (resultado) {
+                    divResultado.innerHTML = `
+                        <h4>✅ SUCESSO!</h4>
+                        <p><strong>Nome:</strong> ${resultado.name}</p>
+                        <p><strong>Símbolo:</strong> ${resultado.symbol}</p>
+                        <p><strong>Decimais:</strong> ${resultado.decimals}</p>
+                        <p><strong>Supply:</strong> ${resultado.totalSupply}</p>
+                        <p><strong>Rede:</strong> ${resultado.network}</p>
+                        <p><strong>Verificado:</strong> ${resultado.verified ? 'Sim' : 'Não'}</p>
+                    `;
+                } else {
+                    divResultado.innerHTML = '❌ Não encontrado';
+                }
+            } catch (error) {
+                divResultado.innerHTML = `❌ Erro: ${error.message}`;
+                console.error('Erro no teste:', error);
+            }
+            
+            resultadoContador++;
+        }
+
+        // Teste automático quando a página carrega
+        window.addEventListener('load', () => {
+            console.log('🧪 Página de teste carregada');
+            console.log('🧪 API Manager carregado');
+        });
+    </script>
+</body>
+</html>

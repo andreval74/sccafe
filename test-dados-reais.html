@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔍 Teste: Dados Reais vs Fallback</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .teste { margin: 20px 0; padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
+        .resultado { background: #f8f9fa; padding: 15px; margin: 10px 0; border-radius: 5px; }
+        .real { border-left: 4px solid #28a745; }
+        .fallback { border-left: 4px solid #ffc107; }
+        .erro { border-left: 4px solid #dc3545; }
+        button { padding: 10px 20px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 3px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .source { font-weight: bold; color: #6c757d; }
+        .input-group { margin: 10px 0; }
+        input[type="text"] { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 3px; }
+        .priority { background: #e9ecef; padding: 10px; margin: 10px 0; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Sistema de Detecção: Dados Reais vs Fallback</h1>
+        
+        <div class="priority">
+            <h3>📋 Ordem de Prioridade:</h3>
+            <ol>
+                <li><strong>🌐 API Real</strong> - Tenta buscar dados da API primeiro</li>
+                <li><strong>🔄 RPC Direto</strong> - Se API falhar, tenta chamar contrato diretamente</li>
+                <li><strong>⚠️ Fallback</strong> - Só usa dados fixos se tudo falhar</li>
+            </ol>
+        </div>
+        
+        <div class="teste">
+            <h3>🧪 Teste Personalizado</h3>
+            <div class="input-group">
+                <label>Endereço do Contrato:</label>
+                <input type="text" id="endereco-personalizado" placeholder="0x..." value="0x85eAf5Bc66Bf19470fe70Ae91104febab6660614">
+            </div>
+            <button onclick="testarEnderecoPersonalizado()">🔍 Testar Contrato</button>
+            <div id="resultado-personalizado" class="resultado" style="display: none;"></div>
+        </div>
+        
+        <div class="teste">
+            <h3>📊 Resultados dos Testes</h3>
+            <div id="lista-resultados"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.ethers.io/lib/ethers-5.7.2.umd.min.js"></script>
+    <script src="js/api-manager.js"></script>
+    <script>
+        let contadorTestes = 0;
+        
+        async function testarEnderecoPersonalizado() {
+            const endereco = document.getElementById('endereco-personalizado').value.trim();
+            if (!endereco) {
+                alert('Por favor, digite um endereço válido');
+                return;
+            }
+            
+            const divResultado = document.getElementById('resultado-personalizado');
+            const listaResultados = document.getElementById('lista-resultados');
+            
+            divResultado.style.display = 'block';
+            divResultado.innerHTML = '🔄 Testando endereço...';
+            
+            try {
+                console.log(`🧪 TESTE ${++contadorTestes} - Detectando: ${endereco}`);
+                const resultado = await detectContract(endereco);
+                
+                if (resultado) {
+                    const sourceClass = resultado.source === 'API_REAL' ? 'real' : 
+                                      resultado.source === 'RPC_DIRECT' ? 'real' : 'fallback';
+                    
+                    const sourceIcon = resultado.source === 'API_REAL' ? '🌐' : 
+                                     resultado.source === 'RPC_DIRECT' ? '🔄' : '⚠️';
+                    
+                    const html = `
+                        <div class="resultado ${sourceClass}">
+                            <h4>✅ SUCESSO! ${sourceIcon} Fonte: ${resultado.source || 'Desconhecida'}</h4>
+                            <div class="source">Método: ${getSourceDescription(resultado.source)}</div>
+                            <p><strong>Nome:</strong> ${resultado.name}</p>
+                            <p><strong>Símbolo:</strong> ${resultado.symbol}</p>
+                            <p><strong>Decimais:</strong> ${resultado.decimals}</p>
+                            <p><strong>Total Supply:</strong> ${resultado.totalSupply}</p>
+                            <p><strong>Rede:</strong> ${resultado.network}</p>
+                            <p><strong>Verificado:</strong> ${resultado.verified ? 'Sim ✅' : 'Não ❌'}</p>
+                            <p><strong>Endereço:</strong> ${endereco}</p>
+                        </div>
+                    `;
+                    
+                    divResultado.innerHTML = html;
+                    
+                    // Adiciona à lista histórica
+                    const itemHistorico = document.createElement('div');
+                    itemHistorico.innerHTML = `
+                        <div class="resultado ${sourceClass}">
+                            <small>Teste #${contadorTestes} - ${new Date().toLocaleTimeString()}</small>
+                            <h5>${sourceIcon} ${resultado.name} (${resultado.symbol})</h5>
+                            <p>Fonte: ${getSourceDescription(resultado.source)}</p>
+                        </div>
+                    `;
+                    listaResultados.insertBefore(itemHistorico, listaResultados.firstChild);
+                    
+                } else {
+                    divResultado.innerHTML = `
+                        <div class="resultado erro">
+                            <h4>❌ Contrato não encontrado</h4>
+                            <p>Nenhuma fonte de dados retornou informações válidas</p>
+                        </div>
+                    `;
+                }
+                
+            } catch (error) {
+                divResultado.innerHTML = `
+                    <div class="resultado erro">
+                        <h4>❌ Erro no teste</h4>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+                console.error('Erro no teste:', error);
+            }
+        }
+        
+        function getSourceDescription(source) {
+            const descriptions = {
+                'API_REAL': '🌐 Dados obtidos via API oficial (REAL)',
+                'RPC_DIRECT': '🔄 Dados obtidos via chamada direta RPC (REAL)',
+                'FALLBACK_DATABASE': '⚠️ Dados de fallback (base local)',
+                undefined: '❓ Fonte não identificada'
+            };
+            return descriptions[source] || descriptions[undefined];
+        }
+        
+        // Teste automático quando carrega
+        window.addEventListener('load', () => {
+            console.log('🧪 Sistema de teste carregado');
+            console.log('📋 Prioridade: API → RPC → Fallback');
+        });
+    </script>
+</body>
+</html>

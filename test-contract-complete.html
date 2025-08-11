@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste - Dados Completos do Contrato</title>
+    <link href="assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+</head>
+<body>
+    <div class="container my-5">
+        <h1>🧪 Teste de Dados Completos do Contrato</h1>
+        <p class="text-muted">Teste dos novos campos: Proprietário, Endereço, Dados de Compilação</p>
+        
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>🔍 Teste Completo</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="testAddress" class="form-label">Endereço do Contrato:</label>
+                            <input type="text" id="testAddress" class="form-control" 
+                                   value="0xf89C0F43B1f5eEE70068D7a5582F6a32EF53b935" 
+                                   placeholder="0x...">
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="button" id="btnTestComplete" class="btn btn-primary">
+                                🚀 Testar Detecção Completa
+                            </button>
+                            <button type="button" id="btnTestBSCTest" class="btn btn-warning">
+                                🧪 Testar BSC Testnet
+                            </button>
+                        </div>
+                        
+                        <div id="loading" class="mt-3" style="display: none;">
+                            <div class="alert alert-info">
+                                <div class="spinner-border spinner-border-sm me-2"></div>
+                                Carregando dados completos...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h6>📊 Campos Testados</h6>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-unstyled">
+                            <li>✅ Nome do Token</li>
+                            <li>✅ Símbolo</li>
+                            <li>✅ Decimais</li>
+                            <li>✅ Supply Total</li>
+                            <li>🆕 Endereço do Contrato</li>
+                            <li>🆕 Proprietário</li>
+                            <li>✅ Rede</li>
+                            <li>🆕 Versão do Compilador</li>
+                            <li>🆕 Otimização</li>
+                            <li>🆕 Status ABI</li>
+                            <li>🆕 Chain ID</li>
+                            <li>🆕 Status Verificação</li>
+                            <li>🆕 RPC Utilizado</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card" id="results-card" style="display: none;">
+                    <div class="card-header">
+                        <h5>📋 Resultados Completos</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="results-content"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>📝 Console Log</h5>
+                    </div>
+                    <div class="card-body">
+                        <pre id="console-log" class="bg-dark text-light p-3" style="height: 300px; overflow-y: auto;"></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { detectContract, detectContractInNetwork } from './js/shared/contract-detector-global.js';
+        
+        const resultsCard = document.getElementById('results-card');
+        const resultsContent = document.getElementById('results-content');
+        const consoleLog = document.getElementById('console-log');
+        const loading = document.getElementById('loading');
+        
+        // Intercepta console.log
+        const originalLog = console.log;
+        const originalError = console.error;
+        const originalWarn = console.warn;
+        
+        function addToConsole(type, ...args) {
+            const timestamp = new Date().toLocaleTimeString();
+            const message = args.map(arg => typeof arg === 'object' ? JSON.stringify(arg, null, 2) : arg).join(' ');
+            consoleLog.textContent += `[${timestamp}] ${type}: ${message}\n`;
+            consoleLog.scrollTop = consoleLog.scrollHeight;
+        }
+        
+        console.log = (...args) => {
+            originalLog(...args);
+            addToConsole('LOG', ...args);
+        };
+        
+        console.error = (...args) => {
+            originalError(...args);
+            addToConsole('ERROR', ...args);
+        };
+        
+        console.warn = (...args) => {
+            originalWarn(...args);
+            addToConsole('WARN', ...args);
+        };
+        
+        function showResults(data) {
+            resultsContent.innerHTML = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>📋 Dados Básicos</h6>
+                        <table class="table table-sm">
+                            <tr><td><strong>Nome:</strong></td><td>${data.name || 'N/A'}</td></tr>
+                            <tr><td><strong>Símbolo:</strong></td><td>${data.symbol || 'N/A'}</td></tr>
+                            <tr><td><strong>Decimais:</strong></td><td>${data.decimals || 'N/A'}</td></tr>
+                            <tr><td><strong>Supply:</strong></td><td>${data.totalSupply || 'N/A'}</td></tr>
+                            <tr><td><strong>Endereço:</strong></td><td class="text-break">${data.address || 'N/A'}</td></tr>
+                            <tr><td><strong>Proprietário:</strong></td><td class="text-break">${data.owner || 'N/A'}</td></tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>🔧 Dados Técnicos</h6>
+                        <table class="table table-sm">
+                            <tr><td><strong>Rede:</strong></td><td>${data.network?.name || 'N/A'}</td></tr>
+                            <tr><td><strong>Chain ID:</strong></td><td>${data.network?.chainId || 'N/A'}</td></tr>
+                            <tr><td><strong>Compilador:</strong></td><td>${data.compiler || 'N/A'}</td></tr>
+                            <tr><td><strong>Otimização:</strong></td><td>${data.optimization !== undefined ? (data.optimization ? 'Sim' : 'Não') : 'N/A'}</td></tr>
+                            <tr><td><strong>Verificado:</strong></td><td>${data.verified !== undefined ? (data.verified ? 'Sim' : 'Não') : 'N/A'}</td></tr>
+                            <tr><td><strong>RPC:</strong></td><td class="text-break">${data.network?.rpcUrl || 'N/A'}</td></tr>
+                        </table>
+                    </div>
+                </div>
+                ${data.image ? `<div class="mt-3"><strong>Imagem:</strong> <img src="${data.image}" width="32" height="32" alt="Token"> ${data.image}</div>` : ''}
+            `;
+            resultsCard.style.display = 'block';
+        }
+        
+        function showError(error) {
+            resultsContent.innerHTML = `
+                <div class="alert alert-danger">
+                    <h6>❌ Erro:</h6>
+                    <p>${error}</p>
+                </div>
+            `;
+            resultsCard.style.display = 'block';
+        }
+        
+        // Event listeners
+        document.getElementById('btnTestComplete').addEventListener('click', async () => {
+            const address = document.getElementById('testAddress').value.trim();
+            if (!address) return;
+            
+            loading.style.display = 'block';
+            resultsCard.style.display = 'none';
+            
+            try {
+                console.log('🚀 Iniciando teste completo para:', address);
+                const result = await detectContract(address);
+                showResults(result);
+            } catch (error) {
+                showError(error.message);
+            }
+            
+            loading.style.display = 'none';
+        });
+        
+        document.getElementById('btnTestBSCTest').addEventListener('click', async () => {
+            const address = document.getElementById('testAddress').value.trim();
+            if (!address) return;
+            
+            loading.style.display = 'block';
+            resultsCard.style.display = 'none';
+            
+            try {
+                console.log('🧪 Testando especificamente na BSC Testnet...');
+                const result = await detectContractInNetwork(address, 97);
+                showResults(result);
+            } catch (error) {
+                showError(error.message);
+            }
+            
+            loading.style.display = 'none';
+        });
+        
+        console.log('🚀 Sistema de teste carregado!');
+    </script>
+</body>
+</html>

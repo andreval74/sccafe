@@ -1,0 +1,140 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>SCCAFE - Add Token</title>
+  <link href="imgs/sccafe.png" rel="icon">
+  <link href="assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <link href="assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+  <link href="assets/css/main.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+  <style>
+    #networkAutocomplete {
+      position: absolute;
+      z-index: 10;
+      width: 100%;
+      max-height: 220px;
+      overflow-y: auto;
+      display: none;
+    }
+    .filled {
+      background: #e6ffe6;
+    }
+    #tokenLoading {
+      margin-bottom: 1rem;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="header-include" class="fixed-top"></div>
+  <main class="main">
+    <div class="page-title light-background">
+      <div class="container d-lg-flex justify-content-between align-items-center">
+        <h1 class="mb-2 mb-lg-0"></h1>
+        <nav class="breadcrumbs">
+          <ol>
+            <li><a href="index.html"></a></li>
+            <li class="current"></li>
+          </ol>
+        </nav>
+      </div>
+    </div>
+
+    <section class="starter-section section">
+      <div class="container section-title" data-aos="fade-up">
+        <h2>Gerador de Link para Token</h2>
+        <p>Preencha os dados abaixo e gere um link para envio do cadastro do token na carteira do usuário.</p>
+      </div>
+      <div class="container" data-aos="fade-up">
+        <form class="metaMask-generator-form" onsubmit="return false;">
+          <!-- Campo de busca da rede -->
+          <div class="mb-4 position-relative">
+            <input id="networkSearch" class="form-control form-control-lg" autocomplete="off" placeholder="Digite o nome ou ChainID da Rede (Ex: BNB ou 56)">
+            <div id="networkAutocomplete" class="list-group position-absolute w-100"></div>
+          </div>
+          <!-- Linha dos dados da rede uniformizada -->
+          <div class="row g-3 mb-4">
+            <div class="col-12 col-md-3">
+              <label for="rpcUrl" class="form-label">RPC URL</label>
+              <input id="rpcUrl" class="form-control" placeholder="https://bsc-dataseed.binance.org" readonly>
+            </div>
+            <div class="col-12 col-md-3">
+              <label for="blockExplorer" class="form-label">Block Explorer URL</label>
+              <input id="blockExplorer" class="form-control" placeholder="https://bscscan.com" readonly>
+            </div>
+            <div class="col-12 col-md-3">
+              <label for="nativeCurrency" class="form-label">Símbolo da Moeda</label>
+              <input id="nativeCurrency" class="form-control" placeholder="BNB" readonly>
+            </div>
+            <div class="col-12 col-md-3">
+              <label for="nativeDecimals" class="form-label">Decimais</label>
+              <input id="nativeDecimals" class="form-control" placeholder="18" type="number" readonly>
+            </div>
+          </div>
+          <!-- Linha do endereço do token -->
+          <div class="row g-3 mb-4 align-items-center">
+            <div class="col-12 col-md-9">
+              <input id="tokenAddress" class="form-control" placeholder="Endereço do Token (0x...)" />
+            </div>
+            <div class="col-12 col-md-3">
+              <button type="button" class="btn btn-secondary w-100" id="btnTokenSearch">
+                <i class="bi bi-search"></i> Buscar Token
+              </button>
+            </div>
+          </div>
+          <!-- Indicador de loading da busca do token -->
+          <div id="tokenLoading" style="display:none">
+            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+            Buscando dados do token...
+          </div>
+          <!-- Linha dos dados do token uniformizada -->
+          <div class="row g-3 mb-4">
+            <div class="col-12 col-md-3">
+              <label for="tokenName" class="form-label">Nome do Token</label>
+              <input id="tokenName" class="form-control" placeholder="Nome" readonly />
+            </div>              
+            <div class="col-12 col-md-3">
+              <label for="tokenSymbol" class="form-label">Símbolo do Token</label>
+              <input id="tokenSymbol" class="form-control" placeholder="Símbolo" readonly />
+            </div>
+            <div class="col-12 col-md-3">
+              <label for="tokenDecimals" class="form-label">Decimais</label>
+              <input id="tokenDecimals" class="form-control" placeholder="18" type="number" readonly />
+            </div>
+            <div class="col-12 col-md-3">
+              <label for="tokenImage" class="form-label">Imagem</label>
+              <input id="tokenImage" class="form-control" placeholder="URL da Imagem" readonly />
+            </div>
+          </div>
+          <div class="mb-4">
+            <label for="tokenNetwork" class="form-label">Rede</label>
+            <input id="tokenNetwork" class="form-control" placeholder="Nome da Rede" readonly />
+          </div>
+          <div class="mb-4">
+            <button type="button" class="btn btn-primary w-100" id="btnGenerateLink">
+              <i class="bi bi-link-45deg"></i> Gerar Link
+            </button>
+          </div>
+          <div id="generatedLinkContainer" class="mb-4" style="display:none;">
+            <label class="form-label">Link Gerado:</label>
+            <div class="input-group">
+              <input id="generatedLink" class="form-control" readonly />
+              <button class="btn btn-outline-secondary" id="btnCopyLink" type="button"><i class="bi bi-clipboard"></i></button>
+              <button class="btn btn-outline-success" id="btnShareLink" type="button"><i class="bi bi-share"></i></button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </section>
+  </main>
+  <div id="footer-include"></div>
+  <script src="assets/js/include.js"></script>
+  <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
+  <script src="assets/js/main.js"></script>
+  <script type="module" src="js/token-link-generator.js"></script>
+</body>
+</html>

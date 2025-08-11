@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🔍 Módulo: Verificação de Contrato - SCCAFE</title>
+  
+  <!-- MÓDULO 04: VERIFICAÇÃO DE CONTRATO -->
+  <!-- 
+    📍 ENTRADA: Contrato deployado (endereço, ABI, bytecode, código fonte)
+    🎯 FUNÇÃO: Verificação automática/manual do contrato na BSCScan/Etherscan
+    📤 SAÍDA: Status de verificação (sucesso/erro + próximos passos)
+    🔗 NAVEGAÇÃO: 
+      - ANTERIOR: 03-resumo-criacao.html (se vier do fluxo completo)
+      - PRÓXIMO: 05-finalizacao.html (após verificação bem-sucedida)
+      - INDEPENDENTE: Pode ser usado sozinho para verificar contratos existentes
+  -->
+  
+  <!-- Favicons -->
+  <link href="../imgs/sccafe-32x32.png" rel="icon" sizes="32x32" type="image/png">
+  <link href="../imgs/sccafe-16x16.png" rel="icon" sizes="16x16" type="image/png">
+  <link href="../imgs/sccafe-192x192.png" rel="apple-touch-icon" sizes="192x192">
+  
+  <!-- Bootstrap CSS -->
+  <link href="../assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <link href="../assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+  <link href="../assets/vendor/aos/aos.css" rel="stylesheet">
+  <link href="../assets/css/main.css" rel="stylesheet">
+  
+  <!-- Custom Token CSS -->
+  <link href="../css/token.css" rel="stylesheet">
+  
+  <!-- Module-specific CSS -->
+  <style>
+    .module-header {
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+      color: white;
+      padding: 2rem;
+      border-radius: 15px;
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+    
+    .verification-card {
+      border: 2px solid #e5e7eb;
+      border-radius: 15px;
+      padding: 2rem;
+      margin-bottom: 1.5rem;
+      transition: all 0.3s ease;
+    }
+    
+    .verification-card:hover {
+      border-color: #6366f1;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
+    }
+    
+    .verification-card.success {
+      border-color: #10b981;
+      background-color: #f0fdf4;
+    }
+    
+    .verification-card.error {
+      border-color: #ef4444;
+      background-color: #fef2f2;
+    }
+    
+    .verification-card.loading {
+      border-color: #f59e0b;
+      background-color: #fffbeb;
+    }
+    
+    .data-display {
+      background: #f8fafc;
+      border-radius: 8px;
+      padding: 1rem;
+      margin: 1rem 0;
+      font-family: 'Courier New', monospace;
+      font-size: 0.875rem;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    
+    .module-navigation {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 2rem;
+      padding-top: 2rem;
+      border-top: 2px solid #e5e7eb;
+    }
+    
+    .status-indicator {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 0.875rem;
+    }
+    
+    .status-indicator.pending {
+      background: #fef3c7;
+      color: #92400e;
+    }
+    
+    .status-indicator.processing {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+    
+    .status-indicator.success {
+      background: #d1fae5;
+      color: #065f46;
+    }
+    
+    .status-indicator.error {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header Include -->
+  <div id="header-include" class="fixed-top"></div>
+  
+  <!-- Main Content -->
+  <main class="main">
+    <div class="container">
+      <div class="row justify-content-center">
+        <div class="col-xl-10 col-lg-11">
+          
+          <!-- Module Header -->
+          <div class="module-header">
+            <h1><i class="bi bi-shield-check me-3"></i>Verificação de Contrato</h1>
+            <p class="mb-0">Verifique seu contrato na blockchain para torná-lo público e confiável</p>
+            <div class="mt-3">
+              <span class="status-indicator" id="module-status">
+                <i class="bi bi-clock me-2"></i>Aguardando dados...
+              </span>
+            </div>
+          </div>
+          
+          <!-- Contract Detection Section -->
+          <div class="verification-card" id="contract-detection-card">
+            <h3><i class="bi bi-search text-primary me-2"></i>Detecção do Contrato</h3>
+            <p class="text-muted">Carregando dados do contrato para verificação...</p>
+            
+            <div id="contract-detection-content">
+              <!-- Preenchido dinamicamente pelo JS -->
+            </div>
+          </div>
+          
+          <!-- Auto Verification Section -->
+          <div class="verification-card" id="auto-verification-card" style="display: none;">
+            <h3><i class="bi bi-robot text-success me-2"></i>Verificação Automática</h3>
+            <p class="text-muted">Tentativa automatizada de verificação na BSCScan/Etherscan</p>
+            
+            <div class="row g-3 mb-3">
+              <div class="col-md-6">
+                <button id="btn-auto-verify" class="btn btn-success w-100">
+                  <i class="bi bi-play-circle me-2"></i>Iniciar Verificação Automática
+                </button>
+              </div>
+              <div class="col-md-6">
+                <button id="btn-check-status" class="btn btn-outline-info w-100" disabled>
+                  <i class="bi bi-arrow-clockwise me-2"></i>Verificar Status
+                </button>
+              </div>
+            </div>
+            
+            <div id="auto-verification-status"></div>
+          </div>
+          
+          <!-- Manual Verification Section -->
+          <div class="verification-card" id="manual-verification-card" style="display: none;">
+            <h3><i class="bi bi-tools text-warning me-2"></i>Verificação Manual</h3>
+            <p class="text-muted">Dados prontos para copiar e colar na BSCScan manualmente</p>
+            
+            <div id="manual-verification-content">
+              <!-- Preenchido dinamicamente pelo template -->
+            </div>
+          </div>
+          
+          <!-- API Key Configuration -->
+          <div class="verification-card" id="api-key-card" style="display: none;">
+            <h3><i class="bi bi-key text-info me-2"></i>Configuração de API Key</h3>
+            <p class="text-muted">Configure sua API Key para verificação automática</p>
+            
+            <div class="row g-3">
+              <div class="col-md-8">
+                <label for="api-key-input" class="form-label">API Key da BSCScan</label>
+                <input type="password" class="form-control" id="api-key-input" 
+                       placeholder="Cole sua API Key aqui">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">&nbsp;</label>
+                <button id="btn-save-api-key" class="btn btn-primary w-100">
+                  <i class="bi bi-save me-2"></i>Salvar
+                </button>
+              </div>
+            </div>
+            
+            <div class="mt-3">
+              <small class="text-muted">
+                <i class="bi bi-info-circle me-1"></i>
+                Obtenha sua API Key gratuita em: 
+                <a href="https://bscscan.com/apis" target="_blank">bscscan.com/apis</a>
+              </small>
+            </div>
+          </div>
+          
+          <!-- Results Section -->
+          <div class="verification-card" id="results-card" style="display: none;">
+            <h3><i class="bi bi-clipboard-check text-success me-2"></i>Resultados da Verificação</h3>
+            <div id="verification-results">
+              <!-- Preenchido dinamicamente -->
+            </div>
+          </div>
+          
+          <!-- Module Navigation -->
+          <div class="module-navigation">
+            <button id="btn-back" class="btn btn-outline-secondary">
+              <i class="bi bi-arrow-left me-2"></i>Voltar ao Módulo Anterior
+            </button>
+            
+            <div class="d-flex gap-2">
+              <button id="btn-retry" class="btn btn-outline-warning" style="display: none;">
+                <i class="bi bi-arrow-clockwise me-2"></i>Tentar Novamente
+              </button>
+              
+              <button id="btn-next" class="btn btn-primary" style="display: none;">
+                Finalizar <i class="bi bi-arrow-right ms-2"></i>
+              </button>
+            </div>
+          </div>
+          
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <div id="footer-include"></div>
+
+  <!-- Bootstrap JS -->
+  <script src="../assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+  
+  <!-- AOS JS -->
+  <script src="../assets/vendor/aos/aos.js"></script>
+  
+  <!-- Custom JS -->
+  <script src="../assets/js/include.js"></script>
+  <script src="../assets/js/main.js"></script>
+  
+  <!-- Ethers.js -->
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+  
+  <!-- Shared Modules -->
+  <script src="../js/shared/storage-manager.js"></script>
+  <script src="../js/shared/metamask-connector.js"></script>
+  <script src="../js/shared/network-detector.js"></script>
+  <script src="../js/shared/common-utils.js"></script>
+  
+  <!-- Existing System Dependencies -->
+  <script src="../js/api-key-manager.js"></script>
+  <script src="../js/contract-detector.js"></script>
+  <script src="../js/etherscan-v2-verification.js"></script>
+  <script src="../js/verification-simple.js"></script>
+  <script src="../js/network-commons.js"></script>
+  <script src="../js/network-manager.js"></script>
+  
+  <!-- Template System -->
+  <script src="../js/template-loader.js"></script>
+  
+  <!-- Module Main Script -->
+  <script src="../js/modules/module-verificacao.js"></script>
+</body>
+</html>

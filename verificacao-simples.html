@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>SCCAFE - Verificação Manual de Contratos</title>
+  <link href="imgs/sccafe-32x32.png" rel="icon" sizes="32x32">
+  <link href="assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <link href="assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+  <link href="assets/css/main.css" rel="stylesheet">
+  <!-- Ethers.js v5.7.2 -->
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+</head>
+<body class="bg-light">
+  
+  <div class="container mt-4">
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+        
+        <!-- Header -->
+        <div class="card mb-3">
+          <div class="card-body text-center">
+            <h2><i class="bi bi-shield-check text-primary"></i> Verificação Manual de Contratos</h2>
+            <p class="text-muted">Sistema focado nos dados essenciais para verificação</p>
+          </div>
+        </div>
+
+        <!-- Input do Contrato -->
+        <div class="card mb-4">
+          <div class="card-header bg-primary text-white">
+            <h5 class="mb-0"><i class="bi bi-search"></i> Detectar Contrato</h5>
+          </div>
+          <div class="card-body">
+            <!-- Conexão MetaMask -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div>
+                <span class="badge bg-secondary" id="connection-status">Desconectado</span>
+                <span class="badge bg-info ms-2" id="network-status">-</span>
+              </div>
+              <button class="btn btn-outline-primary btn-sm" onclick="conectarMetaMask()">
+                <i class="bi bi-wallet2"></i> Conectar MetaMask
+              </button>
+            </div>
+            
+            <!-- Input do endereço -->
+            <div class="input-group mb-3">
+              <span class="input-group-text"><i class="bi bi-hash"></i></span>
+              <input type="text" class="form-control" id="contract-address" 
+                     placeholder="Cole o endereço do contrato (0x...)" 
+                     style="font-family: monospace;">
+              <button class="btn btn-success" onclick="detectarContrato()">
+                <i class="bi bi-search"></i> Detectar
+              </button>
+            </div>
+            
+            <div class="text-center">
+              <button class="btn btn-outline-secondary btn-sm" onclick="colarEndereco()">
+                <i class="bi bi-clipboard"></i> Colar da Área de Transferência
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Resultados - Dados Essenciais -->
+        <div class="card" id="result-section" style="display: none;">
+          <div class="card-header bg-success text-white">
+            <h5 class="mb-0"><i class="bi bi-check-circle"></i> Dados para Verificação Manual</h5>
+          </div>
+          <div class="card-body">
+            
+            <!-- Informações Básicas -->
+            <div class="row mb-4">
+              <div class="col-md-6">
+                <div class="border rounded p-3 mb-3">
+                  <label class="form-label fw-bold text-primary">
+                    <i class="bi bi-tag"></i> Nome do Contrato
+                  </label>
+                  <input type="text" class="form-control" id="contract-name" readonly>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="border rounded p-3 mb-3">
+                  <label class="form-label fw-bold text-primary">
+                    <i class="bi bi-code-square"></i> Símbolo
+                  </label>
+                  <input type="text" class="form-control" id="contract-symbol" readonly>
+                </div>
+              </div>
+            </div>
+
+            <!-- Endereços Importantes -->
+            <div class="row mb-4">
+              <div class="col-12">
+                <div class="border rounded p-3 mb-3">
+                  <label class="form-label fw-bold text-danger">
+                    <i class="bi bi-geo-alt"></i> Endereço do Contrato
+                  </label>
+                  <div class="input-group">
+                    <input type="text" class="form-control font-monospace" id="contract-address-result" readonly>
+                    <button class="btn btn-outline-primary" onclick="copiarTexto('contract-address-result')">
+                      <i class="bi bi-clipboard"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div class="col-12">
+                <div class="border rounded p-3 mb-3">
+                  <label class="form-label fw-bold text-warning">
+                    <i class="bi bi-person"></i> Endereço do Proprietário
+                  </label>
+                  <div class="input-group">
+                    <input type="text" class="form-control font-monospace" id="owner-address" readonly>
+                    <button class="btn btn-outline-primary" onclick="copiarTexto('owner-address')">
+                      <i class="bi bi-clipboard"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Dados de Compilação -->
+            <div class="border rounded p-3 mb-4" style="background-color: #f8f9fa;">
+              <h6 class="fw-bold text-info mb-3">
+                <i class="bi bi-gear"></i> Configurações de Compilação
+              </h6>
+              
+              <div class="row">
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">Versão do Compilador</label>
+                  <input type="text" class="form-control" id="compiler-version" readonly>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">Otimização</label>
+                  <input type="text" class="form-control" id="optimization" readonly>
+                </div>
+                <div class="col-md-6 mt-3">
+                  <label class="form-label fw-bold">Versão EVM</label>
+                  <input type="text" class="form-control" id="evm-version" readonly>
+                </div>
+                <div class="col-md-6 mt-3">
+                  <label class="form-label fw-bold">Licença</label>
+                  <input type="text" class="form-control" id="license-type" readonly>
+                </div>
+              </div>
+            </div>
+
+            <!-- Argumentos do Construtor -->
+            <div class="border rounded p-3 mb-4" id="constructor-section" style="display: none;">
+              <label class="form-label fw-bold text-success">
+                <i class="bi bi-tools"></i> Argumentos do Construtor
+              </label>
+              <textarea class="form-control font-monospace" id="constructor-arguments" rows="3" readonly 
+                        placeholder="Nenhum argumento encontrado"></textarea>
+              <button class="btn btn-outline-primary btn-sm mt-2" onclick="copiarTexto('constructor-arguments')">
+                <i class="bi bi-clipboard"></i> Copiar Argumentos
+              </button>
+            </div>
+
+            <!-- Código Fonte -->
+            <div class="border rounded p-3 mb-4">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <label class="form-label fw-bold text-dark mb-0">
+                  <i class="bi bi-file-earmark-code"></i> Código Fonte do Contrato
+                </label>
+                <button class="btn btn-outline-primary btn-sm" onclick="copiarTexto('source-code')">
+                  <i class="bi bi-clipboard"></i> Copiar Código
+                </button>
+              </div>
+              <textarea class="form-control font-monospace" id="source-code" rows="15" readonly 
+                        placeholder="Carregando código fonte..."></textarea>
+            </div>
+
+            <!-- Ações -->
+            <div class="text-center">
+              <button class="btn btn-primary me-2" onclick="abrirEtherscan()">
+                <i class="bi bi-box-arrow-up-right"></i> Abrir no Explorer
+              </button>
+              <button class="btn btn-success me-2" onclick="adicionarAoMetaMask()">
+                <i class="bi bi-wallet2"></i> Adicionar ao MetaMask
+              </button>
+              <button class="btn btn-outline-secondary" onclick="limparFormulario()">
+                <i class="bi bi-arrow-clockwise"></i> Nova Verificação
+              </button>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Status de Loading -->
+        <div class="text-center mt-3" id="loading-status" style="display: none;">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Carregando...</span>
+          </div>
+          <p class="mt-2 text-muted">Detectando dados do contrato...</p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script type="module" src="js/shared/contract-detector-global.js"></script>
+  <script type="module" src="js/verificacao-simples.js"></script>
+  
+</body>
+</html>

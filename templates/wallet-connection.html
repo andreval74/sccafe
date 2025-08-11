@@ -1,0 +1,24 @@
+<!-- Template de Conexão da Carteira -->
+<div class="connection-section mb-4">
+    <div class="card border-warning">
+        <div class="card-body">
+            <h5 class="card-title">
+                <i class="bi bi-wallet2 text-warning me-2"></i>Conexão da Carteira
+            </h5>
+            <div class="d-flex gap-3 align-items-center">
+                <input type="text" class="form-control" id="wallet-status" 
+                       placeholder="Clique em 'Conectar' para iniciar" style="font-family: monospace;" readonly>
+                <button id="connect-metamask-btn" type="button" class="btn btn-outline-warning">
+                    <i class="bi bi-wallet2"></i> CONECTAR
+                </button>
+            </div>
+            <div class="row mt-2">
+                <div class="col-md-6">
+                    <small class="text-muted">
+                        <i class="bi bi-wifi"></i> Rede: <span id="current-network" class="fw-bold">Não conectado</span>
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
