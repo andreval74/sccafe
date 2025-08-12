@@ -1,0 +1,1026 @@
+<!--
+==========================================================================
+COMPONENTE LAYOUT: HEADER
+Cabeçalho moderno para SCCAFE
+==========================================================================
+-->
+
+<!-- HEADER PRINCIPAL -->
+<header class="header" id="main-header">
+  <nav class="navbar">
+    <!-- Logo e Branding -->
+    <div class="navbar-brand">
+      <a href="index.html" class="brand-link">
+        <img src="imgs/sccafe.png" alt="SCCAFE" class="brand-logo">
+        <span class="brand-text">SCCAFE</span>
+      </a>
+    </div>
+
+    <!-- Menu Principal -->
+    <div class="navbar-menu" id="navbar-menu">
+      <ul class="navbar-nav">
+        <li class="nav-item">
+          <a href="index.html" class="nav-link active">
+            <i class="nav-icon bi bi-house"></i>
+            <span>Início</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="add-token.html" class="nav-link">
+            <i class="nav-icon bi bi-plus-circle"></i>
+            <span>Criar Token</span>
+          </a>
+        </li>
+        <li class="nav-item dropdown">
+          <a href="#" class="nav-link dropdown-toggle" data-dropdown="tools">
+            <i class="nav-icon bi bi-tools"></i>
+            <span>Ferramentas</span>
+            <i class="dropdown-icon bi bi-chevron-down"></i>
+          </a>
+          <div class="dropdown-menu" id="tools-dropdown">
+            <a href="verificacao-simples.html" class="dropdown-item">
+              <i class="bi bi-shield-check"></i>
+              <span>Verificação Simples</span>
+            </a>
+            <a href="test-detector.html" class="dropdown-item">
+              <i class="bi bi-search"></i>
+              <span>Detector de Contratos</span>
+            </a>
+            <a href="link-generator.html" class="dropdown-item">
+              <i class="bi bi-link-45deg"></i>
+              <span>Gerador de Links</span>
+            </a>
+          </div>
+        </li>
+        <li class="nav-item">
+          <a href="service-details.html" class="nav-link">
+            <i class="nav-icon bi bi-info-circle"></i>
+            <span>Sobre</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Área de Ações -->
+    <div class="navbar-actions">
+      <!-- Status da Rede -->
+      <div class="network-status" id="network-status">
+        <div class="network-indicator">
+          <span class="network-dot"></span>
+          <span class="network-name">Ethereum</span>
+        </div>
+      </div>
+
+      <!-- Botão de Conexão de Carteira -->
+      <div class="wallet-section" id="wallet-section">
+        <button class="btn btn-primary wallet-connect" id="wallet-connect-btn">
+          <i class="bi bi-wallet2"></i>
+          <span>Conectar</span>
+        </button>
+        
+        <!-- Estado conectado (oculto inicialmente) -->
+        <div class="wallet-connected" id="wallet-connected" style="display: none;">
+          <div class="wallet-info">
+            <div class="wallet-address" id="wallet-address">0x1234...5678</div>
+            <div class="wallet-balance" id="wallet-balance">0.00 ETH</div>
+          </div>
+          <button class="wallet-menu-btn" id="wallet-menu-btn">
+            <img src="imgs/metamask-fox.svg" alt="MetaMask" class="wallet-icon">
+            <i class="bi bi-chevron-down"></i>
+          </button>
+          
+          <!-- Menu da carteira -->
+          <div class="wallet-menu" id="wallet-menu">
+            <div class="wallet-menu-header">
+              <div class="wallet-menu-address" id="wallet-menu-address">0x1234...5678</div>
+              <button class="btn-copy" id="copy-address">
+                <i class="bi bi-copy"></i>
+              </button>
+            </div>
+            <div class="wallet-menu-body">
+              <a href="#" class="wallet-menu-item">
+                <i class="bi bi-clock-history"></i>
+                <span>Histórico</span>
+              </a>
+              <a href="#" class="wallet-menu-item">
+                <i class="bi bi-gear"></i>
+                <span>Configurações</span>
+              </a>
+              <button class="wallet-menu-item wallet-disconnect" id="wallet-disconnect">
+                <i class="bi bi-box-arrow-right"></i>
+                <span>Desconectar</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Toggle de Tema -->
+      <button class="theme-toggle" id="theme-toggle" title="Alternar tema">
+        <i class="bi bi-moon-stars"></i>
+      </button>
+
+      <!-- Menu Mobile Toggle -->
+      <button class="mobile-menu-toggle" id="mobile-menu-toggle">
+        <span class="hamburger-line"></span>
+        <span class="hamburger-line"></span>
+        <span class="hamburger-line"></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Overlay para mobile -->
+  <div class="mobile-overlay" id="mobile-overlay"></div>
+</header>
+
+<!--
+==========================================================================
+ESTILOS DO HEADER
+==========================================================================
+-->
+<style>
+/* Header Base */
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: rgba(17, 24, 39, 0.95);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--color-border);
+  transition: all 0.3s ease;
+}
+
+.header.scrolled {
+  background: rgba(17, 24, 39, 0.98);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Navbar */
+.navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2rem;
+  height: 4rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Brand */
+.navbar-brand {
+  flex-shrink: 0;
+}
+
+.brand-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+  color: var(--color-text-primary);
+  font-weight: 600;
+  font-size: 1.25rem;
+}
+
+.brand-logo {
+  width: 2rem;
+  height: 2rem;
+  object-fit: contain;
+}
+
+.brand-text {
+  background: linear-gradient(135deg, var(--color-accent), #fbbf24);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Menu Principal */
+.navbar-menu {
+  display: flex;
+  flex: 1;
+  justify-content: center;
+}
+
+.navbar-nav {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  gap: 2rem;
+}
+
+.nav-item {
+  position: relative;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  border-radius: var(--radius-md);
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.nav-link:hover,
+.nav-link.active {
+  color: var(--color-text-primary);
+  background: var(--color-bg-secondary);
+}
+
+.nav-link.active {
+  color: var(--color-accent);
+}
+
+.nav-icon {
+  font-size: 1rem;
+}
+
+/* Dropdown */
+.dropdown {
+  position: relative;
+}
+
+.dropdown-icon {
+  font-size: 0.75rem;
+  transition: transform 0.2s ease;
+}
+
+.dropdown.open .dropdown-icon {
+  transform: rotate(180deg);
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 200px;
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xl);
+  padding: 0.5rem;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all 0.2s ease;
+  z-index: 1001;
+}
+
+.dropdown.open .dropdown-menu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  border-radius: var(--radius-md);
+  transition: all 0.2s ease;
+}
+
+.dropdown-item:hover {
+  color: var(--color-text-primary);
+  background: var(--color-bg-secondary);
+}
+
+/* Ações da Navbar */
+.navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-shrink: 0;
+}
+
+/* Status da Rede */
+.network-status {
+  display: flex;
+  align-items: center;
+}
+
+.network-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-full);
+  font-size: 0.875rem;
+}
+
+.network-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  background: #10b981;
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+.network-name {
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+/* Seção da Carteira */
+.wallet-section {
+  position: relative;
+}
+
+.wallet-connect {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.wallet-connected {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 0.5rem 1rem;
+}
+
+.wallet-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.wallet-address {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  font-family: var(--font-mono);
+}
+
+.wallet-balance {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+}
+
+.wallet-menu-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: none;
+  border: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: var(--radius-sm);
+  transition: all 0.2s ease;
+}
+
+.wallet-menu-btn:hover {
+  color: var(--color-text-primary);
+  background: var(--color-bg-tertiary);
+}
+
+.wallet-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+/* Menu da Carteira */
+.wallet-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  min-width: 250px;
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xl);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all 0.2s ease;
+  z-index: 1001;
+  margin-top: 0.5rem;
+}
+
+.wallet-menu.open {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.wallet-menu-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.wallet-menu-address {
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  color: var(--color-text-primary);
+}
+
+.btn-copy {
+  background: none;
+  border: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: var(--radius-sm);
+  transition: all 0.2s ease;
+}
+
+.btn-copy:hover {
+  color: var(--color-accent);
+  background: var(--color-bg-secondary);
+}
+
+.wallet-menu-body {
+  padding: 0.5rem;
+}
+
+.wallet-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  border-radius: var(--radius-md);
+  transition: all 0.2s ease;
+  width: 100%;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 0.875rem;
+}
+
+.wallet-menu-item:hover {
+  color: var(--color-text-primary);
+  background: var(--color-bg-secondary);
+}
+
+.wallet-disconnect {
+  color: #ef4444;
+}
+
+.wallet-disconnect:hover {
+  color: #dc2626;
+  background: rgba(239, 68, 68, 0.1);
+}
+
+/* Toggle de Tema */
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.theme-toggle:hover {
+  color: var(--color-accent);
+  border-color: var(--color-accent-alpha);
+}
+
+/* Menu Mobile */
+.mobile-menu-toggle {
+  display: none;
+  flex-direction: column;
+  gap: 0.25rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+}
+
+.hamburger-line {
+  width: 1.5rem;
+  height: 2px;
+  background: var(--color-text-primary);
+  transition: all 0.3s ease;
+}
+
+.mobile-menu-toggle.active .hamburger-line:nth-child(1) {
+  transform: rotate(45deg) translate(5px, 5px);
+}
+
+.mobile-menu-toggle.active .hamburger-line:nth-child(2) {
+  opacity: 0;
+}
+
+.mobile-menu-toggle.active .hamburger-line:nth-child(3) {
+  transform: rotate(-45deg) translate(7px, -6px);
+}
+
+/* Overlay Mobile */
+.mobile-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.mobile-overlay.active {
+  opacity: 1;
+}
+
+/* Animações */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Media Queries */
+@media (max-width: 768px) {
+  .navbar {
+    padding: 0 1rem;
+  }
+
+  .navbar-menu {
+    position: fixed;
+    top: 4rem;
+    left: 0;
+    right: 0;
+    background: var(--color-bg-primary);
+    border-bottom: 1px solid var(--color-border);
+    transform: translateY(-100%);
+    transition: transform 0.3s ease;
+    z-index: 1000;
+  }
+
+  .navbar-menu.active {
+    transform: translateY(0);
+  }
+
+  .navbar-nav {
+    flex-direction: column;
+    gap: 0;
+    padding: 1rem;
+  }
+
+  .nav-link {
+    padding: 1rem;
+    border-radius: 0;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .dropdown-menu {
+    position: static;
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    box-shadow: none;
+    border: none;
+    background: var(--color-bg-secondary);
+    margin-top: 0.5rem;
+    border-radius: var(--radius-md);
+  }
+
+  .mobile-menu-toggle {
+    display: flex;
+  }
+
+  .network-status {
+    display: none;
+  }
+
+  .wallet-connected {
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.75rem;
+  }
+
+  .wallet-info {
+    align-items: center;
+  }
+
+  .wallet-menu {
+    right: -100px;
+    min-width: 200px;
+  }
+}
+
+@media (max-width: 480px) {
+  .brand-text {
+    display: none;
+  }
+
+  .nav-link span {
+    display: none;
+  }
+
+  .navbar-actions {
+    gap: 0.5rem;
+  }
+
+  .wallet-connect span {
+    display: none;
+  }
+}
+</style>
+
+<!--
+==========================================================================
+JAVASCRIPT DO HEADER
+==========================================================================
+-->
+<script>
+/**
+ * Sistema do Header SCCAFE
+ * Gerencia navegação, menu mobile, conexão de carteira e tema
+ */
+class HeaderSystem {
+  constructor() {
+    this.isWalletConnected = false;
+    this.currentAddress = null;
+    this.currentNetwork = 'ethereum';
+    
+    this.initializeHeader();
+  }
+
+  /**
+   * Inicializa todos os componentes do header
+   */
+  initializeHeader() {
+    this.initializeScrollEffect();
+    this.initializeMobileMenu();
+    this.initializeDropdowns();
+    this.initializeWalletConnection();
+    this.initializeThemeToggle();
+    this.initializeNavigation();
+    this.checkWalletConnection();
+  }
+
+  /**
+   * Efeito de scroll no header
+   */
+  initializeScrollEffect() {
+    window.addEventListener('scroll', () => {
+      const header = document.getElementById('main-header');
+      if (window.scrollY > 50) {
+        header.classList.add('scrolled');
+      } else {
+        header.classList.remove('scrolled');
+      }
+    });
+  }
+
+  /**
+   * Menu mobile
+   */
+  initializeMobileMenu() {
+    const toggle = document.getElementById('mobile-menu-toggle');
+    const menu = document.getElementById('navbar-menu');
+    const overlay = document.getElementById('mobile-overlay');
+
+    toggle.addEventListener('click', () => {
+      toggle.classList.toggle('active');
+      menu.classList.toggle('active');
+      overlay.classList.toggle('active');
+      overlay.style.display = toggle.classList.contains('active') ? 'block' : 'none';
+    });
+
+    overlay.addEventListener('click', () => {
+      this.closeMobileMenu();
+    });
+
+    // Fecha menu ao redimensionar
+    window.addEventListener('resize', () => {
+      if (window.innerWidth > 768) {
+        this.closeMobileMenu();
+      }
+    });
+  }
+
+  /**
+   * Fecha menu mobile
+   */
+  closeMobileMenu() {
+    const toggle = document.getElementById('mobile-menu-toggle');
+    const menu = document.getElementById('navbar-menu');
+    const overlay = document.getElementById('mobile-overlay');
+
+    toggle.classList.remove('active');
+    menu.classList.remove('active');
+    overlay.classList.remove('active');
+    overlay.style.display = 'none';
+  }
+
+  /**
+   * Dropdowns
+   */
+  initializeDropdowns() {
+    const dropdowns = document.querySelectorAll('.dropdown');
+    
+    dropdowns.forEach(dropdown => {
+      const toggle = dropdown.querySelector('.dropdown-toggle');
+      const menu = dropdown.querySelector('.dropdown-menu');
+
+      toggle.addEventListener('click', (e) => {
+        e.preventDefault();
+        
+        // Fecha outros dropdowns
+        dropdowns.forEach(d => {
+          if (d !== dropdown) {
+            d.classList.remove('open');
+          }
+        });
+
+        dropdown.classList.toggle('open');
+      });
+    });
+
+    // Fecha dropdowns ao clicar fora
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.dropdown')) {
+        dropdowns.forEach(d => d.classList.remove('open'));
+      }
+    });
+  }
+
+  /**
+   * Conexão de carteira
+   */
+  initializeWalletConnection() {
+    const connectBtn = document.getElementById('wallet-connect-btn');
+    const disconnectBtn = document.getElementById('wallet-disconnect');
+    const menuBtn = document.getElementById('wallet-menu-btn');
+    const menu = document.getElementById('wallet-menu');
+    const copyBtn = document.getElementById('copy-address');
+
+    // Conectar carteira
+    connectBtn.addEventListener('click', () => {
+      this.connectWallet();
+    });
+
+    // Desconectar carteira
+    disconnectBtn.addEventListener('click', () => {
+      this.disconnectWallet();
+    });
+
+    // Menu da carteira
+    menuBtn.addEventListener('click', () => {
+      menu.classList.toggle('open');
+    });
+
+    // Copiar endereço
+    copyBtn.addEventListener('click', () => {
+      this.copyAddress();
+    });
+
+    // Fecha menu da carteira ao clicar fora
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.wallet-section')) {
+        menu.classList.remove('open');
+      }
+    });
+  }
+
+  /**
+   * Conecta carteira MetaMask
+   */
+  async connectWallet() {
+    if (typeof window.ethereum === 'undefined') {
+      alert('MetaMask não encontrado. Por favor, instale a extensão.');
+      return;
+    }
+
+    try {
+      const accounts = await window.ethereum.request({
+        method: 'eth_requestAccounts'
+      });
+
+      if (accounts.length > 0) {
+        this.currentAddress = accounts[0];
+        this.isWalletConnected = true;
+        
+        await this.updateWalletDisplay();
+        await this.getWalletBalance();
+        
+        // Escuta mudanças de conta
+        window.ethereum.on('accountsChanged', (accounts) => {
+          if (accounts.length === 0) {
+            this.disconnectWallet();
+          } else {
+            this.currentAddress = accounts[0];
+            this.updateWalletDisplay();
+            this.getWalletBalance();
+          }
+        });
+
+        // Escuta mudanças de rede
+        window.ethereum.on('chainChanged', () => {
+          window.location.reload();
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao conectar carteira:', error);
+      alert('Erro ao conectar carteira. Tente novamente.');
+    }
+  }
+
+  /**
+   * Desconecta carteira
+   */
+  disconnectWallet() {
+    this.isWalletConnected = false;
+    this.currentAddress = null;
+    
+    const connectSection = document.getElementById('wallet-connect-btn');
+    const connectedSection = document.getElementById('wallet-connected');
+    
+    connectSection.style.display = 'flex';
+    connectedSection.style.display = 'none';
+  }
+
+  /**
+   * Atualiza display da carteira
+   */
+  async updateWalletDisplay() {
+    const connectSection = document.getElementById('wallet-connect-btn');
+    const connectedSection = document.getElementById('wallet-connected');
+    const addressElement = document.getElementById('wallet-address');
+    const menuAddressElement = document.getElementById('wallet-menu-address');
+    
+    const formattedAddress = this.formatAddress(this.currentAddress);
+    
+    addressElement.textContent = formattedAddress;
+    menuAddressElement.textContent = this.currentAddress;
+    
+    connectSection.style.display = 'none';
+    connectedSection.style.display = 'flex';
+  }
+
+  /**
+   * Obtém saldo da carteira
+   */
+  async getWalletBalance() {
+    try {
+      const balance = await window.ethereum.request({
+        method: 'eth_getBalance',
+        params: [this.currentAddress, 'latest']
+      });
+      
+      const ethBalance = parseInt(balance, 16) / Math.pow(10, 18);
+      const balanceElement = document.getElementById('wallet-balance');
+      balanceElement.textContent = `${ethBalance.toFixed(4)} ETH`;
+    } catch (error) {
+      console.error('Erro ao obter saldo:', error);
+    }
+  }
+
+  /**
+   * Formata endereço da carteira
+   */
+  formatAddress(address) {
+    return `${address.slice(0, 6)}...${address.slice(-4)}`;
+  }
+
+  /**
+   * Copia endereço para clipboard
+   */
+  async copyAddress() {
+    try {
+      await navigator.clipboard.writeText(this.currentAddress);
+      
+      const copyBtn = document.getElementById('copy-address');
+      const originalIcon = copyBtn.innerHTML;
+      
+      copyBtn.innerHTML = '<i class="bi bi-check"></i>';
+      setTimeout(() => {
+        copyBtn.innerHTML = originalIcon;
+      }, 2000);
+    } catch (error) {
+      console.error('Erro ao copiar endereço:', error);
+    }
+  }
+
+  /**
+   * Verifica conexão existente
+   */
+  async checkWalletConnection() {
+    if (typeof window.ethereum !== 'undefined') {
+      try {
+        const accounts = await window.ethereum.request({
+          method: 'eth_accounts'
+        });
+        
+        if (accounts.length > 0) {
+          this.currentAddress = accounts[0];
+          this.isWalletConnected = true;
+          await this.updateWalletDisplay();
+          await this.getWalletBalance();
+        }
+      } catch (error) {
+        console.error('Erro ao verificar conexão:', error);
+      }
+    }
+  }
+
+  /**
+   * Toggle de tema
+   */
+  initializeThemeToggle() {
+    const toggle = document.getElementById('theme-toggle');
+    const icon = toggle.querySelector('i');
+    
+    // Verifica tema salvo
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    this.setTheme(savedTheme);
+    
+    toggle.addEventListener('click', () => {
+      const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      
+      this.setTheme(newTheme);
+      localStorage.setItem('theme', newTheme);
+    });
+  }
+
+  /**
+   * Define tema
+   */
+  setTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    const toggle = document.getElementById('theme-toggle');
+    const icon = toggle.querySelector('i');
+    
+    if (theme === 'light') {
+      icon.className = 'bi bi-sun';
+    } else {
+      icon.className = 'bi bi-moon-stars';
+    }
+  }
+
+  /**
+   * Navegação ativa
+   */
+  initializeNavigation() {
+    const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+    const navLinks = document.querySelectorAll('.nav-link');
+    
+    navLinks.forEach(link => {
+      const href = link.getAttribute('href');
+      if (href === currentPage) {
+        link.classList.add('active');
+      } else {
+        link.classList.remove('active');
+      }
+    });
+  }
+
+  /**
+   * Atualiza status da rede
+   */
+  updateNetworkStatus(networkName, isConnected = true) {
+    const networkNameElement = document.querySelector('.network-name');
+    const networkDot = document.querySelector('.network-dot');
+    
+    networkNameElement.textContent = networkName;
+    networkDot.style.background = isConnected ? '#10b981' : '#ef4444';
+  }
+
+  /**
+   * Obtém informações do header
+   */
+  getHeaderInfo() {
+    return {
+      isWalletConnected: this.isWalletConnected,
+      currentAddress: this.currentAddress,
+      currentNetwork: this.currentNetwork
+    };
+  }
+}
+
+// Inicializa o header quando o DOM estiver pronto
+document.addEventListener('DOMContentLoaded', () => {
+  window.headerSystem = new HeaderSystem();
+});
+
+// Exporta para uso global
+window.HeaderSystem = HeaderSystem;
+</script>

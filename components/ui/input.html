@@ -1,0 +1,911 @@
+<!--
+==========================================================================
+COMPONENTE UI: INPUT
+Sistema de inputs modernos para SCCAFE
+==========================================================================
+-->
+
+<!--
+TIPOS DE INPUTS DISPONÍVEIS:
+- input-text: Campo de texto padrão
+- input-email: Campo de email
+- input-password: Campo de senha
+- input-number: Campo numérico
+- input-search: Campo de busca
+- input-textarea: Área de texto
+
+VARIAÇÕES:
+- input-floating: Label flutuante
+- input-icon: Com ícone
+- input-group: Grupo de inputs
+- input-addon: Com addon/prefixo
+
+ESTADOS:
+- error: Estado de erro
+- success: Estado de sucesso
+- disabled: Desabilitado
+- loading: Carregando
+-->
+
+<!-- INPUT PADRÃO -->
+<template id="input-text-template">
+  <div class="input-group">
+    <label class="input-label" for="input-text">Label do Campo</label>
+    <input 
+      type="text" 
+      id="input-text"
+      class="input input-text"
+      placeholder="Digite aqui..."
+    >
+    <span class="input-helper">Texto de ajuda opcional</span>
+  </div>
+</template>
+
+<!-- INPUT COM FLOATING LABEL -->
+<template id="input-floating-template">
+  <div class="input-group input-floating">
+    <input 
+      type="text" 
+      id="input-floating"
+      class="input"
+      placeholder=" "
+      required
+    >
+    <label class="input-label" for="input-floating">Nome Completo</label>
+  </div>
+</template>
+
+<!-- INPUT COM ÍCONE -->
+<template id="input-icon-template">
+  <div class="input-group">
+    <label class="input-label" for="input-email">Email</label>
+    <div class="input-wrapper">
+      <i class="input-icon bi bi-envelope"></i>
+      <input 
+        type="email" 
+        id="input-email"
+        class="input input-with-icon"
+        placeholder="seu@email.com"
+      >
+    </div>
+  </div>
+</template>
+
+<!-- INPUT DE SENHA -->
+<template id="input-password-template">
+  <div class="input-group">
+    <label class="input-label" for="input-password">Senha</label>
+    <div class="input-wrapper">
+      <input 
+        type="password" 
+        id="input-password"
+        class="input input-with-icon"
+        placeholder="Digite sua senha"
+      >
+      <button type="button" class="input-action" data-toggle-password>
+        <i class="bi bi-eye"></i>
+      </button>
+    </div>
+  </div>
+</template>
+
+<!-- INPUT DE BUSCA -->
+<template id="input-search-template">
+  <div class="input-group">
+    <div class="input-wrapper input-search">
+      <i class="input-icon bi bi-search"></i>
+      <input 
+        type="search" 
+        class="input input-with-icon"
+        placeholder="Buscar tokens, contratos..."
+      >
+      <button type="button" class="input-action input-clear" style="display: none;">
+        <i class="bi bi-x"></i>
+      </button>
+    </div>
+  </div>
+</template>
+
+<!-- INPUT NUMÉRICO (Para valores de token) -->
+<template id="input-number-template">
+  <div class="input-group">
+    <label class="input-label" for="input-amount">Quantidade</label>
+    <div class="input-wrapper">
+      <input 
+        type="number" 
+        id="input-amount"
+        class="input input-number"
+        placeholder="0.00"
+        step="0.01"
+        min="0"
+      >
+      <span class="input-addon">SCCAFE</span>
+    </div>
+  </div>
+</template>
+
+<!-- TEXTAREA -->
+<template id="input-textarea-template">
+  <div class="input-group">
+    <label class="input-label" for="input-description">Descrição</label>
+    <textarea 
+      id="input-description"
+      class="input input-textarea"
+      placeholder="Digite a descrição..."
+      rows="4"
+    ></textarea>
+    <div class="input-counter">
+      <span class="counter-current">0</span>/<span class="counter-max">500</span>
+    </div>
+  </div>
+</template>
+
+<!-- SELECT CUSTOMIZADO -->
+<template id="input-select-template">
+  <div class="input-group">
+    <label class="input-label" for="input-network">Rede Blockchain</label>
+    <div class="select-wrapper">
+      <select id="input-network" class="input input-select">
+        <option value="">Selecione uma rede</option>
+        <option value="ethereum">Ethereum Mainnet</option>
+        <option value="polygon">Polygon</option>
+        <option value="bsc">Binance Smart Chain</option>
+        <option value="avalanche">Avalanche</option>
+      </select>
+      <i class="select-icon bi bi-chevron-down"></i>
+    </div>
+  </div>
+</template>
+
+<!-- INPUT GROUP (Múltiplos campos) -->
+<template id="input-group-template">
+  <div class="input-group">
+    <label class="input-label">Informações do Token</label>
+    <div class="input-row">
+      <div class="input-col">
+        <input 
+          type="text" 
+          class="input"
+          placeholder="Nome do Token"
+        >
+      </div>
+      <div class="input-col">
+        <input 
+          type="text" 
+          class="input"
+          placeholder="Símbolo"
+          maxlength="10"
+        >
+      </div>
+    </div>
+  </div>
+</template>
+
+<!-- INPUT COM VALIDAÇÃO -->
+<template id="input-validation-template">
+  <div class="input-group">
+    <label class="input-label" for="input-contract">Endereço do Contrato</label>
+    <div class="input-wrapper">
+      <input 
+        type="text" 
+        id="input-contract"
+        class="input"
+        placeholder="0x..."
+        pattern="^0x[a-fA-F0-9]{40}$"
+        data-validate="ethereum-address"
+      >
+      <div class="input-validation">
+        <i class="validation-icon"></i>
+      </div>
+    </div>
+    <span class="input-error">Endereço inválido</span>
+  </div>
+</template>
+
+<!--
+==========================================================================
+ESTILOS DOS INPUTS
+==========================================================================
+-->
+<style>
+/* Input Group */
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+/* Labels */
+.input-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  margin-bottom: 0.25rem;
+}
+
+/* Input wrapper */
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+/* Base input styles */
+.input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-primary);
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.input:focus {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+  background: var(--color-bg-primary);
+}
+
+.input::placeholder {
+  color: var(--color-text-tertiary);
+}
+
+/* Input com ícone */
+.input-with-icon {
+  padding-left: 2.5rem;
+}
+
+.input-icon {
+  position: absolute;
+  left: 0.75rem;
+  color: var(--color-text-secondary);
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Input actions (botões dentro do input) */
+.input-action {
+  position: absolute;
+  right: 0.75rem;
+  background: none;
+  border: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: var(--radius-sm);
+  transition: all 0.2s ease;
+}
+
+.input-action:hover {
+  color: var(--color-text-primary);
+  background: var(--color-bg-tertiary);
+}
+
+/* Input addon */
+.input-addon {
+  position: absolute;
+  right: 0.75rem;
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  pointer-events: none;
+}
+
+/* Floating label */
+.input-floating {
+  position: relative;
+}
+
+.input-floating .input {
+  padding-top: 1.5rem;
+  padding-bottom: 0.5rem;
+}
+
+.input-floating .input-label {
+  position: absolute;
+  left: 1rem;
+  top: 0.75rem;
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  transition: all 0.2s ease;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.input-floating .input:focus + .input-label,
+.input-floating .input:not(:placeholder-shown) + .input-label {
+  top: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--color-accent);
+}
+
+/* Textarea */
+.input-textarea {
+  resize: vertical;
+  min-height: 100px;
+  line-height: 1.5;
+}
+
+/* Select customizado */
+.select-wrapper {
+  position: relative;
+}
+
+.input-select {
+  appearance: none;
+  padding-right: 2.5rem;
+  cursor: pointer;
+}
+
+.select-icon {
+  position: absolute;
+  right: 0.75rem;
+  color: var(--color-text-secondary);
+  pointer-events: none;
+  transition: transform 0.2s ease;
+}
+
+.input-select:focus + .select-icon {
+  transform: rotate(180deg);
+}
+
+/* Input row/columns */
+.input-row {
+  display: flex;
+  gap: 1rem;
+}
+
+.input-col {
+  flex: 1;
+}
+
+/* Estados */
+.input-group.error .input {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.input-group.success .input {
+  border-color: #10b981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+.input:disabled {
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-tertiary);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Helper text */
+.input-helper {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+}
+
+/* Error text */
+.input-error {
+  font-size: 0.75rem;
+  color: #ef4444;
+  display: none;
+}
+
+.input-group.error .input-error {
+  display: block;
+}
+
+/* Success text */
+.input-success {
+  font-size: 0.75rem;
+  color: #10b981;
+  display: none;
+}
+
+.input-group.success .input-success {
+  display: block;
+}
+
+/* Validação em tempo real */
+.input-validation {
+  position: absolute;
+  right: 0.75rem;
+  display: flex;
+  align-items: center;
+}
+
+.validation-icon {
+  font-size: 1rem;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.input-group.validating .validation-icon {
+  opacity: 1;
+  color: var(--color-accent);
+}
+
+.input-group.error .validation-icon {
+  opacity: 1;
+  color: #ef4444;
+}
+
+.input-group.success .validation-icon {
+  opacity: 1;
+  color: #10b981;
+}
+
+/* Counter para textarea */
+.input-counter {
+  align-self: flex-end;
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+}
+
+.counter-current {
+  color: var(--color-text-primary);
+}
+
+/* Loading state */
+.input-group.loading .input {
+  background-image: linear-gradient(90deg, transparent, rgba(245, 158, 11, 0.1), transparent);
+  background-size: 200px 100%;
+  background-repeat: no-repeat;
+  animation: input-loading 1.5s infinite;
+}
+
+@keyframes input-loading {
+  0% { background-position: -200px 0; }
+  100% { background-position: 200px 0; }
+}
+
+/* Search input específico */
+.input-search .input {
+  padding-right: 5rem;
+}
+
+.input-search .input-clear {
+  right: 2.5rem;
+}
+
+/* Número input específico */
+.input-number {
+  padding-right: 4rem;
+}
+
+/* Media queries para responsividade */
+@media (max-width: 768px) {
+  .input-row {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .input {
+    font-size: 16px; /* Previne zoom no iOS */
+  }
+}
+</style>
+
+<!--
+==========================================================================
+JAVASCRIPT DOS INPUTS
+==========================================================================
+-->
+<script>
+/**
+ * Sistema de Inputs SCCAFE
+ * Gerencia validação, formatação e comportamento de campos
+ */
+class InputSystem {
+  constructor() {
+    this.validators = {
+      'ethereum-address': this.validateEthereumAddress,
+      'email': this.validateEmail,
+      'required': this.validateRequired,
+      'min-length': this.validateMinLength,
+      'max-length': this.validateMaxLength,
+      'number': this.validateNumber,
+      'decimal': this.validateDecimal
+    };
+    
+    this.initializeInputs();
+  }
+
+  /**
+   * Inicializa todos os inputs da página
+   */
+  initializeInputs() {
+    // Toggle de senha
+    this.initializePasswordToggles();
+    
+    // Validação em tempo real
+    this.initializeValidation();
+    
+    // Contadores de caracteres
+    this.initializeCounters();
+    
+    // Campos de busca
+    this.initializeSearchInputs();
+    
+    // Formatação automática
+    this.initializeFormatters();
+    
+    // Auto-resize para textareas
+    this.initializeAutoResize();
+  }
+
+  /**
+   * Inicializa toggles de senha
+   */
+  initializePasswordToggles() {
+    const toggles = document.querySelectorAll('[data-toggle-password]');
+    toggles.forEach(toggle => {
+      toggle.addEventListener('click', () => {
+        const input = toggle.parentElement.querySelector('input');
+        const icon = toggle.querySelector('i');
+        
+        if (input.type === 'password') {
+          input.type = 'text';
+          icon.className = 'bi bi-eye-slash';
+        } else {
+          input.type = 'password';
+          icon.className = 'bi bi-eye';
+        }
+      });
+    });
+  }
+
+  /**
+   * Inicializa validação em tempo real
+   */
+  initializeValidation() {
+    const inputs = document.querySelectorAll('.input[data-validate]');
+    inputs.forEach(input => {
+      input.addEventListener('input', () => this.validateInput(input));
+      input.addEventListener('blur', () => this.validateInput(input));
+    });
+  }
+
+  /**
+   * Valida um input específico
+   */
+  validateInput(input) {
+    const group = input.closest('.input-group');
+    const validator = input.dataset.validate;
+    const value = input.value.trim();
+    
+    // Remove estados anteriores
+    group.classList.remove('error', 'success', 'validating');
+    
+    if (!value) {
+      this.updateValidationIcon(group, '');
+      return;
+    }
+    
+    // Mostra estado de validação
+    group.classList.add('validating');
+    this.updateValidationIcon(group, 'bi bi-arrow-clockwise');
+    
+    // Simula delay de validação
+    setTimeout(() => {
+      const isValid = this.runValidator(validator, value, input);
+      
+      group.classList.remove('validating');
+      
+      if (isValid) {
+        group.classList.add('success');
+        this.updateValidationIcon(group, 'bi bi-check-circle');
+      } else {
+        group.classList.add('error');
+        this.updateValidationIcon(group, 'bi bi-x-circle');
+      }
+    }, 500);
+  }
+
+  /**
+   * Executa um validador específico
+   */
+  runValidator(validator, value, input) {
+    if (this.validators[validator]) {
+      return this.validators[validator](value, input);
+    }
+    return true;
+  }
+
+  /**
+   * Atualiza ícone de validação
+   */
+  updateValidationIcon(group, iconClass) {
+    const icon = group.querySelector('.validation-icon');
+    if (icon) {
+      icon.className = `validation-icon ${iconClass}`;
+    }
+  }
+
+  /**
+   * Validadores específicos
+   */
+  validateEthereumAddress(address) {
+    return /^0x[a-fA-F0-9]{40}$/.test(address);
+  }
+
+  validateEmail(email) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  }
+
+  validateRequired(value) {
+    return value.length > 0;
+  }
+
+  validateMinLength(value, input) {
+    const minLength = parseInt(input.dataset.minLength) || 0;
+    return value.length >= minLength;
+  }
+
+  validateMaxLength(value, input) {
+    const maxLength = parseInt(input.dataset.maxLength) || Infinity;
+    return value.length <= maxLength;
+  }
+
+  validateNumber(value) {
+    return !isNaN(value) && !isNaN(parseFloat(value));
+  }
+
+  validateDecimal(value) {
+    return /^\d+(\.\d+)?$/.test(value);
+  }
+
+  /**
+   * Inicializa contadores de caracteres
+   */
+  initializeCounters() {
+    const textareas = document.querySelectorAll('.input-textarea');
+    textareas.forEach(textarea => {
+      const counter = textarea.parentElement.querySelector('.input-counter');
+      if (counter) {
+        const current = counter.querySelector('.counter-current');
+        const max = parseInt(counter.querySelector('.counter-max').textContent);
+        
+        textarea.addEventListener('input', () => {
+          const length = textarea.value.length;
+          current.textContent = length;
+          
+          if (length > max * 0.9) {
+            counter.style.color = '#ef4444';
+          } else if (length > max * 0.7) {
+            counter.style.color = '#f59e0b';
+          } else {
+            counter.style.color = '';
+          }
+          
+          if (length > max) {
+            textarea.value = textarea.value.substring(0, max);
+            current.textContent = max;
+          }
+        });
+      }
+    });
+  }
+
+  /**
+   * Inicializa campos de busca
+   */
+  initializeSearchInputs() {
+    const searchInputs = document.querySelectorAll('.input-search input');
+    searchInputs.forEach(input => {
+      const clearBtn = input.parentElement.querySelector('.input-clear');
+      
+      input.addEventListener('input', () => {
+        if (clearBtn) {
+          clearBtn.style.display = input.value ? 'block' : 'none';
+        }
+      });
+      
+      if (clearBtn) {
+        clearBtn.addEventListener('click', () => {
+          input.value = '';
+          clearBtn.style.display = 'none';
+          input.focus();
+        });
+      }
+    });
+  }
+
+  /**
+   * Inicializa formatadores automáticos
+   */
+  initializeFormatters() {
+    // Formatação de números decimais
+    const numberInputs = document.querySelectorAll('.input-number');
+    numberInputs.forEach(input => {
+      input.addEventListener('input', (e) => {
+        let value = e.target.value;
+        
+        // Remove caracteres não numéricos exceto ponto
+        value = value.replace(/[^0-9.]/g, '');
+        
+        // Permite apenas um ponto decimal
+        const parts = value.split('.');
+        if (parts.length > 2) {
+          value = parts[0] + '.' + parts.slice(1).join('');
+        }
+        
+        e.target.value = value;
+      });
+    });
+
+    // Formatação de endereços Ethereum
+    const addressInputs = document.querySelectorAll('[data-validate="ethereum-address"]');
+    addressInputs.forEach(input => {
+      input.addEventListener('input', (e) => {
+        let value = e.target.value;
+        
+        // Força 0x no início
+        if (value && !value.startsWith('0x')) {
+          value = '0x' + value.replace(/[^a-fA-F0-9]/g, '');
+        } else {
+          value = value.replace(/[^0x]/g, '').replace(/0x(.*)/, '0x$1');
+        }
+        
+        // Limita a 42 caracteres
+        if (value.length > 42) {
+          value = value.substring(0, 42);
+        }
+        
+        e.target.value = value;
+      });
+    });
+  }
+
+  /**
+   * Inicializa auto-resize para textareas
+   */
+  initializeAutoResize() {
+    const textareas = document.querySelectorAll('.input-textarea');
+    textareas.forEach(textarea => {
+      textarea.addEventListener('input', () => {
+        textarea.style.height = 'auto';
+        textarea.style.height = textarea.scrollHeight + 'px';
+      });
+    });
+  }
+
+  /**
+   * Cria um input dinamicamente
+   */
+  createInput(options = {}) {
+    const {
+      type = 'text',
+      label = '',
+      placeholder = '',
+      value = '',
+      required = false,
+      validator = null,
+      icon = null,
+      helper = '',
+      className = ''
+    } = options;
+
+    const group = document.createElement('div');
+    group.className = `input-group ${className}`;
+
+    let html = '';
+    
+    if (label) {
+      html += `<label class="input-label">${label}</label>`;
+    }
+
+    if (icon) {
+      html += '<div class="input-wrapper">';
+      html += `<i class="input-icon ${icon}"></i>`;
+    }
+
+    html += `<input type="${type}" class="input ${icon ? 'input-with-icon' : ''}" 
+             placeholder="${placeholder}" value="${value}"`;
+    
+    if (required) html += ' required';
+    if (validator) html += ` data-validate="${validator}"`;
+    
+    html += '>';
+
+    if (validator) {
+      html += '<div class="input-validation"><i class="validation-icon"></i></div>';
+    }
+
+    if (icon) {
+      html += '</div>';
+    }
+
+    if (helper) {
+      html += `<span class="input-helper">${helper}</span>`;
+    }
+
+    html += '<span class="input-error">Campo inválido</span>';
+
+    group.innerHTML = html;
+    return group;
+  }
+
+  /**
+   * Define estado de loading em um input
+   */
+  setInputLoading(input, loading = true) {
+    const group = input.closest('.input-group');
+    
+    if (loading) {
+      group.classList.add('loading');
+      input.disabled = true;
+    } else {
+      group.classList.remove('loading');
+      input.disabled = false;
+    }
+  }
+
+  /**
+   * Define erro em um input
+   */
+  setInputError(input, message = 'Campo inválido') {
+    const group = input.closest('.input-group');
+    const errorElement = group.querySelector('.input-error');
+    
+    group.classList.add('error');
+    if (errorElement) {
+      errorElement.textContent = message;
+    }
+  }
+
+  /**
+   * Remove erro de um input
+   */
+  clearInputError(input) {
+    const group = input.closest('.input-group');
+    group.classList.remove('error');
+  }
+
+  /**
+   * Obtém todos os valores de um formulário
+   */
+  getFormData(form) {
+    const data = {};
+    const inputs = form.querySelectorAll('.input');
+    
+    inputs.forEach(input => {
+      if (input.name || input.id) {
+        const key = input.name || input.id;
+        data[key] = input.value;
+      }
+    });
+    
+    return data;
+  }
+
+  /**
+   * Valida um formulário completo
+   */
+  validateForm(form) {
+    const inputs = form.querySelectorAll('.input[data-validate]');
+    let isValid = true;
+    
+    inputs.forEach(input => {
+      this.validateInput(input);
+      const group = input.closest('.input-group');
+      if (group.classList.contains('error')) {
+        isValid = false;
+      }
+    });
+    
+    return isValid;
+  }
+}
+
+// Inicializa o sistema de inputs quando o DOM estiver pronto
+document.addEventListener('DOMContentLoaded', () => {
+  window.inputSystem = new InputSystem();
+});
+
+// Exporta para uso global
+window.InputSystem = InputSystem;
+</script>

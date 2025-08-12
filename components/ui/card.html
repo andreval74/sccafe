@@ -1,0 +1,735 @@
+<!--
+==========================================================================
+COMPONENTE UI: CARD
+Sistema de cartões modernos para SCCAFE
+==========================================================================
+-->
+
+<!--
+TIPOS DE CARDS DISPONÍVEIS:
+- card-default: Card padrão
+- card-elevated: Card com mais elevação
+- card-glass: Card com efeito glass
+- card-gradient: Card com gradiente
+- card-feature: Card para recursos destacados
+
+TAMANHOS:
+- card-sm: Pequeno
+- card-md: Médio (padrão)
+- card-lg: Grande
+- card-xl: Extra grande
+
+ESTADOS:
+- card-hover: Animação no hover
+- card-interactive: Card clicável
+- card-selected: Card selecionado
+-->
+
+<!-- CARD PADRÃO -->
+<template id="card-default-template">
+  <div class="card card-default">
+    <div class="card-header">
+      <h3 class="card-title">Título do Card</h3>
+      <p class="card-subtitle">Subtítulo opcional</p>
+    </div>
+    <div class="card-body">
+      <p class="card-text">Conteúdo do cartão aqui...</p>
+    </div>
+    <div class="card-footer">
+      <div class="card-actions">
+        <button class="btn btn-primary">Ação</button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<!-- CARD GLASS (Efeito Vidro) -->
+<template id="card-glass-template">
+  <div class="card card-glass">
+    <div class="card-header">
+      <div class="card-icon">
+        <i class="bi bi-shield-check"></i>
+      </div>
+      <h3 class="card-title">Card Glass</h3>
+    </div>
+    <div class="card-body">
+      <p class="card-text">Card com efeito glass morphism</p>
+    </div>
+  </div>
+</template>
+
+<!-- CARD FEATURE (Destaque) -->
+<template id="card-feature-template">
+  <div class="card card-feature card-hover">
+    <div class="card-badge">Destaque</div>
+    <div class="card-header">
+      <div class="card-icon card-icon-lg">
+        <i class="bi bi-star-fill"></i>
+      </div>
+      <h3 class="card-title">Recurso Principal</h3>
+      <p class="card-subtitle">Descrição do recurso</p>
+    </div>
+    <div class="card-body">
+      <ul class="card-features">
+        <li><i class="bi bi-check-circle"></i> Característica 1</li>
+        <li><i class="bi bi-check-circle"></i> Característica 2</li>
+        <li><i class="bi bi-check-circle"></i> Característica 3</li>
+      </ul>
+    </div>
+    <div class="card-footer">
+      <button class="btn btn-primary btn-lg w-full">Escolher Plano</button>
+    </div>
+  </div>
+</template>
+
+<!-- CARD STATUS (Para exibir informações de status) -->
+<template id="card-status-template">
+  <div class="card card-status">
+    <div class="card-header">
+      <div class="status-indicator status-success"></div>
+      <h4 class="card-title">Status do Sistema</h4>
+    </div>
+    <div class="card-body">
+      <div class="status-info">
+        <span class="status-label">Último Update:</span>
+        <span class="status-value">Agora mesmo</span>
+      </div>
+    </div>
+  </div>
+</template>
+
+<!-- CARD TOKEN (Para informações de tokens) -->
+<template id="card-token-template">
+  <div class="card card-token card-interactive">
+    <div class="card-header">
+      <div class="token-info">
+        <div class="token-icon">
+          <img src="imgs/moeda-cafe-tec.png" alt="Token" class="token-image">
+        </div>
+        <div class="token-details">
+          <h4 class="token-name">SCCAFE Token</h4>
+          <p class="token-symbol">SCCAFE</p>
+        </div>
+      </div>
+      <div class="token-price">
+        <span class="price-value">$0.00</span>
+        <span class="price-change price-up">+2.5%</span>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="token-stats">
+        <div class="stat-item">
+          <span class="stat-label">Supply Total</span>
+          <span class="stat-value">1,000,000</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Holders</span>
+          <span class="stat-value">-</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<!-- CARD WALLET (Para conexão de carteira) -->
+<template id="card-wallet-template">
+  <div class="card card-wallet">
+    <div class="card-header text-center">
+      <div class="wallet-icon">
+        <i class="bi bi-wallet2"></i>
+      </div>
+      <h3 class="card-title">Conectar Carteira</h3>
+      <p class="card-subtitle">Conecte sua carteira para continuar</p>
+    </div>
+    <div class="card-body">
+      <div class="wallet-options">
+        <button class="wallet-option" data-wallet="metamask">
+          <img src="imgs/metamask-fox.svg" alt="MetaMask" class="wallet-logo">
+          <span class="wallet-name">MetaMask</span>
+          <i class="bi bi-arrow-right"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<!--
+==========================================================================
+ESTILOS ESPECÍFICOS DOS CARDS
+==========================================================================
+-->
+<style>
+/* Cards específicos */
+
+/* Card Glass */
+.card-glass {
+  background: rgba(17, 24, 39, 0.7);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+/* Card Feature */
+.card-feature {
+  position: relative;
+  background: linear-gradient(135deg, rgba(17, 24, 39, 0.9), rgba(31, 41, 55, 0.9));
+  border: 1px solid var(--color-accent-alpha);
+}
+
+.card-badge {
+  position: absolute;
+  top: -0.5rem;
+  right: 1rem;
+  background: var(--color-accent);
+  color: var(--color-bg-primary);
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.card-features {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.card-features li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+  color: var(--color-text-secondary);
+}
+
+.card-features li i {
+  color: var(--color-accent);
+}
+
+/* Card Status */
+.card-status .card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.status-indicator {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.status-success {
+  background: #10b981;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+}
+
+.status-warning {
+  background: #f59e0b;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+}
+
+.status-error {
+  background: #ef4444;
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+}
+
+.status-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+}
+
+.status-label {
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+}
+
+.status-value {
+  color: var(--color-text-primary);
+  font-weight: 500;
+}
+
+/* Card Token */
+.card-token .card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.token-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.token-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.token-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.token-name {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--color-text-primary);
+}
+
+.token-symbol {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.token-price {
+  text-align: right;
+}
+
+.price-value {
+  display: block;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.price-change {
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.price-up {
+  color: #10b981;
+}
+
+.price-down {
+  color: #ef4444;
+}
+
+.token-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.stat-value {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-top: 0.25rem;
+}
+
+/* Card Wallet */
+.card-wallet .card-header {
+  text-align: center;
+}
+
+.wallet-icon {
+  width: 3rem;
+  height: 3rem;
+  background: var(--color-accent-alpha);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1rem;
+}
+
+.wallet-icon i {
+  font-size: 1.5rem;
+  color: var(--color-accent);
+}
+
+.wallet-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.wallet-option {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+.wallet-option:hover {
+  background: var(--color-bg-secondary);
+  border-color: var(--color-accent-alpha);
+  transform: translateY(-1px);
+}
+
+.wallet-logo {
+  width: 1.5rem;
+  height: 1.5rem;
+  flex-shrink: 0;
+}
+
+.wallet-name {
+  flex: 1;
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+.wallet-option i {
+  color: var(--color-text-secondary);
+}
+
+/* Card interativo */
+.card-interactive {
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.card-interactive:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-xl);
+  border-color: var(--color-accent-alpha);
+}
+
+/* Card selecionado */
+.card-selected {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.3);
+}
+
+/* Tamanhos dos cards */
+.card-sm {
+  padding: 1rem;
+}
+
+.card-lg {
+  padding: 2rem;
+}
+
+.card-xl {
+  padding: 2.5rem;
+}
+
+/* Ícones dos cards */
+.card-icon {
+  width: 2rem;
+  height: 2rem;
+  background: var(--color-accent-alpha);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-accent);
+  flex-shrink: 0;
+}
+
+.card-icon-lg {
+  width: 3rem;
+  height: 3rem;
+  font-size: 1.5rem;
+}
+
+/* Utility classes para cards */
+.w-full {
+  width: 100%;
+}
+
+.text-center {
+  text-align: center;
+}
+</style>
+
+<!--
+==========================================================================
+JAVASCRIPT DOS CARDS
+==========================================================================
+-->
+<script>
+/**
+ * Sistema de Cards SCCAFE
+ * Gerencia criação e comportamento de cartões
+ */
+class CardSystem {
+  constructor() {
+    this.initializeCards();
+  }
+
+  /**
+   * Inicializa todos os cards da página
+   */
+  initializeCards() {
+    // Adiciona listeners para cards interativos
+    document.addEventListener('click', this.handleCardClick.bind(this));
+    
+    // Adiciona animações de hover
+    this.addHoverEffects();
+    
+    // Inicializa cards especiais
+    this.initializeWalletCards();
+    this.initializeTokenCards();
+  }
+
+  /**
+   * Gerencia cliques em cards
+   */
+  handleCardClick(event) {
+    const card = event.target.closest('.card-interactive');
+    if (!card) return;
+
+    // Toggle seleção
+    this.toggleCardSelection(card);
+  }
+
+  /**
+   * Alterna seleção de card
+   */
+  toggleCardSelection(card) {
+    // Remove seleção de outros cards do mesmo grupo
+    const group = card.dataset.group;
+    if (group) {
+      const groupCards = document.querySelectorAll(`[data-group="${group}"]`);
+      groupCards.forEach(c => c.classList.remove('card-selected'));
+    }
+
+    // Adiciona seleção ao card atual
+    card.classList.toggle('card-selected');
+  }
+
+  /**
+   * Adiciona efeitos de hover
+   */
+  addHoverEffects() {
+    const hoverCards = document.querySelectorAll('.card-hover');
+    hoverCards.forEach(card => {
+      card.addEventListener('mouseenter', () => {
+        card.style.transform = 'translateY(-4px) scale(1.02)';
+      });
+      
+      card.addEventListener('mouseleave', () => {
+        card.style.transform = '';
+      });
+    });
+  }
+
+  /**
+   * Inicializa cards de carteira
+   */
+  initializeWalletCards() {
+    const walletOptions = document.querySelectorAll('.wallet-option');
+    walletOptions.forEach(option => {
+      option.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const walletType = option.dataset.wallet;
+        this.connectWallet(walletType);
+      });
+    });
+  }
+
+  /**
+   * Conecta carteira
+   */
+  async connectWallet(walletType) {
+    if (walletType === 'metamask') {
+      if (typeof window.ethereum !== 'undefined') {
+        try {
+          const accounts = await window.ethereum.request({ 
+            method: 'eth_requestAccounts' 
+          });
+          
+          this.updateWalletStatus(accounts[0]);
+        } catch (error) {
+          console.error('Erro ao conectar MetaMask:', error);
+        }
+      } else {
+        alert('MetaMask não encontrado. Por favor, instale a extensão.');
+      }
+    }
+  }
+
+  /**
+   * Atualiza status da carteira
+   */
+  updateWalletStatus(address) {
+    const walletCards = document.querySelectorAll('.card-wallet');
+    walletCards.forEach(card => {
+      card.innerHTML = `
+        <div class="card-header text-center">
+          <div class="wallet-icon">
+            <i class="bi bi-check-circle"></i>
+          </div>
+          <h3 class="card-title">Carteira Conectada</h3>
+          <p class="card-subtitle">${this.formatAddress(address)}</p>
+        </div>
+        <div class="card-body">
+          <button class="btn btn-outline w-full" onclick="cardSystem.disconnectWallet()">
+            Desconectar
+          </button>
+        </div>
+      `;
+    });
+  }
+
+  /**
+   * Desconecta carteira
+   */
+  disconnectWallet() {
+    // Recarrega a página para resetar o estado
+    location.reload();
+  }
+
+  /**
+   * Formata endereço da carteira
+   */
+  formatAddress(address) {
+    return `${address.slice(0, 6)}...${address.slice(-4)}`;
+  }
+
+  /**
+   * Inicializa cards de token
+   */
+  initializeTokenCards() {
+    const tokenCards = document.querySelectorAll('.card-token');
+    tokenCards.forEach(card => {
+      // Adiciona funcionalidade específica para tokens
+      this.updateTokenPrice(card);
+    });
+  }
+
+  /**
+   * Atualiza preço do token
+   */
+  updateTokenPrice(card) {
+    // Simula atualização de preço
+    const priceElement = card.querySelector('.price-value');
+    const changeElement = card.querySelector('.price-change');
+    
+    if (priceElement && changeElement) {
+      // Aqui você integraria com uma API real de preços
+      setInterval(() => {
+        const mockPrice = (Math.random() * 0.1).toFixed(4);
+        const mockChange = (Math.random() * 10 - 5).toFixed(1);
+        
+        priceElement.textContent = `$${mockPrice}`;
+        changeElement.textContent = `${mockChange > 0 ? '+' : ''}${mockChange}%`;
+        changeElement.className = `price-change ${mockChange > 0 ? 'price-up' : 'price-down'}`;
+      }, 5000);
+    }
+  }
+
+  /**
+   * Cria um card dinamicamente
+   */
+  createCard(options = {}) {
+    const {
+      type = 'default',
+      title = 'Card Title',
+      subtitle = '',
+      content = '',
+      actions = [],
+      className = '',
+      icon = null
+    } = options;
+
+    const card = document.createElement('div');
+    card.className = `card card-${type} ${className}`;
+
+    let cardHTML = '';
+    
+    // Header
+    if (title || subtitle || icon) {
+      cardHTML += '<div class="card-header">';
+      if (icon) {
+        cardHTML += `<div class="card-icon"><i class="${icon}"></i></div>`;
+      }
+      if (title) {
+        cardHTML += `<h3 class="card-title">${title}</h3>`;
+      }
+      if (subtitle) {
+        cardHTML += `<p class="card-subtitle">${subtitle}</p>`;
+      }
+      cardHTML += '</div>';
+    }
+
+    // Body
+    if (content) {
+      cardHTML += `<div class="card-body">${content}</div>`;
+    }
+
+    // Footer com ações
+    if (actions.length > 0) {
+      cardHTML += '<div class="card-footer"><div class="card-actions">';
+      actions.forEach(action => {
+        cardHTML += `<button class="btn btn-${action.type || 'primary'}" onclick="${action.onClick}">${action.text}</button>`;
+      });
+      cardHTML += '</div></div>';
+    }
+
+    card.innerHTML = cardHTML;
+    return card;
+  }
+
+  /**
+   * Atualiza status de um card
+   */
+  updateCardStatus(card, status) {
+    const indicator = card.querySelector('.status-indicator');
+    if (indicator) {
+      indicator.className = `status-indicator status-${status}`;
+    }
+  }
+
+  /**
+   * Mostra loading em um card
+   */
+  setCardLoading(card, loading = true) {
+    if (loading) {
+      const originalContent = card.innerHTML;
+      card.dataset.originalContent = originalContent;
+      
+      card.innerHTML = `
+        <div class="card-body text-center">
+          <div class="spinner"></div>
+          <p class="card-text">Carregando...</p>
+        </div>
+      `;
+    } else {
+      if (card.dataset.originalContent) {
+        card.innerHTML = card.dataset.originalContent;
+        delete card.dataset.originalContent;
+      }
+    }
+  }
+}
+
+// Inicializa o sistema de cards quando o DOM estiver pronto
+document.addEventListener('DOMContentLoaded', () => {
+  window.cardSystem = new CardSystem();
+});
+
+// Exporta para uso global
+window.CardSystem = CardSystem;
+</script>

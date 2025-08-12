@@ -1,0 +1,364 @@
+<!--
+==========================================================================
+COMPONENTE UI: BUTTON
+Sistema de botões modernos para SCCAFE
+==========================================================================
+-->
+
+<!--
+TIPOS DE BOTÕES DISPONÍVEIS:
+- btn-primary: Botão principal com gradiente dourado
+- btn-secondary: Botão secundário com fundo escuro
+- btn-outline: Botão com borda dourada
+- btn-danger: Botão de perigo/erro
+- btn-success: Botão de sucesso
+- btn-ghost: Botão transparente
+
+TAMANHOS:
+- btn-sm: Pequeno
+- btn-md: Médio (padrão)
+- btn-lg: Grande
+- btn-xl: Extra grande
+
+ESTADOS:
+- disabled: Botão desabilitado
+- loading: Botão com spinner de carregamento
+-->
+
+<!-- BOTÃO PRIMARY (Principal) -->
+<template id="btn-primary-template">
+  <button class="btn btn-primary" type="button">
+    <span class="btn-text">Texto do Botão</span>
+  </button>
+</template>
+
+<!-- BOTÃO SECONDARY (Secundário) -->
+<template id="btn-secondary-template">
+  <button class="btn btn-secondary" type="button">
+    <span class="btn-text">Texto do Botão</span>
+  </button>
+</template>
+
+<!-- BOTÃO OUTLINE (Com Borda) -->
+<template id="btn-outline-template">
+  <button class="btn btn-outline" type="button">
+    <span class="btn-text">Texto do Botão</span>
+  </button>
+</template>
+
+<!-- BOTÃO COM ÍCONE -->
+<template id="btn-with-icon-template">
+  <button class="btn btn-primary" type="button">
+    <i class="btn-icon bi bi-plus-circle"></i>
+    <span class="btn-text">Texto do Botão</span>
+  </button>
+</template>
+
+<!-- BOTÃO COM LOADING -->
+<template id="btn-loading-template">
+  <button class="btn btn-primary" type="button" disabled>
+    <div class="spinner"></div>
+    <span class="btn-text">Carregando...</span>
+  </button>
+</template>
+
+<!-- BOTÃO CONECTAR METAMASK -->
+<template id="btn-connect-wallet-template">
+  <button class="btn btn-primary glow-gold" type="button" id="connect-wallet-btn">
+    <i class="btn-icon bi bi-wallet2"></i>
+    <span class="btn-text">Conectar Carteira</span>
+  </button>
+</template>
+
+<!--
+==========================================================================
+ESTILOS ESPECÍFICOS DOS BOTÕES
+==========================================================================
+-->
+<style>
+/* Estilos específicos para botões */
+.btn {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Efeito Ripple nos botões */
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.btn:active::before {
+  width: 300px;
+  height: 300px;
+}
+
+/* Botão Danger */
+.btn-danger {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+}
+
+.btn-danger:hover {
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+}
+
+/* Botão Success */
+.btn-success {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+}
+
+.btn-success:hover {
+  background: linear-gradient(135deg, #059669, #047857);
+}
+
+/* Botão Ghost */
+.btn-ghost {
+  background: transparent;
+  color: var(--color-text-secondary);
+  border: none;
+}
+
+.btn-ghost:hover {
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-primary);
+}
+
+/* Tamanhos */
+.btn-sm {
+  padding: 0.5rem 1rem;
+  font-size: 0.75rem;
+}
+
+.btn-lg {
+  padding: 1rem 2rem;
+  font-size: 1rem;
+}
+
+.btn-xl {
+  padding: 1.25rem 2.5rem;
+  font-size: 1.125rem;
+}
+
+/* Ícones nos botões */
+.btn-icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* Estado disabled */
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.btn:disabled:hover {
+  transform: none !important;
+  box-shadow: var(--shadow-md) !important;
+}
+</style>
+
+<!--
+==========================================================================
+JAVASCRIPT DOS BOTÕES
+==========================================================================
+-->
+<script>
+/**
+ * Sistema de Botões SCCAFE
+ * Gerencia criação e comportamento de botões
+ */
+class ButtonSystem {
+  constructor() {
+    this.initializeButtons();
+  }
+
+  /**
+   * Inicializa todos os botões da página
+   */
+  initializeButtons() {
+    // Adiciona listeners para todos os botões
+    document.addEventListener('click', this.handleButtonClick.bind(this));
+    
+    // Adiciona efeito ripple em todos os botões
+    this.addRippleEffect();
+  }
+
+  /**
+   * Gerencia cliques em botões
+   */
+  handleButtonClick(event) {
+    const button = event.target.closest('.btn');
+    if (!button || button.disabled) return;
+
+    // Adiciona classes de feedback visual
+    this.addClickFeedback(button);
+  }
+
+  /**
+   * Adiciona feedback visual ao clicar
+   */
+  addClickFeedback(button) {
+    button.style.transform = 'scale(0.95)';
+    setTimeout(() => {
+      button.style.transform = '';
+    }, 150);
+  }
+
+  /**
+   * Adiciona efeito ripple a todos os botões
+   */
+  addRippleEffect() {
+    const buttons = document.querySelectorAll('.btn');
+    buttons.forEach(button => {
+      button.addEventListener('click', function(e) {
+        const ripple = document.createElement('span');
+        const rect = this.getBoundingClientRect();
+        const size = Math.max(rect.width, rect.height);
+        const x = e.clientX - rect.left - size / 2;
+        const y = e.clientY - rect.top - size / 2;
+        
+        ripple.style.width = ripple.style.height = size + 'px';
+        ripple.style.left = x + 'px';
+        ripple.style.top = y + 'px';
+        ripple.classList.add('ripple');
+        
+        this.appendChild(ripple);
+        
+        setTimeout(() => ripple.remove(), 600);
+      });
+    });
+  }
+
+  /**
+   * Cria um botão dinamicamente
+   */
+  createButton(options = {}) {
+    const {
+      text = 'Botão',
+      type = 'primary',
+      size = 'md',
+      icon = null,
+      onClick = null,
+      disabled = false,
+      id = null
+    } = options;
+
+    const button = document.createElement('button');
+    button.className = `btn btn-${type}`;
+    if (size !== 'md') button.classList.add(`btn-${size}`);
+    if (disabled) button.disabled = true;
+    if (id) button.id = id;
+
+    let buttonHTML = '';
+    if (icon) {
+      buttonHTML += `<i class="btn-icon ${icon}"></i>`;
+    }
+    buttonHTML += `<span class="btn-text">${text}</span>`;
+    
+    button.innerHTML = buttonHTML;
+
+    if (onClick) {
+      button.addEventListener('click', onClick);
+    }
+
+    return button;
+  }
+
+  /**
+   * Mostra estado de loading em um botão
+   */
+  setLoading(buttonElement, loading = true) {
+    if (loading) {
+      buttonElement.disabled = true;
+      buttonElement.innerHTML = `
+        <div class="spinner"></div>
+        <span class="btn-text">Carregando...</span>
+      `;
+    } else {
+      buttonElement.disabled = false;
+      // Restaurar texto original (deve ser armazenado anteriormente)
+    }
+  }
+
+  /**
+   * Define estado de sucesso temporariamente
+   */
+  setSuccess(buttonElement, duration = 2000) {
+    const originalHTML = buttonElement.innerHTML;
+    const originalClass = buttonElement.className;
+    
+    buttonElement.className = buttonElement.className.replace(/btn-\w+/, 'btn-success');
+    buttonElement.innerHTML = `
+      <i class="btn-icon bi bi-check-circle"></i>
+      <span class="btn-text">Sucesso!</span>
+    `;
+    
+    setTimeout(() => {
+      buttonElement.className = originalClass;
+      buttonElement.innerHTML = originalHTML;
+    }, duration);
+  }
+
+  /**
+   * Define estado de erro temporariamente
+   */
+  setError(buttonElement, duration = 2000) {
+    const originalHTML = buttonElement.innerHTML;
+    const originalClass = buttonElement.className;
+    
+    buttonElement.className = buttonElement.className.replace(/btn-\w+/, 'btn-danger');
+    buttonElement.innerHTML = `
+      <i class="btn-icon bi bi-x-circle"></i>
+      <span class="btn-text">Erro!</span>
+    `;
+    
+    setTimeout(() => {
+      buttonElement.className = originalClass;
+      buttonElement.innerHTML = originalHTML;
+    }, duration);
+  }
+}
+
+// Estilos CSS para o efeito ripple
+const rippleStyles = `
+  .ripple {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(0);
+    animation: ripple-animation 0.6s linear;
+    pointer-events: none;
+  }
+  
+  @keyframes ripple-animation {
+    to {
+      transform: scale(4);
+      opacity: 0;
+    }
+  }
+`;
+
+// Adiciona os estilos do ripple ao documento
+const styleSheet = document.createElement('style');
+styleSheet.textContent = rippleStyles;
+document.head.appendChild(styleSheet);
+
+// Inicializa o sistema de botões quando o DOM estiver pronto
+document.addEventListener('DOMContentLoaded', () => {
+  window.buttonSystem = new ButtonSystem();
+});
+
+// Exporta para uso global
+window.ButtonSystem = ButtonSystem;
+</script>

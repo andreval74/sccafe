@@ -1,0 +1,1014 @@
+<!--
+==========================================================================
+COMPONENTE LAYOUT: FOOTER
+Rodapé moderno para SCCAFE
+==========================================================================
+-->
+
+<!-- FOOTER PRINCIPAL -->
+<footer class="footer" id="main-footer">
+  <div class="footer-container">
+    <!-- Seção Principal do Footer -->
+    <div class="footer-main">
+      <!-- Branding e Informações -->
+      <div class="footer-brand">
+        <div class="brand-section">
+          <a href="index.html" class="footer-brand-link">
+            <img src="imgs/sccafe.png" alt="SCCAFE" class="footer-logo">
+            <span class="footer-brand-text">SCCAFE</span>
+          </a>
+          <p class="footer-description">
+            Plataforma moderna para criação e verificação de tokens na blockchain. 
+            Simplifique o processo de desenvolvimento de contratos inteligentes.
+          </p>
+        </div>
+        
+        <!-- Redes Sociais -->
+        <div class="social-links">
+          <a href="#" class="social-link" title="GitHub">
+            <i class="bi bi-github"></i>
+          </a>
+          <a href="#" class="social-link" title="Twitter">
+            <i class="bi bi-twitter"></i>
+          </a>
+          <a href="#" class="social-link" title="Discord">
+            <i class="bi bi-discord"></i>
+          </a>
+          <a href="#" class="social-link" title="Telegram">
+            <i class="bi bi-telegram"></i>
+          </a>
+        </div>
+      </div>
+
+      <!-- Links de Navegação -->
+      <div class="footer-nav">
+        <div class="footer-section">
+          <h4 class="footer-title">Plataforma</h4>
+          <ul class="footer-links">
+            <li><a href="index.html" class="footer-link">Início</a></li>
+            <li><a href="add-token.html" class="footer-link">Criar Token</a></li>
+            <li><a href="verificacao-simples.html" class="footer-link">Verificação</a></li>
+            <li><a href="test-detector.html" class="footer-link">Detector</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-section">
+          <h4 class="footer-title">Ferramentas</h4>
+          <ul class="footer-links">
+            <li><a href="link-generator.html" class="footer-link">Gerador de Links</a></li>
+            <li><a href="test-dados-reais.html" class="footer-link">Dados Reais</a></li>
+            <li><a href="test-enderecos.html" class="footer-link">Endereços</a></li>
+            <li><a href="test-token-data.html" class="footer-link">Token Data</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-section">
+          <h4 class="footer-title">Recursos</h4>
+          <ul class="footer-links">
+            <li><a href="service-details.html" class="footer-link">Sobre</a></li>
+            <li><a href="#" class="footer-link">Documentação</a></li>
+            <li><a href="#" class="footer-link">API</a></li>
+            <li><a href="#" class="footer-link">Suporte</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-section">
+          <h4 class="footer-title">Blockchain</h4>
+          <ul class="footer-links">
+            <li><a href="#" class="footer-link">Ethereum</a></li>
+            <li><a href="#" class="footer-link">Polygon</a></li>
+            <li><a href="#" class="footer-link">BSC</a></li>
+            <li><a href="#" class="footer-link">Avalanche</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Seção de Status e Informações -->
+    <div class="footer-status">
+      <div class="status-grid">
+        <!-- Status do Sistema -->
+        <div class="status-item">
+          <div class="status-header">
+            <i class="bi bi-shield-check status-icon"></i>
+            <span class="status-label">Sistema</span>
+          </div>
+          <div class="status-indicator">
+            <span class="status-dot status-online"></span>
+            <span class="status-text">Operacional</span>
+          </div>
+        </div>
+
+        <!-- Status da API -->
+        <div class="status-item">
+          <div class="status-header">
+            <i class="bi bi-cloud-check status-icon"></i>
+            <span class="status-label">API</span>
+          </div>
+          <div class="status-indicator">
+            <span class="status-dot status-online"></span>
+            <span class="status-text">Conectado</span>
+          </div>
+        </div>
+
+        <!-- Última Atualização -->
+        <div class="status-item">
+          <div class="status-header">
+            <i class="bi bi-clock status-icon"></i>
+            <span class="status-label">Atualização</span>
+          </div>
+          <div class="status-text" id="last-update">
+            Carregando...
+          </div>
+        </div>
+
+        <!-- Versão -->
+        <div class="status-item">
+          <div class="status-header">
+            <i class="bi bi-tag status-icon"></i>
+            <span class="status-label">Versão</span>
+          </div>
+          <div class="status-text">
+            v2.0.0
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Newsletter -->
+    <div class="footer-newsletter">
+      <div class="newsletter-content">
+        <div class="newsletter-info">
+          <h4 class="newsletter-title">Mantenha-se Atualizado</h4>
+          <p class="newsletter-description">
+            Receba as últimas atualizações sobre novas funcionalidades e melhorias.
+          </p>
+        </div>
+        <form class="newsletter-form" id="newsletter-form">
+          <div class="newsletter-input-group">
+            <input 
+              type="email" 
+              class="newsletter-input" 
+              placeholder="seu@email.com"
+              required
+              id="newsletter-email"
+            >
+            <button type="submit" class="newsletter-btn">
+              <span class="btn-text">Inscrever</span>
+              <i class="btn-icon bi bi-arrow-right"></i>
+            </button>
+          </div>
+          <p class="newsletter-privacy">
+            Respeitamos sua privacidade. Sem spam.
+          </p>
+        </form>
+      </div>
+    </div>
+
+    <!-- Rodapé Inferior -->
+    <div class="footer-bottom">
+      <div class="footer-bottom-content">
+        <div class="footer-copyright">
+          <p>&copy; 2024 SCCAFE. Todos os direitos reservados.</p>
+        </div>
+        
+        <div class="footer-legal">
+          <a href="#" class="legal-link">Termos de Uso</a>
+          <a href="#" class="legal-link">Política de Privacidade</a>
+          <a href="#" class="legal-link">Cookies</a>
+        </div>
+
+        <div class="footer-meta">
+          <span class="meta-item">Feito com</span>
+          <i class="bi bi-heart-fill meta-heart"></i>
+          <span class="meta-item">para a comunidade blockchain</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Botão Back to Top -->
+  <button class="back-to-top" id="back-to-top" title="Voltar ao topo">
+    <i class="bi bi-arrow-up"></i>
+  </button>
+</footer>
+
+<!--
+==========================================================================
+ESTILOS DO FOOTER
+==========================================================================
+-->
+<style>
+/* Footer Base */
+.footer {
+  background: linear-gradient(135deg, var(--color-bg-primary), rgba(17, 24, 39, 0.95));
+  border-top: 1px solid var(--color-border);
+  position: relative;
+  margin-top: 4rem;
+}
+
+.footer-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 3rem 2rem 1rem;
+}
+
+/* Seção Principal */
+.footer-main {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 3rem;
+  margin-bottom: 3rem;
+}
+
+/* Branding */
+.footer-brand {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.footer-brand-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+  color: var(--color-text-primary);
+  font-weight: 600;
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.footer-logo {
+  width: 2.5rem;
+  height: 2.5rem;
+  object-fit: contain;
+}
+
+.footer-brand-text {
+  background: linear-gradient(135deg, var(--color-accent), #fbbf24);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.footer-description {
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+/* Redes Sociais */
+.social-links {
+  display: flex;
+  gap: 1rem;
+}
+
+.social-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.social-link:hover {
+  color: var(--color-accent);
+  border-color: var(--color-accent-alpha);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Navegação do Footer */
+.footer-nav {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2rem;
+}
+
+.footer-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.footer-title {
+  color: var(--color-text-primary);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0;
+}
+
+.footer-links {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.footer-link {
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  font-size: 0.875rem;
+  transition: color 0.2s ease;
+}
+
+.footer-link:hover {
+  color: var(--color-accent);
+}
+
+/* Seção de Status */
+.footer-status {
+  margin-bottom: 3rem;
+  padding: 2rem;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.status-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 2rem;
+}
+
+.status-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.status-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.status-icon {
+  color: var(--color-text-secondary);
+  font-size: 1rem;
+}
+
+.status-label {
+  color: var(--color-text-secondary);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.status-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.status-online {
+  background: #10b981;
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
+  animation: pulse-status 2s infinite;
+}
+
+.status-warning {
+  background: #f59e0b;
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.5);
+}
+
+.status-error {
+  background: #ef4444;
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.5);
+}
+
+.status-text {
+  color: var(--color-text-primary);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+/* Newsletter */
+.footer-newsletter {
+  margin-bottom: 3rem;
+  padding: 2rem;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(251, 191, 36, 0.05));
+  border: 1px solid var(--color-accent-alpha);
+  border-radius: var(--radius-lg);
+}
+
+.newsletter-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  align-items: center;
+}
+
+.newsletter-title {
+  color: var(--color-text-primary);
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+}
+
+.newsletter-description {
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.newsletter-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.newsletter-input-group {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.newsletter-input {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-primary);
+  font-size: 0.875rem;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.newsletter-input:focus {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+}
+
+.newsletter-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: var(--color-accent);
+  color: var(--color-bg-primary);
+  border: none;
+  border-radius: var(--radius-md);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.newsletter-btn:hover {
+  background: #d97706;
+  transform: translateY(-1px);
+}
+
+.newsletter-privacy {
+  color: var(--color-text-tertiary);
+  font-size: 0.75rem;
+  margin: 0;
+}
+
+/* Rodapé Inferior */
+.footer-bottom {
+  border-top: 1px solid var(--color-border);
+  padding-top: 2rem;
+}
+
+.footer-bottom-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.footer-copyright {
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+}
+
+.footer-copyright p {
+  margin: 0;
+}
+
+.footer-legal {
+  display: flex;
+  gap: 2rem;
+}
+
+.legal-link {
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  font-size: 0.875rem;
+  transition: color 0.2s ease;
+}
+
+.legal-link:hover {
+  color: var(--color-accent);
+}
+
+.footer-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+}
+
+.meta-heart {
+  color: #ef4444;
+  animation: heartbeat 2s infinite;
+}
+
+/* Back to Top */
+.back-to-top {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  width: 3rem;
+  height: 3rem;
+  background: var(--color-accent);
+  color: var(--color-bg-primary);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(20px);
+  transition: all 0.3s ease;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+}
+
+.back-to-top.visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.back-to-top:hover {
+  background: #d97706;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Animações */
+@keyframes pulse-status {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+@keyframes heartbeat {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+/* Media Queries */
+@media (max-width: 768px) {
+  .footer-container {
+    padding: 2rem 1rem 1rem;
+  }
+
+  .footer-main {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .footer-nav {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+  }
+
+  .newsletter-content {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    text-align: center;
+  }
+
+  .newsletter-input-group {
+    flex-direction: column;
+  }
+
+  .newsletter-btn {
+    justify-content: center;
+  }
+
+  .footer-bottom-content {
+    flex-direction: column;
+    text-align: center;
+    gap: 1.5rem;
+  }
+
+  .status-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+
+  .back-to-top {
+    bottom: 1rem;
+    right: 1rem;
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .footer-nav {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .status-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .social-links {
+    justify-content: center;
+  }
+
+  .footer-legal {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+}
+</style>
+
+<!--
+==========================================================================
+JAVASCRIPT DO FOOTER
+==========================================================================
+-->
+<script>
+/**
+ * Sistema do Footer SCCAFE
+ * Gerencia newsletter, status, back to top e funcionalidades do rodapé
+ */
+class FooterSystem {
+  constructor() {
+    this.initializeFooter();
+  }
+
+  /**
+   * Inicializa todos os componentes do footer
+   */
+  initializeFooter() {
+    this.initializeBackToTop();
+    this.initializeNewsletter();
+    this.initializeStatus();
+    this.updateLastUpdate();
+    this.startStatusMonitoring();
+  }
+
+  /**
+   * Botão Back to Top
+   */
+  initializeBackToTop() {
+    const backToTopBtn = document.getElementById('back-to-top');
+    
+    // Mostra/esconde botão baseado no scroll
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 500) {
+        backToTopBtn.classList.add('visible');
+      } else {
+        backToTopBtn.classList.remove('visible');
+      }
+    });
+
+    // Ação do clique
+    backToTopBtn.addEventListener('click', () => {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    });
+  }
+
+  /**
+   * Sistema de Newsletter
+   */
+  initializeNewsletter() {
+    const form = document.getElementById('newsletter-form');
+    const emailInput = document.getElementById('newsletter-email');
+    const submitBtn = form.querySelector('.newsletter-btn');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const email = emailInput.value.trim();
+      if (!this.validateEmail(email)) {
+        this.showNewsletterMessage('Email inválido', 'error');
+        return;
+      }
+
+      // Mostra loading
+      this.setNewsletterLoading(submitBtn, true);
+
+      try {
+        // Simula envio (aqui você integraria com seu backend)
+        await this.simulateNewsletterSignup(email);
+        
+        this.showNewsletterMessage('Inscrição realizada com sucesso!', 'success');
+        emailInput.value = '';
+      } catch (error) {
+        this.showNewsletterMessage('Erro ao se inscrever. Tente novamente.', 'error');
+      } finally {
+        this.setNewsletterLoading(submitBtn, false);
+      }
+    });
+  }
+
+  /**
+   * Valida email
+   */
+  validateEmail(email) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  }
+
+  /**
+   * Simula signup na newsletter
+   */
+  async simulateNewsletterSignup(email) {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        // Simula 90% de sucesso
+        if (Math.random() > 0.1) {
+          resolve();
+        } else {
+          reject(new Error('Simulated error'));
+        }
+      }, 1500);
+    });
+  }
+
+  /**
+   * Define estado de loading na newsletter
+   */
+  setNewsletterLoading(button, loading) {
+    const btnText = button.querySelector('.btn-text');
+    const btnIcon = button.querySelector('.btn-icon');
+
+    if (loading) {
+      button.disabled = true;
+      btnText.textContent = 'Inscrevendo...';
+      btnIcon.className = 'btn-icon bi bi-arrow-clockwise spinner';
+    } else {
+      button.disabled = false;
+      btnText.textContent = 'Inscrever';
+      btnIcon.className = 'btn-icon bi bi-arrow-right';
+    }
+  }
+
+  /**
+   * Mostra mensagem da newsletter
+   */
+  showNewsletterMessage(message, type) {
+    const form = document.getElementById('newsletter-form');
+    
+    // Remove mensagem anterior
+    const existingMessage = form.querySelector('.newsletter-message');
+    if (existingMessage) {
+      existingMessage.remove();
+    }
+
+    // Cria nova mensagem
+    const messageElement = document.createElement('div');
+    messageElement.className = `newsletter-message newsletter-${type}`;
+    messageElement.textContent = message;
+    
+    // Adiciona estilos
+    messageElement.style.cssText = `
+      padding: 0.5rem 0.75rem;
+      border-radius: var(--radius-md);
+      font-size: 0.875rem;
+      margin-top: 0.5rem;
+      ${type === 'success' ? 
+        'background: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.2);' :
+        'background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2);'
+      }
+    `;
+
+    form.appendChild(messageElement);
+
+    // Remove mensagem após 5 segundos
+    setTimeout(() => {
+      messageElement.remove();
+    }, 5000);
+  }
+
+  /**
+   * Inicializa sistema de status
+   */
+  initializeStatus() {
+    this.statusData = {
+      system: { status: 'online', text: 'Operacional' },
+      api: { status: 'online', text: 'Conectado' },
+      lastUpdate: new Date(),
+      version: 'v2.0.0'
+    };
+
+    this.updateStatusDisplay();
+  }
+
+  /**
+   * Atualiza display do status
+   */
+  updateStatusDisplay() {
+    const statusItems = document.querySelectorAll('.status-item');
+    
+    statusItems.forEach((item, index) => {
+      const dot = item.querySelector('.status-dot');
+      const text = item.querySelector('.status-text');
+      
+      switch(index) {
+        case 0: // Sistema
+          this.updateStatusItem(dot, text, this.statusData.system);
+          break;
+        case 1: // API
+          this.updateStatusItem(dot, text, this.statusData.api);
+          break;
+        case 2: // Última atualização
+          if (text) {
+            text.textContent = this.formatRelativeTime(this.statusData.lastUpdate);
+          }
+          break;
+        case 3: // Versão
+          if (text) {
+            text.textContent = this.statusData.version;
+          }
+          break;
+      }
+    });
+  }
+
+  /**
+   * Atualiza item de status individual
+   */
+  updateStatusItem(dot, text, statusData) {
+    if (dot) {
+      dot.className = `status-dot status-${statusData.status}`;
+    }
+    if (text) {
+      text.textContent = statusData.text;
+    }
+  }
+
+  /**
+   * Formata tempo relativo
+   */
+  formatRelativeTime(date) {
+    const now = new Date();
+    const diff = now - date;
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+
+    if (days > 0) {
+      return `${days} dia${days > 1 ? 's' : ''} atrás`;
+    } else if (hours > 0) {
+      return `${hours} hora${hours > 1 ? 's' : ''} atrás`;
+    } else if (minutes > 0) {
+      return `${minutes} minuto${minutes > 1 ? 's' : ''} atrás`;
+    } else {
+      return 'Agora mesmo';
+    }
+  }
+
+  /**
+   * Atualiza "última atualização"
+   */
+  updateLastUpdate() {
+    const updateElement = document.getElementById('last-update');
+    if (updateElement) {
+      updateElement.textContent = this.formatRelativeTime(this.statusData.lastUpdate);
+    }
+  }
+
+  /**
+   * Inicia monitoramento de status
+   */
+  startStatusMonitoring() {
+    // Atualiza tempo relativo a cada minuto
+    setInterval(() => {
+      this.updateLastUpdate();
+    }, 60000);
+
+    // Simula verificação de status a cada 5 minutos
+    setInterval(() => {
+      this.checkSystemStatus();
+    }, 300000);
+  }
+
+  /**
+   * Verifica status do sistema
+   */
+  async checkSystemStatus() {
+    try {
+      // Aqui você faria chamadas reais para verificar o status
+      // Por enquanto, simula um status
+      const isOnline = Math.random() > 0.05; // 95% uptime
+      
+      this.statusData.system = {
+        status: isOnline ? 'online' : 'error',
+        text: isOnline ? 'Operacional' : 'Instável'
+      };
+
+      this.statusData.api = {
+        status: isOnline ? 'online' : 'warning',
+        text: isOnline ? 'Conectado' : 'Limitado'
+      };
+
+      this.updateStatusDisplay();
+    } catch (error) {
+      console.error('Erro ao verificar status:', error);
+    }
+  }
+
+  /**
+   * Atualiza status manualmente
+   */
+  updateStatus(component, status, text) {
+    if (this.statusData[component]) {
+      this.statusData[component] = { status, text };
+      this.updateStatusDisplay();
+    }
+  }
+
+  /**
+   * Obtém informações do footer
+   */
+  getFooterInfo() {
+    return {
+      status: this.statusData,
+      lastUpdate: this.statusData.lastUpdate,
+      version: this.statusData.version
+    };
+  }
+
+  /**
+   * Smooth scroll para links âncora
+   */
+  initializeSmoothScroll() {
+    const links = document.querySelectorAll('a[href^="#"]');
+    links.forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        const target = document.querySelector(link.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+          });
+        }
+      });
+    });
+  }
+}
+
+// Adiciona estilos CSS para spinner
+const spinnerStyles = `
+  .spinner {
+    animation: spin 1s linear infinite;
+  }
+  
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+`;
+
+const styleSheet = document.createElement('style');
+styleSheet.textContent = spinnerStyles;
+document.head.appendChild(styleSheet);
+
+// Inicializa o footer quando o DOM estiver pronto
+document.addEventListener('DOMContentLoaded', () => {
+  window.footerSystem = new FooterSystem();
+});
+
+// Exporta para uso global
+window.FooterSystem = FooterSystem;
+</script>
