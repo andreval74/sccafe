@@ -1,21 +1,98 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-</head>
-<body>
-    <!-- Header Simples -->
-    <div class="header-wrapper" style="position: fixed; top: 0; left: 0; right: 0; z-index: 1000; height: 70px;">
-        <div class="brand">
-            <img src="imgs/sccafe-32x32.png" alt="SCCAFE" />
-            <span>SCCAFE</span>
+<!-- SCCAFE Header Component - Bootstrap 5 -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top border-bottom border-secondary">
+    <div class="container">
+        <!-- Brand Logo -->
+        <a class="navbar-brand d-flex align-items-center" href="index.html">
+            <img src="imgs/sccafe-32x32.png" alt="SCCAFE" width="32" height="32" class="me-2">
+            <span class="fw-bold text-primary">SCCAFE</span>
+        </a>
+
+        <!-- Mobile Toggle -->
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <!-- Navigation Menu -->
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="index.html">
+                        <i class="bi bi-house me-1"></i>Início
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="add-index.html">
+                        <i class="bi bi-plus-circle me-1"></i>Criar Token
+                    </a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-tools me-1"></i>Ferramentas
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="#"><i class="bi bi-shield-check me-2"></i>Verificar Token</a></li>
+                        <li><a class="dropdown-item" href="#"><i class="bi bi-search me-2"></i>Explorar Tokens</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="#"><i class="bi bi-book me-2"></i>Documentação</a></li>
+                    </ul>
+                </li>
+            </ul>
+
+            <!-- Wallet Connection -->
+            <div class="d-flex align-items-center">
+                <button id="connectWallet" class="btn btn-outline-primary me-2">
+                    <i class="bi bi-wallet2 me-1"></i>
+                    <span id="walletText">Conectar Wallet</span>
+                </button>
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-globe"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="#"><i class="bi bi-flag me-2"></i>Português</a></li>
+                        <li><a class="dropdown-item" href="#"><i class="bi bi-flag me-2"></i>English</a></li>
+                        <li><a class="dropdown-item" href="#"><i class="bi bi-flag me-2"></i>Español</a></li>
+                    </ul>
+                </div>
+            </div>
         </div>
-        <nav class="nav">
-            <a href="index.html">Início</a>
-            <a href="add-index.html">Criar Token</a>
-            <a href="verificacao-simples.html">Verificar</a>
-        </nav>
-        <button id="connectWallet" class="btn-wallet">Conectar Wallet</button>
     </div>
-</body>
-</html>
+</nav>
+
+<script>
+// Wallet Connection Logic
+document.addEventListener('DOMContentLoaded', function() {
+    const connectWalletBtn = document.getElementById('connectWallet');
+    const walletText = document.getElementById('walletText');
+    
+    if (connectWalletBtn) {
+        connectWalletBtn.addEventListener('click', async function() {
+            if (typeof window.ethereum !== 'undefined') {
+                try {
+                    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    if (accounts.length > 0) {
+                        const shortAddress = accounts[0].substring(0, 6) + '...' + accounts[0].substring(38);
+                        walletText.textContent = shortAddress;
+                        connectWalletBtn.classList.remove('btn-outline-primary');
+                        connectWalletBtn.classList.add('btn-success');
+                    }
+                } catch (error) {
+                    console.error('Erro ao conectar wallet:', error);
+                }
+            } else {
+                alert('MetaMask não encontrado! Por favor, instale o MetaMask.');
+            }
+        });
+    }
+
+    // Active page highlighting
+    const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+    const navLinks = document.querySelectorAll('.nav-link[href]');
+    navLinks.forEach(link => {
+        if (link.getAttribute('href') === currentPage) {
+            link.classList.add('active');
+        }
+    });
+});
+</script>

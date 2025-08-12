@@ -1,25 +1,184 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-</head>
-<body>
-    <!-- Footer Simples -->
-    <div class="footer-wrapper">
-        <div class="footer-content">
-            <div class="footer-brand">
-                <img src="imgs/sccafe-32x32.png" alt="SCCAFE" />
-                <span>SCCAFE</span>
+<!-- SCCAFE Footer Component - Bootstrap 5 -->
+<footer class="bg-dark text-light py-5 mt-auto">
+    <div class="container">
+        <div class="row g-4">
+            <!-- Brand Section -->
+            <div class="col-lg-4 col-md-6">
+                <div class="d-flex align-items-center mb-3">
+                    <img src="imgs/sccafe-32x32.png" alt="SCCAFE" width="32" height="32" class="me-2">
+                    <h5 class="text-primary fw-bold mb-0">SCCAFE</h5>
+                </div>
+                <p class="text-secondary mb-3">
+                    A plataforma mais personalizável para criação de tokens blockchain. 
+                    Crie tokens ERC-20 seguros sem conhecimento técnico.
+                </p>
+                <div class="d-flex gap-2">
+                    <a href="#" class="btn btn-outline-primary btn-sm rounded-circle" style="width: 40px; height: 40px;" data-bs-toggle="tooltip" title="Telegram">
+                        <i class="bi bi-telegram"></i>
+                    </a>
+                    <a href="#" class="btn btn-outline-primary btn-sm rounded-circle" style="width: 40px; height: 40px;" data-bs-toggle="tooltip" title="Twitter">
+                        <i class="bi bi-twitter"></i>
+                    </a>
+                    <a href="#" class="btn btn-outline-primary btn-sm rounded-circle" style="width: 40px; height: 40px;" data-bs-toggle="tooltip" title="GitHub">
+                        <i class="bi bi-github"></i>
+                    </a>
+                    <a href="#" class="btn btn-outline-primary btn-sm rounded-circle" style="width: 40px; height: 40px;" data-bs-toggle="tooltip" title="Discord">
+                        <i class="bi bi-discord"></i>
+                    </a>
+                </div>
             </div>
-            <div class="footer-links">
-                <a href="#">Documentação</a>
-                <a href="#">Suporte</a>
-                <a href="#">GitHub</a>
+
+            <!-- Quick Links -->
+            <div class="col-lg-2 col-md-6">
+                <h6 class="text-uppercase fw-bold mb-3">Plataforma</h6>
+                <ul class="list-unstyled">
+                    <li class="mb-2">
+                        <a href="add-index.html" class="text-secondary text-decoration-none">
+                            <i class="bi bi-plus-circle me-1"></i>Criar Token
+                        </a>
+                    </li>
+                    <li class="mb-2">
+                        <a href="#" class="text-secondary text-decoration-none">
+                            <i class="bi bi-shield-check me-1"></i>Verificar Token
+                        </a>
+                    </li>
+                    <li class="mb-2">
+                        <a href="#" class="text-secondary text-decoration-none">
+                            <i class="bi bi-search me-1"></i>Explorar
+                        </a>
+                    </li>
+                    <li class="mb-2">
+                        <a href="#" class="text-secondary text-decoration-none">
+                            <i class="bi bi-graph-up me-1"></i>Analytics
+                        </a>
+                    </li>
+                </ul>
             </div>
-            <div class="footer-copy">
-                <p>&copy; 2024 SCCAFE. Todos os direitos reservados.</p>
+
+            <!-- Resources -->
+            <div class="col-lg-2 col-md-6">
+                <h6 class="text-uppercase fw-bold mb-3">Recursos</h6>
+                <ul class="list-unstyled">
+                    <li class="mb-2">
+                        <a href="#" class="text-secondary text-decoration-none">
+                            <i class="bi bi-book me-1"></i>Documentação
+                        </a>
+                    </li>
+                    <li class="mb-2">
+                        <a href="#" class="text-secondary text-decoration-none">
+                            <i class="bi bi-journal-code me-1"></i>Tutoriais
+                        </a>
+                    </li>
+                    <li class="mb-2">
+                        <a href="#" class="text-secondary text-decoration-none">
+                            <i class="bi bi-question-circle me-1"></i>FAQ
+                        </a>
+                    </li>
+                    <li class="mb-2">
+                        <a href="#" class="text-secondary text-decoration-none">
+                            <i class="bi bi-headset me-1"></i>Suporte
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Blockchains -->
+            <div class="col-lg-2 col-md-6">
+                <h6 class="text-uppercase fw-bold mb-3">Blockchains</h6>
+                <ul class="list-unstyled">
+                    <li class="mb-2">
+                        <a href="#" class="text-secondary text-decoration-none">
+                            <i class="bi bi-ethereum me-1"></i>Ethereum
+                        </a>
+                    </li>
+                    <li class="mb-2">
+                        <a href="#" class="text-secondary text-decoration-none">
+                            <i class="bi bi-triangle me-1"></i>Polygon
+                        </a>
+                    </li>
+                    <li class="mb-2">
+                        <a href="#" class="text-secondary text-decoration-none">
+                            <i class="bi bi-currency-bitcoin me-1"></i>BSC
+                        </a>
+                    </li>
+                    <li class="mb-2">
+                        <a href="#" class="text-secondary text-decoration-none">
+                            <i class="bi bi-snow me-1"></i>Avalanche
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Newsletter -->
+            <div class="col-lg-2 col-md-12">
+                <h6 class="text-uppercase fw-bold mb-3">Newsletter</h6>
+                <p class="text-secondary small mb-3">
+                    Receba atualizações sobre novas funcionalidades e blockchains suportadas.
+                </p>
+                <div class="input-group input-group-sm">
+                    <input type="email" class="form-control" placeholder="Seu email" aria-label="Email">
+                    <button class="btn btn-primary" type="button">
+                        <i class="bi bi-send"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <hr class="my-4 border-secondary">
+
+        <!-- Bottom Section -->
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <p class="text-secondary small mb-0">
+                    &copy; 2025 SCCAFE. Todos os direitos reservados. 
+                    Plataforma auditada e segura para criação de tokens.
+                </p>
+            </div>
+            <div class="col-lg-6 text-lg-end">
+                <div class="d-flex flex-wrap justify-content-lg-end gap-3">
+                    <a href="#" class="text-secondary text-decoration-none small">Termos de Uso</a>
+                    <a href="#" class="text-secondary text-decoration-none small">Política de Privacidade</a>
+                    <a href="#" class="text-secondary text-decoration-none small">Política de Cookies</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics Bar -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card bg-primary bg-opacity-10 border-primary border-opacity-25">
+                    <div class="card-body py-3">
+                        <div class="row text-center">
+                            <div class="col-6 col-md-3">
+                                <h6 class="text-primary fw-bold mb-0">1000+</h6>
+                                <small class="text-muted">Tokens Criados</small>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <h6 class="text-primary fw-bold mb-0">15+</h6>
+                                <small class="text-muted">Funcionalidades</small>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <h6 class="text-primary fw-bold mb-0">10+</h6>
+                                <small class="text-muted">Blockchains</small>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <h6 class="text-primary fw-bold mb-0">24/7</h6>
+                                <small class="text-muted">Suporte</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-</body>
-</html>
+</footer>
+
+<script>
+// Initialize tooltips
+document.addEventListener('DOMContentLoaded', function() {
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
+</script>
