@@ -75,26 +75,14 @@
 
               <!-- Purchase Form -->
               <form id="purchaseForm">
-                <!-- Mode Selection -->
-                <div class="mb-4">
-                  <label class="form-label text-white">
-                    <i class="bi bi-toggles text-primary me-2"></i>Modo de Compra
-                  </label>
-                  <div class="btn-group w-100" role="group">
-                    <input type="radio" class="btn-check" name="purchaseMode" id="mode-dex" value="dex" checked>
-                    <label class="btn btn-outline-primary" for="mode-dex">
-                      <i class="bi bi-graph-up me-1"></i>DEX (Token Listado)
-                    </label>
-                    
-                    <input type="radio" class="btn-check" name="purchaseMode" id="mode-manual" value="manual">
-                    <label class="btn btn-outline-primary" for="mode-manual">
-                      <i class="bi bi-pencil me-1"></i>Manual (Meu Token)
-                    </label>
-                  </div>
-                  <div class="form-text text-muted mt-2">
-                    <strong>DEX:</strong> Busca preços automáticos de tokens já listados em exchanges | 
-                    <strong>Manual:</strong> ⭐ Para seus tokens - recebe pagamento e envia tokens automaticamente
-                  </div>
+                <!-- Info Banner -->
+                <div class="alert alert-info">
+                  <h6 class="alert-heading">
+                    <i class="bi bi-info-circle me-2"></i>Sistema de Venda de Tokens SCCAFE
+                  </h6>
+                  <p class="mb-0">
+                    Defina o preço dos seus tokens criados no SCCAFE. O sistema receberá o pagamento e transferirá os tokens automaticamente.
+                  </p>
                 </div>
 
                 <!-- Token Selection -->
@@ -109,23 +97,23 @@
                   </div>
                   <div class="col-md-4">
                     <label for="network" class="form-label text-white">
-                      <i class="bi bi-globe text-primary me-2"></i>Rede/DEX
+                      <i class="bi bi-globe text-primary me-2"></i>Rede Blockchain
                     </label>
                     <select class="form-control bg-dark text-white border-secondary" id="network">
-                      <optgroup label="🔴 MAINNETS (Real Money)">
-                        <option value="1">Ethereum (Uniswap)</option>
-                        <option value="56">BSC (PancakeSwap)</option>
-                        <option value="137">Polygon (QuickSwap)</option>
-                        <option value="43114">Avalanche (Trader Joe)</option>
+                      <optgroup label="🔴 MAINNETS (Dinheiro Real)">
+                        <option value="1">Ethereum Mainnet</option>
+                        <option value="56">BSC Mainnet</option>
+                        <option value="137">Polygon Mainnet</option>
+                        <option value="43114">Avalanche Mainnet</option>
                       </optgroup>
-                      <optgroup label="🟡 TESTNETS (Para Testes)">
-                        <option value="11155111">Sepolia Testnet (tETH)</option>
-                        <option value="97" selected>BSC Testnet (tBNB)</option>
-                        <option value="80001">Mumbai Testnet (tMATIC)</option>
-                        <option value="43113">Fuji Testnet (tAVAX)</option>
+                      <optgroup label="🟡 TESTNETS (Para Testes - Recomendado)">
+                        <option value="11155111">Sepolia Testnet</option>
+                        <option value="97" selected>BSC Testnet</option>
+                        <option value="80001">Mumbai Testnet</option>
+                        <option value="43113">Fuji Testnet</option>
                       </optgroup>
                     </select>
-                    <div class="form-text text-muted">Use testnets para testar sem gastar dinheiro real</div>
+                    <div class="form-text text-muted">⭐ Use BSC Testnet para testes seguros</div>
                   </div>
                 </div>
 
@@ -139,82 +127,44 @@
                   <div class="form-text text-muted">Endereço que receberá os tokens comprados (deixe vazio para usar sua carteira)</div>
                 </div>
 
-                <!-- DEX Mode Fields -->
-                <div id="dex-mode-fields">
-                  <div class="row g-4 mb-4">
-                    <div class="col-md-6">
-                      <label for="ethAmount" class="form-label text-white">
-                        <i class="bi bi-currency-exchange text-primary me-2"></i>Valor em ETH/BNB/MATIC
-                      </label>
+                <!-- Token Sale Configuration -->
+                <div class="row g-4 mb-4">
+                  <div class="col-md-4">
+                    <label for="tokenPrice" class="form-label text-white">
+                      <i class="bi bi-tag text-primary me-2"></i>Preço por Token
+                    </label>
+                    <div class="input-group">
                       <input type="number" class="form-control bg-dark text-white border-secondary" 
-                             id="ethAmount" placeholder="0.1" step="0.001" min="0.001">
-                      <div class="form-text text-muted">Quantidade de moeda nativa que deseja trocar</div>
+                             id="tokenPrice" placeholder="0.001" step="0.0001" min="0.0001" required>
+                      <span class="input-group-text bg-secondary text-white" id="nativeCoinLabel">ETH</span>
                     </div>
-                    <div class="col-md-6">
-                      <label for="expectedTokens" class="form-label text-white">
-                        <i class="bi bi-graph-up text-primary me-2"></i>Tokens Estimados
-                      </label>
+                    <div class="form-text text-muted">Preço que você está cobrando por cada token</div>
+                  </div>
+                  <div class="col-md-4">
+                    <label for="tokenQuantity" class="form-label text-white">
+                      <i class="bi bi-123 text-primary me-2"></i>Quantidade de Tokens
+                    </label>
+                    <input type="number" class="form-control bg-dark text-white border-secondary" 
+                           id="tokenQuantity" placeholder="1000" step="1" min="1" required>
+                    <div class="form-text text-muted">Quantos tokens o comprador receberá</div>
+                  </div>
+                  <div class="col-md-4">
+                    <label for="totalCost" class="form-label text-white">
+                      <i class="bi bi-calculator text-primary me-2"></i>Custo Total
+                    </label>
+                    <div class="input-group">
                       <input type="text" class="form-control bg-dark text-white border-secondary" 
-                             id="expectedTokens" placeholder="Calculando..." readonly>
-                      <div class="form-text text-muted">Quantidade estimada de tokens que receberá</div>
+                             id="totalCost" placeholder="0.000" readonly>
+                      <span class="input-group-text bg-secondary text-white" id="totalCostCoin">ETH</span>
                     </div>
-                  </div>
-                </div>
-
-                <!-- Manual Mode Fields -->
-                <div id="manual-mode-fields" style="display: none;">
-                  <div class="alert alert-warning">
-                    <i class="bi bi-exclamation-triangle me-2"></i>
-                    <strong>Modo Manual:</strong> Você está definindo preço e quantidade manualmente. 
-                    Certifique-se de que o endereço recebedor é o proprietário do token ou tem autorização para recebê-lo.
-                  </div>
-                  
-                  <div class="row g-4 mb-4">
-                    <div class="col-md-4">
-                      <label for="tokenPrice" class="form-label text-white">
-                        <i class="bi bi-tag text-primary me-2"></i>Preço por Token
-                      </label>
-                      <div class="input-group">
-                        <input type="number" class="form-control bg-dark text-white border-secondary" 
-                               id="tokenPrice" placeholder="0.001" step="0.0001" min="0.0001">
-                        <span class="input-group-text bg-secondary text-white" id="nativeCoinLabel">ETH</span>
-                      </div>
-                      <div class="form-text text-muted">Preço que você está cobrando por cada token</div>
-                    </div>
-                    <div class="col-md-4">
-                      <label for="tokenQuantity" class="form-label text-white">
-                        <i class="bi bi-123 text-primary me-2"></i>Quantidade de Tokens
-                      </label>
-                      <input type="number" class="form-control bg-dark text-white border-secondary" 
-                             id="tokenQuantity" placeholder="1000" step="1" min="1">
-                      <div class="form-text text-muted">Quantos tokens o comprador receberá</div>
-                    </div>
-                    <div class="col-md-4">
-                      <label for="totalCost" class="form-label text-white">
-                        <i class="bi bi-calculator text-primary me-2"></i>Total a Pagar
-                      </label>
-                      <div class="input-group">
-                        <input type="text" class="form-control bg-dark text-white border-secondary" 
-                               id="totalCost" placeholder="0.000" readonly>
-                        <span class="input-group-text bg-secondary text-white" id="totalCoinLabel">ETH</span>
-                      </div>
-                      <div class="form-text text-muted">Valor total que será cobrado do comprador</div>
-                    </div>
+                    <div class="form-text text-muted">Valor total que o comprador pagará</div>
                   </div>
                 </div>
 
                 <!-- Action Buttons -->
                 <div class="d-grid gap-2">
-                  <button type="button" id="calculateBtn" class="btn btn-outline-primary btn-lg" disabled>
-                    <i class="bi bi-calculator me-2"></i>
-                    <span id="calculateBtnText">Calcular Preço DEX</span>
-                  </button>
-                  <button type="button" id="executeBtn" class="btn btn-primary btn-lg" disabled>
-                    <i class="bi bi-cart-check me-2"></i>
-                    <span id="executeBtnText">Executar Compra via DEX</span>
-                  </button>
-                  <button type="button" id="transferBtn" class="btn btn-success btn-lg" style="display: none;" disabled>
-                    <i class="bi bi-send me-2"></i>Transferir Tokens (Modo Manual)
+                  <button type="button" id="transferBtn" class="btn btn-primary btn-lg" disabled>
+                    <i class="bi bi-send me-2"></i>Processar Venda (Receber Pagamento + Enviar Tokens)
                   </button>
                 </div>
               </form>
@@ -237,7 +187,7 @@
           <div class="card bg-secondary mt-4">
             <div class="card-body">
               <h6 class="text-white mb-3">
-                <i class="bi bi-info-circle text-primary me-2"></i>Como Funciona & Como Testar
+                <i class="bi bi-info-circle text-primary me-2"></i>Sistema de Venda de Tokens SCCAFE
               </h6>
               
               <!-- Testnet Info -->
@@ -247,8 +197,8 @@
                 <ol class="mb-2">
                   <li>Conecte à <strong>BSC Testnet</strong> no MetaMask</li>
                   <li>Obtenha <strong>tBNB grátis</strong>: <a href="https://testnet.binance.org/faucet" target="_blank" class="text-primary">https://testnet.binance.org/faucet</a></li>
-                  <li>Use o endereço do seu token de teste</li>
-                  <li>Teste à vontade - não custa nada real!</li>
+                  <li>Use o endereço do seu token criado no SCCAFE</li>
+                  <li>Defina preço e quantidade - sistema faz o resto!</li>
                 </ol>
               </div>
               
@@ -256,22 +206,22 @@
                 <div class="col-md-4">
                   <div class="text-center">
                     <i class="bi bi-wallet2 text-primary" style="font-size: 2rem;"></i>
-                    <h6 class="text-white mt-2">1. Conecte</h6>
-                    <small class="text-muted">Conecte MetaMask à rede desejada (use testnet para testes)</small>
+                    <h6 class="text-white mt-2">1. Configure</h6>
+                    <small class="text-muted">Token, preço e quantidade que quer vender</small>
                   </div>
                 </div>
                 <div class="col-md-4">
                   <div class="text-center">
-                    <i class="bi bi-toggles text-primary" style="font-size: 2rem;"></i>
-                    <h6 class="text-white mt-2">2. Escolha Modo</h6>
-                    <small class="text-muted"><strong>DEX:</strong> Tokens listados | <strong>Manual:</strong> Seus tokens</small>
+                    <i class="bi bi-currency-exchange text-primary" style="font-size: 2rem;"></i>
+                    <h6 class="text-white mt-2">2. Recebe Pagamento</h6>
+                    <small class="text-muted">Sistema recebe o pagamento do comprador</small>
                   </div>
                 </div>
                 <div class="col-md-4">
                   <div class="text-center">
-                    <i class="bi bi-arrow-left-right text-primary" style="font-size: 2rem;"></i>
-                    <h6 class="text-white mt-2">3. Execute</h6>
-                    <small class="text-muted">Modo manual: Recebe pagamento + envia tokens automaticamente</small>
+                    <i class="bi bi-send text-primary" style="font-size: 2rem;"></i>
+                    <h6 class="text-white mt-2">3. Envia Tokens</h6>
+                    <small class="text-muted">Sistema transfere tokens automaticamente para o comprador</small>
                   </div>
                 </div>
               </div>
@@ -318,76 +268,52 @@
      * Suporte para múltiplas DEXs: PancakeSwap, Uniswap, QuickSwap, Trader Joe
      */
 
-    // Configurações das DEXs por rede (incluindo testnets)
-    const DEX_CONFIG = {
+    // Configurações das redes blockchain suportadas
+    const NETWORK_CONFIG = {
       1: { // Ethereum Mainnet
-        name: 'Ethereum (Uniswap)',
-        router: '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D',
-        weth: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-        dexName: 'Uniswap V2',
+        name: 'Ethereum Mainnet',
         nativeCoin: 'ETH',
         blockExplorer: 'https://etherscan.io',
         isTestnet: false
       },
       11155111: { // Ethereum Sepolia Testnet
-        name: 'Sepolia Testnet (Uniswap)',
-        router: '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D',
-        weth: '0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14', // WETH Sepolia
-        dexName: 'Uniswap V2',
+        name: 'Sepolia Testnet',
         nativeCoin: 'tETH',
         blockExplorer: 'https://sepolia.etherscan.io',
         isTestnet: true
       },
       56: { // BSC Mainnet
-        name: 'BSC (PancakeSwap)',
-        router: '0x10ED43C718714eb63d5aA57B78B54704E256024E',
-        weth: '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c', // WBNB
-        dexName: 'PancakeSwap V2',
+        name: 'BSC Mainnet',
         nativeCoin: 'BNB',
         blockExplorer: 'https://bscscan.com',
         isTestnet: false
       },
       97: { // BSC Testnet
-        name: 'BSC Testnet (PancakeSwap)',
-        router: '0xD99D1c33F9fC3444f8101754aBC46c52416550D1',
-        weth: '0xae13d989daC2f0dEbFf460aC112a837C89BAa7cd', // WBNB Testnet
-        dexName: 'PancakeSwap V2',
+        name: 'BSC Testnet',
         nativeCoin: 'tBNB',
         blockExplorer: 'https://testnet.bscscan.com',
         isTestnet: true
       },
       137: { // Polygon Mainnet
-        name: 'Polygon (QuickSwap)',
-        router: '0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff',
-        weth: '0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270', // WMATIC
-        dexName: 'QuickSwap',
+        name: 'Polygon Mainnet',
         nativeCoin: 'MATIC',
         blockExplorer: 'https://polygonscan.com',
         isTestnet: false
       },
       80001: { // Polygon Mumbai Testnet
-        name: 'Mumbai Testnet (QuickSwap)',
-        router: '0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff',
-        weth: '0x9c3C9283D3e44854697Cd22D3Faa240Cfb032889', // WMATIC Mumbai
-        dexName: 'QuickSwap',
+        name: 'Mumbai Testnet',
         nativeCoin: 'tMATIC',
         blockExplorer: 'https://mumbai.polygonscan.com',
         isTestnet: true
       },
       43114: { // Avalanche Mainnet
-        name: 'Avalanche (Trader Joe)',
-        router: '0x60aE616a2155Ee3d9A68541Ba4544862310933d4',
-        weth: '0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7', // WAVAX
-        dexName: 'Trader Joe',
+        name: 'Avalanche Mainnet',
         nativeCoin: 'AVAX',
         blockExplorer: 'https://snowtrace.io',
         isTestnet: false
       },
       43113: { // Avalanche Fuji Testnet
-        name: 'Fuji Testnet (Trader Joe)',
-        router: '0x2D99ABD9008Dc933ff5c0CD271B88309593aB921',
-        weth: '0xd00ae08403B9bbb9124bB305C09058E32C39A48c', // WAVAX Fuji
-        dexName: 'Trader Joe',
+        name: 'Fuji Testnet',
         nativeCoin: 'tAVAX',
         blockExplorer: 'https://testnet.snowtrace.io',
         isTestnet: true
@@ -419,15 +345,13 @@
       calculateBtnText: document.getElementById('calculateBtnText'),
       executeBtnText: document.getElementById('executeBtnText'),
       nativeCoinLabel: document.getElementById('nativeCoinLabel'),
-      totalCoinLabel: document.getElementById('totalCoinLabel'),
+      totalCostCoin: document.getElementById('totalCostCoin'),
       
       tokenAddress: document.getElementById('tokenAddress'),
       receiverAddress: document.getElementById('receiverAddress'),
-      ethAmount: document.getElementById('ethAmount'),
-      expectedTokens: document.getElementById('expectedTokens'),
       network: document.getElementById('network'),
       
-      // Manual mode fields
+      // Token sale fields
       tokenPrice: document.getElementById('tokenPrice'),
       tokenQuantity: document.getElementById('tokenQuantity'),
       totalCost: document.getElementById('totalCost'),
@@ -450,7 +374,7 @@
 
     function updateConnectionStatus(connected, chainId = null) {
       if (connected && userAddress) {
-        const config = DEX_CONFIG[chainId] || { name: `Chain ${chainId}`, nativeCoin: 'ETH', isTestnet: false };
+        const config = NETWORK_CONFIG[chainId] || { name: `Chain ${chainId}`, nativeCoin: 'ETH', isTestnet: false };
         
         // Indicador visual para testnet
         const networkIndicator = config.isTestnet ? '🟡 TESTNET' : '🔴 MAINNET';
@@ -877,7 +801,7 @@
     ui.network.addEventListener('change', () => {
       const selectedChain = parseInt(ui.network.value);
       if (currentChainId !== selectedChain) {
-        log(`Mudança de rede necessária: ${DEX_CONFIG[selectedChain]?.name}`);
+        log(`Mudança de rede necessária: ${NETWORK_CONFIG[selectedChain]?.name}`);
         // Aqui poderia solicitar mudança de rede via MetaMask
       }
     });
@@ -901,7 +825,7 @@
       window.ethereum.on('chainChanged', (chainIdHex) => {
         const chainId = parseInt(chainIdHex, 16);
         currentChainId = chainId;
-        currentConfig = DEX_CONFIG[chainId];
+        currentConfig = NETWORK_CONFIG[chainId];
         updateConnectionStatus(true, chainId);
         ui.network.value = chainId.toString();
         log(`Rede alterada: ${currentConfig?.name || `Chain ${chainId}`}`);
