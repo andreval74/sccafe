@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧪 Teste Rápido - SCCAFE Moderno</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #0f0f0f;
+            color: #ffffff;
+        }
+        .test-card {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .status-ok { color: #10b981; }
+        .status-error { color: #ef4444; }
+        .status-warning { color: #f59e0b; }
+        button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        button:hover { background: #2563eb; }
+        .result { 
+            margin: 10px 0; 
+            padding: 10px; 
+            background: #262626; 
+            border-radius: 4px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Teste Rápido do Sistema Moderno</h1>
+    <p>Esta página testa rapidamente se a migração foi bem-sucedida.</p>
+
+    <div class="test-card">
+        <h3>📁 Arquivos Principais</h3>
+        <button onclick="testFile('index.html')">Testar index.html</button>
+        <button onclick="testFile('add-token.html')">Testar add-token.html</button>
+        <div id="file-results" class="result"></div>
+    </div>
+
+    <div class="test-card">
+        <h3>🎨 Estilos CSS</h3>
+        <button onclick="testCSS()">Testar styles/globals.css</button>
+        <div id="css-results" class="result"></div>
+    </div>
+
+    <div class="test-card">
+        <h3>⚙️ JavaScript</h3>
+        <button onclick="testJS()">Testar Template Loader</button>
+        <button onclick="testModernJS()">Testar Scripts Modernos</button>
+        <div id="js-results" class="result"></div>
+    </div>
+
+    <div class="test-card">
+        <h3>🧩 Componentes</h3>
+        <button onclick="testComponents()">Testar Sistema de Componentes</button>
+        <div id="component-results" class="result"></div>
+    </div>
+
+    <div class="test-card">
+        <h3>🗑️ Limpeza</h3>
+        <button onclick="testCleanup()">Verificar Arquivos Removidos</button>
+        <div id="cleanup-results" class="result"></div>
+    </div>
+
+    <script>
+        function log(elementId, message, status = 'ok') {
+            const element = document.getElementById(elementId);
+            const statusClass = `status-${status}`;
+            const timestamp = new Date().toLocaleTimeString();
+            element.innerHTML += `<div class="${statusClass}">[${timestamp}] ${message}</div>`;
+        }
+
+        async function testFile(filename) {
+            try {
+                const response = await fetch(filename);
+                if (response.ok) {
+                    const content = await response.text();
+                    const hasTemplate = content.includes('template-loader.js');
+                    const hasComponents = content.includes('data-component');
+                    const hasModernCSS = content.includes('styles/globals.css');
+                    
+                    log('file-results', `✅ ${filename} carregado (${content.length} bytes)`, 'ok');
+                    if (hasTemplate) log('file-results', `  ✓ Template Loader detectado`, 'ok');
+                    if (hasComponents) log('file-results', `  ✓ Sistema de componentes detectado`, 'ok');
+                    if (hasModernCSS) log('file-results', `  ✓ CSS moderno detectado`, 'ok');
+                    
+                    if (!hasTemplate || !hasComponents || !hasModernCSS) {
+                        log('file-results', `  ⚠️ Alguns recursos modernos podem estar ausentes`, 'warning');
+                    }
+                } else {
+                    log('file-results', `❌ Erro ao carregar ${filename}: ${response.status}`, 'error');
+                }
+            } catch (error) {
+                log('file-results', `❌ Erro ao testar ${filename}: ${error.message}`, 'error');
+            }
+        }
+
+        async function testCSS() {
+            try {
+                const response = await fetch('styles/globals.css');
+                if (response.ok) {
+                    const content = await response.text();
+                    const hasVariables = content.includes('--primary');
+                    const hasComponents = content.includes('.btn');
+                    const hasAnimations = content.includes('@keyframes');
+                    
+                    log('css-results', `✅ globals.css carregado (${content.length} bytes)`, 'ok');
+                    if (hasVariables) log('css-results', `  ✓ Variáveis CSS detectadas`, 'ok');
+                    if (hasComponents) log('css-results', `  ✓ Componentes CSS detectados`, 'ok');
+                    if (hasAnimations) log('css-results', `  ✓ Animações detectadas`, 'ok');
+                } else {
+                    log('css-results', `❌ Erro ao carregar globals.css: ${response.status}`, 'error');
+                }
+            } catch (error) {
+                log('css-results', `❌ Erro ao testar CSS: ${error.message}`, 'error');
+            }
+        }
+
+        async function testJS() {
+            try {
+                const response = await fetch('scripts/core/template-loader.js');
+                if (response.ok) {
+                    const content = await response.text();
+                    const hasTemplateLoader = content.includes('class TemplateLoader');
+                    const hasModernJS = content.includes('async') && content.includes('await');
+                    
+                    log('js-results', `✅ Template Loader encontrado (${content.length} bytes)`, 'ok');
+                    if (hasTemplateLoader) log('js-results', `  ✓ Classe TemplateLoader detectada`, 'ok');
+                    if (hasModernJS) log('js-results', `  ✓ JavaScript moderno (ES6+) detectado`, 'ok');
+                } else {
+                    log('js-results', `❌ Erro ao carregar template-loader.js: ${response.status}`, 'error');
+                }
+            } catch (error) {
+                log('js-results', `❌ Erro ao testar Template Loader: ${error.message}`, 'error');
+            }
+        }
+
+        async function testModernJS() {
+            const files = [
+                'scripts/pages/index.js',
+                'scripts/pages/add-token.js'
+            ];
+
+            for (const file of files) {
+                try {
+                    const response = await fetch(file);
+                    if (response.ok) {
+                        const content = await response.text();
+                        const hasClass = content.includes('class ');
+                        const hasModernJS = content.includes('async') && content.includes('await');
+                        
+                        log('js-results', `✅ ${file} encontrado (${content.length} bytes)`, 'ok');
+                        if (hasClass) log('js-results', `  ✓ Classes ES6 detectadas`, 'ok');
+                        if (hasModernJS) log('js-results', `  ✓ Async/await detectado`, 'ok');
+                    } else {
+                        log('js-results', `❌ ${file} não encontrado`, 'error');
+                    }
+                } catch (error) {
+                    log('js-results', `❌ Erro ao testar ${file}: ${error.message}`, 'error');
+                }
+            }
+        }
+
+        async function testComponents() {
+            const components = [
+                'components/layout/header.html',
+                'components/layout/footer.html',
+                'components/ui/button.html',
+                'components/ui/card.html'
+            ];
+
+            for (const component of components) {
+                try {
+                    const response = await fetch(component);
+                    if (response.ok) {
+                        log('component-results', `✅ ${component} encontrado`, 'ok');
+                    } else {
+                        log('component-results', `❌ ${component} não encontrado`, 'error');
+                    }
+                } catch (error) {
+                    log('component-results', `❌ Erro ao testar ${component}: ${error.message}`, 'error');
+                }
+            }
+        }
+
+        async function testCleanup() {
+            const oldFiles = [
+                'css/token.css',
+                'js/add-token.js',
+                'templates/loading-template.html',
+                'modules/03-resumo-criacao.html'
+            ];
+
+            log('cleanup-results', '🔍 Verificando se arquivos obsoletos foram removidos...', 'ok');
+
+            for (const file of oldFiles) {
+                try {
+                    const response = await fetch(file);
+                    if (response.ok) {
+                        log('cleanup-results', `⚠️ ${file} ainda existe (deveria ter sido removido)`, 'warning');
+                    } else {
+                        log('cleanup-results', `✅ ${file} removido com sucesso`, 'ok');
+                    }
+                } catch (error) {
+                    log('cleanup-results', `✅ ${file} removido com sucesso`, 'ok');
+                }
+            }
+
+            try {
+                const response = await fetch('backup-bootstrap-20250811/');
+                if (response.ok) {
+                    log('cleanup-results', `✅ Pasta de backup criada com sucesso`, 'ok');
+                } else {
+                    log('cleanup-results', `⚠️ Pasta de backup pode não ter sido criada`, 'warning');
+                }
+            } catch (error) {
+                log('cleanup-results', `ℹ️ Backup em diretório não acessível via HTTP (normal)`, 'ok');
+            }
+        }
+
+        // Auto-run basic tests
+        window.addEventListener('load', () => {
+            log('file-results', '🚀 Sistema de teste carregado. Use os botões para testar cada área.', 'ok');
+        });
+    </script>
+</body>
+</html>

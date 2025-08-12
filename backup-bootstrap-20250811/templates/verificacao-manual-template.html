@@ -1,0 +1,61 @@
+<!-- Template de Verificação Manual -->
+<div class="manual-verification">
+  <div class="verification-info">
+    <h4>📋 Dados para Verificação Manual</h4>
+    <p>✅ Todos os dados foram preparados para facilitar o processo manual.</p>
+  </div>
+  
+  <div class="verification-steps">
+    <h5>🎯 Passos para verificar:</h5>
+    <ol>
+      <li>Acesse o explorador: <a href="#" target="_blank" id="explorer-link">-</a></li>
+      <li>Vá para o endereço do seu contrato</li>
+      <li>Clique em "Contract" → "Verify and Publish"</li>
+      <li>Use os dados abaixo (clique para copiar facilmente)</li>
+    </ol>
+  </div>
+  
+  <div class="verification-data">
+    <div class="data-group">
+      <label>📋 Configurações do Compilador:</label>
+      <div class="copy-section">
+        <div class="config-grid">
+          <div><strong>Compiler Version:</strong> <span id="compiler-version">-</span></div>
+          <div><strong>Optimization:</strong> <span id="optimization-used">-</span></div>
+          <div><strong>Runs:</strong> <span id="optimization-runs">-</span></div>
+          <div><strong>EVM Version:</strong> <span id="evm-version">-</span></div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="data-group">
+      <label>📄 Código Fonte:</label>
+      <div class="copy-section">
+        <textarea id="source-code-display" readonly></textarea>
+        <button type="button" class="btn-copy" onclick="copyToClipboard('source-code-display', this)">
+          📋 Copiar Código Fonte
+        </button>
+      </div>
+    </div>
+    
+    <div class="data-group">
+      <label>⚙️ ABI (Application Binary Interface):</label>
+      <div class="copy-section">
+        <textarea id="abi-display" readonly></textarea>
+        <button type="button" class="btn-copy" onclick="copyToClipboard('abi-display', this)">
+          📋 Copiar ABI
+        </button>
+      </div>
+    </div>
+  </div>
+  
+  <div class="verification-help">
+    <h5>💡 Dicas importantes:</h5>
+    <ul>
+      <li>✅ Use EXATAMENTE as configurações mostradas acima</li>
+      <li>🔄 O processo pode demorar alguns minutos</li>
+      <li>📧 Alguns exploradores enviam email de confirmação</li>
+      <li>🆔 Mantenha a aba aberta durante o processo</li>
+    </ul>
+  </div>
+</div>
