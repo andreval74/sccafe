@@ -75,6 +75,28 @@
 
               <!-- Purchase Form -->
               <form id="purchaseForm">
+                <!-- Mode Selection -->
+                <div class="mb-4">
+                  <label class="form-label text-white">
+                    <i class="bi bi-toggles text-primary me-2"></i>Modo de Compra
+                  </label>
+                  <div class="btn-group w-100" role="group">
+                    <input type="radio" class="btn-check" name="purchaseMode" id="mode-dex" value="dex" checked>
+                    <label class="btn btn-outline-primary" for="mode-dex">
+                      <i class="bi bi-graph-up me-1"></i>DEX (Token Listado)
+                    </label>
+                    
+                    <input type="radio" class="btn-check" name="purchaseMode" id="mode-manual" value="manual">
+                    <label class="btn btn-outline-primary" for="mode-manual">
+                      <i class="bi bi-pencil me-1"></i>Manual (Meu Token)
+                    </label>
+                  </div>
+                  <div class="form-text text-muted mt-2">
+                    <strong>DEX:</strong> Preços automáticos de tokens já listados | 
+                    <strong>Manual:</strong> Você define preço e quantidade
+                  </div>
+                </div>
+
                 <!-- Token Selection -->
                 <div class="row g-4 mb-4">
                   <div class="col-md-8">
@@ -108,23 +130,67 @@
                   <div class="form-text text-muted">Endereço que receberá os tokens comprados (deixe vazio para usar sua carteira)</div>
                 </div>
 
-                <!-- Purchase Details -->
-                <div class="row g-4 mb-4">
-                  <div class="col-md-6">
-                    <label for="ethAmount" class="form-label text-white">
-                      <i class="bi bi-currency-exchange text-primary me-2"></i>Valor em ETH/BNB/MATIC
-                    </label>
-                    <input type="number" class="form-control bg-dark text-white border-secondary" 
-                           id="ethAmount" placeholder="0.1" step="0.001" min="0.001" required>
-                    <div class="form-text text-muted">Quantidade de moeda nativa que deseja trocar</div>
+                <!-- DEX Mode Fields -->
+                <div id="dex-mode-fields">
+                  <div class="row g-4 mb-4">
+                    <div class="col-md-6">
+                      <label for="ethAmount" class="form-label text-white">
+                        <i class="bi bi-currency-exchange text-primary me-2"></i>Valor em ETH/BNB/MATIC
+                      </label>
+                      <input type="number" class="form-control bg-dark text-white border-secondary" 
+                             id="ethAmount" placeholder="0.1" step="0.001" min="0.001">
+                      <div class="form-text text-muted">Quantidade de moeda nativa que deseja trocar</div>
+                    </div>
+                    <div class="col-md-6">
+                      <label for="expectedTokens" class="form-label text-white">
+                        <i class="bi bi-graph-up text-primary me-2"></i>Tokens Estimados
+                      </label>
+                      <input type="text" class="form-control bg-dark text-white border-secondary" 
+                             id="expectedTokens" placeholder="Calculando..." readonly>
+                      <div class="form-text text-muted">Quantidade estimada de tokens que receberá</div>
+                    </div>
                   </div>
-                  <div class="col-md-6">
-                    <label for="expectedTokens" class="form-label text-white">
-                      <i class="bi bi-graph-up text-primary me-2"></i>Tokens Estimados
-                    </label>
-                    <input type="text" class="form-control bg-dark text-white border-secondary" 
-                           id="expectedTokens" placeholder="Calculando..." readonly>
-                    <div class="form-text text-muted">Quantidade estimada de tokens que receberá</div>
+                </div>
+
+                <!-- Manual Mode Fields -->
+                <div id="manual-mode-fields" style="display: none;">
+                  <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    <strong>Modo Manual:</strong> Você está definindo preço e quantidade manualmente. 
+                    Certifique-se de que o endereço recebedor é o proprietário do token ou tem autorização para recebê-lo.
+                  </div>
+                  
+                  <div class="row g-4 mb-4">
+                    <div class="col-md-4">
+                      <label for="tokenPrice" class="form-label text-white">
+                        <i class="bi bi-tag text-primary me-2"></i>Preço por Token
+                      </label>
+                      <div class="input-group">
+                        <input type="number" class="form-control bg-dark text-white border-secondary" 
+                               id="tokenPrice" placeholder="0.001" step="0.0001" min="0.0001">
+                        <span class="input-group-text bg-secondary text-white" id="nativeCoinLabel">ETH</span>
+                      </div>
+                      <div class="form-text text-muted">Preço que você está cobrando por cada token</div>
+                    </div>
+                    <div class="col-md-4">
+                      <label for="tokenQuantity" class="form-label text-white">
+                        <i class="bi bi-123 text-primary me-2"></i>Quantidade de Tokens
+                      </label>
+                      <input type="number" class="form-control bg-dark text-white border-secondary" 
+                             id="tokenQuantity" placeholder="1000" step="1" min="1">
+                      <div class="form-text text-muted">Quantos tokens o comprador receberá</div>
+                    </div>
+                    <div class="col-md-4">
+                      <label for="totalCost" class="form-label text-white">
+                        <i class="bi bi-calculator text-primary me-2"></i>Total a Pagar
+                      </label>
+                      <div class="input-group">
+                        <input type="text" class="form-control bg-dark text-white border-secondary" 
+                               id="totalCost" placeholder="0.000" readonly>
+                        <span class="input-group-text bg-secondary text-white" id="totalCoinLabel">ETH</span>
+                      </div>
+                      <div class="form-text text-muted">Valor total que será cobrado do comprador</div>
+                    </div>
                   </div>
                 </div>
 
@@ -166,10 +232,15 @@
                 <!-- Action Buttons -->
                 <div class="d-grid gap-2">
                   <button type="button" id="calculateBtn" class="btn btn-outline-primary btn-lg" disabled>
-                    <i class="bi bi-calculator me-2"></i>Calcular Preço
+                    <i class="bi bi-calculator me-2"></i>
+                    <span id="calculateBtnText">Calcular Preço DEX</span>
                   </button>
-                  <button type="submit" id="executeBtn" class="btn btn-primary btn-lg" disabled>
-                    <i class="bi bi-cart-check me-2"></i>Executar Compra
+                  <button type="button" id="executeBtn" class="btn btn-primary btn-lg" disabled>
+                    <i class="bi bi-cart-check me-2"></i>
+                    <span id="executeBtnText">Executar Compra via DEX</span>
+                  </button>
+                  <button type="button" id="transferBtn" class="btn btn-success btn-lg" style="display: none;" disabled>
+                    <i class="bi bi-send me-2"></i>Transferir Tokens (Modo Manual)
                   </button>
                 </div>
               </form>
@@ -282,6 +353,7 @@
     let userAddress = null;
     let currentChainId = null;
     let currentConfig = null;
+    let purchaseMode = 'dex'; // 'dex' ou 'manual'
 
     // Elementos da UI
     const ui = {
@@ -289,7 +361,18 @@
       connectBtn: document.getElementById('connectBtn'),
       calculateBtn: document.getElementById('calculateBtn'),
       executeBtn: document.getElementById('executeBtn'),
+      transferBtn: document.getElementById('transferBtn'),
       connectionAlert: document.getElementById('connectionAlert'),
+      
+      // Mode elements
+      modeDex: document.getElementById('mode-dex'),
+      modeManual: document.getElementById('mode-manual'),
+      dexModeFields: document.getElementById('dex-mode-fields'),
+      manualModeFields: document.getElementById('manual-mode-fields'),
+      calculateBtnText: document.getElementById('calculateBtnText'),
+      executeBtnText: document.getElementById('executeBtnText'),
+      nativeCoinLabel: document.getElementById('nativeCoinLabel'),
+      totalCoinLabel: document.getElementById('totalCoinLabel'),
       
       tokenAddress: document.getElementById('tokenAddress'),
       receiverAddress: document.getElementById('receiverAddress'),
@@ -299,6 +382,11 @@
       slippage: document.getElementById('slippage'),
       customSlippage: document.getElementById('customSlippage'),
       deadline: document.getElementById('deadline'),
+      
+      // Manual mode fields
+      tokenPrice: document.getElementById('tokenPrice'),
+      tokenQuantity: document.getElementById('tokenQuantity'),
+      totalCost: document.getElementById('totalCost'),
       
       log: document.getElementById('log')
     };
@@ -332,6 +420,9 @@
           ui.receiverAddress.value = userAddress;
         }
         
+        // Atualizar labels de moeda
+        updateCoinLabels(config.nativeCoin);
+        
         log(`Conectado com sucesso à ${config.name}`, 'success');
       } else {
         ui.status.textContent = 'MetaMask não conectado';
@@ -341,7 +432,56 @@
         
         ui.calculateBtn.disabled = true;
         ui.executeBtn.disabled = true;
+        ui.transferBtn.disabled = true;
         currentConfig = null;
+      }
+    }
+
+    // Atualizar labels de moeda nativa
+    function updateCoinLabels(coinName) {
+      ui.nativeCoinLabel.textContent = coinName;
+      ui.totalCoinLabel.textContent = coinName;
+    }
+
+    // Alternar entre modos
+    function switchPurchaseMode() {
+      purchaseMode = ui.modeDex.checked ? 'dex' : 'manual';
+      
+      if (purchaseMode === 'dex') {
+        ui.dexModeFields.style.display = 'block';
+        ui.manualModeFields.style.display = 'none';
+        ui.executeBtn.style.display = 'block';
+        ui.transferBtn.style.display = 'none';
+        ui.calculateBtnText.textContent = 'Calcular Preço DEX';
+        ui.executeBtnText.textContent = 'Executar Compra via DEX';
+      } else {
+        ui.dexModeFields.style.display = 'none';
+        ui.manualModeFields.style.display = 'block';
+        ui.executeBtn.style.display = 'none';
+        ui.transferBtn.style.display = 'block';
+        ui.calculateBtnText.textContent = 'Calcular Total Manual';
+        ui.transferBtn.disabled = false;
+      }
+      
+      // Reset campos
+      ui.expectedTokens.value = '';
+      ui.totalCost.value = '';
+      ui.executeBtn.disabled = true;
+      
+      log(`Modo alterado para: ${purchaseMode === 'dex' ? 'DEX (Automático)' : 'Manual (Você define preço)'}`, 'info');
+    }
+
+    // Calcular total no modo manual
+    function calculateManualTotal() {
+      const price = parseFloat(ui.tokenPrice.value || '0');
+      const quantity = parseFloat(ui.tokenQuantity.value || '0');
+      
+      if (price > 0 && quantity > 0) {
+        const total = price * quantity;
+        ui.totalCost.value = total.toFixed(8);
+        log(`Cálculo manual: ${quantity} tokens × ${price} ${currentConfig?.nativeCoin || 'ETH'} = ${total.toFixed(8)} ${currentConfig?.nativeCoin || 'ETH'}`, 'info');
+      } else {
+        ui.totalCost.value = '';
       }
     }
 
@@ -408,6 +548,12 @@
         return;
       }
 
+      if (purchaseMode === 'manual') {
+        calculateManualTotal();
+        return;
+      }
+
+      // Modo DEX
       const tokenAddr = ui.tokenAddress.value.trim();
       const ethAmount = ui.ethAmount.value;
 
@@ -417,7 +563,7 @@
       }
 
       try {
-        log('Calculando preço...');
+        log('Calculando preço via DEX...');
         ui.expectedTokens.value = 'Calculando...';
 
         // Router ABI para getAmountsOut
@@ -448,16 +594,72 @@
         
         ui.executeBtn.disabled = false;
         
-        log(`Preço calculado: ${ethAmount} ${currentConfig.nativeCoin} = ${parseFloat(formattedTokens).toFixed(6)} tokens`, 'success');
+        log(`Preço via ${currentConfig.dexName}: ${ethAmount} ${currentConfig.nativeCoin} = ${parseFloat(formattedTokens).toFixed(6)} tokens`, 'success');
         
       } catch (error) {
-        log(`Erro ao calcular preço: ${error.message}`, 'error');
-        ui.expectedTokens.value = 'Erro no cálculo';
+        log(`Erro ao calcular preço via DEX: ${error.message}`, 'error');
+        log('Tente usar o Modo Manual se o token não estiver listado na DEX', 'info');
+        ui.expectedTokens.value = 'Token não listado na DEX';
         ui.executeBtn.disabled = true;
       }
     }
 
-    // Executar compra
+    // Executar transferência manual
+    async function executeManualTransfer() {
+      if (!provider || !signer) {
+        alert('Conecte sua carteira primeiro');
+        return;
+      }
+
+      const tokenAddr = ui.tokenAddress.value.trim();
+      const receiverAddr = ui.receiverAddress.value.trim();
+      const tokenQuantity = ui.tokenQuantity.value;
+      const totalCost = ui.totalCost.value;
+      
+      if (!tokenAddr || !receiverAddr || !tokenQuantity || !totalCost) {
+        alert('Preencha todos os campos do modo manual');
+        return;
+      }
+
+      try {
+        log('Executando transferência manual...');
+        
+        // Primeiro: Receber pagamento em ETH/BNB
+        const paymentValue = ethers.utils.parseEther(totalCost);
+        
+        log(`Solicitando pagamento de ${totalCost} ${currentConfig.nativeCoin} para a carteira...`);
+        
+        // Enviar ETH/BNB para o dono do token (sua carteira)
+        const paymentTx = await signer.sendTransaction({
+          to: userAddress, // Você recebe o pagamento
+          value: paymentValue
+        });
+        
+        log(`Pagamento enviado: ${paymentTx.hash}`, 'success');
+        log('Aguardando confirmação do pagamento...');
+        
+        await paymentTx.wait();
+        
+        log(`✅ Pagamento confirmado! Agora envie os tokens manualmente.`, 'success');
+        log(`Detalhes para transferência:`);
+        log(`• Token: ${tokenAddr}`);
+        log(`• Para: ${receiverAddr}`);
+        log(`• Quantidade: ${tokenQuantity} tokens`);
+        log(`• Valor recebido: ${totalCost} ${currentConfig.nativeCoin}`);
+        
+        // Reset form
+        ui.tokenPrice.value = '';
+        ui.tokenQuantity.value = '';
+        ui.totalCost.value = '';
+
+      } catch (error) {
+        if (error.code === 4001) {
+          log('Transação rejeitada pelo usuário', 'error');
+        } else {
+          log(`Erro na transferência manual: ${error.message}`, 'error');
+        }
+      }
+    }
     async function executePurchase() {
       if (!provider || !signer || !currentConfig) {
         alert('Conecte sua carteira primeiro');
@@ -538,18 +740,29 @@
     ui.connectBtn.addEventListener('click', connectWallet);
     ui.calculateBtn.addEventListener('click', calculatePrice);
     ui.executeBtn.addEventListener('click', executePurchase);
+    ui.transferBtn.addEventListener('click', executeManualTransfer);
     
-    // Auto-calcular quando mudar valores
+    // Mode switching
+    ui.modeDex.addEventListener('change', switchPurchaseMode);
+    ui.modeManual.addEventListener('change', switchPurchaseMode);
+    
+    // Manual mode calculations
+    ui.tokenPrice.addEventListener('input', calculateManualTotal);
+    ui.tokenQuantity.addEventListener('input', calculateManualTotal);
+    
+    // Auto-calcular quando mudar valores (modo DEX)
     ui.ethAmount.addEventListener('input', () => {
-      if (ui.ethAmount.value && ui.tokenAddress.value) {
-        ui.expectedTokens.value = 'Digite calcular para atualizar';
+      if (purchaseMode === 'dex' && ui.ethAmount.value && ui.tokenAddress.value) {
+        ui.expectedTokens.value = 'Clique em calcular para atualizar';
         ui.executeBtn.disabled = true;
       }
     });
 
     ui.tokenAddress.addEventListener('input', () => {
-      ui.expectedTokens.value = '';
-      ui.executeBtn.disabled = true;
+      if (purchaseMode === 'dex') {
+        ui.expectedTokens.value = '';
+        ui.executeBtn.disabled = true;
+      }
     });
 
     // Slippage personalizado
@@ -604,6 +817,9 @@
     // Inicialização
     document.addEventListener('DOMContentLoaded', async function() {
       log('🚀 SCCAFE Token Purchase iniciado');
+      
+      // Configurar modo inicial
+      switchPurchaseMode();
       
       if (detectProvider()) {
         setupWalletListeners();
