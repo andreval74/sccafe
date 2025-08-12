@@ -92,8 +92,8 @@
                     </label>
                   </div>
                   <div class="form-text text-muted mt-2">
-                    <strong>DEX:</strong> Preços automáticos de tokens já listados | 
-                    <strong>Manual:</strong> Você define preço e quantidade
+                    <strong>DEX:</strong> Busca preços automáticos de tokens já listados em exchanges | 
+                    <strong>Manual:</strong> ⭐ Para seus tokens - recebe pagamento e envia tokens automaticamente
                   </div>
                 </div>
 
@@ -112,11 +112,20 @@
                       <i class="bi bi-globe text-primary me-2"></i>Rede/DEX
                     </label>
                     <select class="form-control bg-dark text-white border-secondary" id="network">
-                      <option value="1">Ethereum (Uniswap)</option>
-                      <option value="56" selected>BSC (PancakeSwap)</option>
-                      <option value="137">Polygon (QuickSwap)</option>
-                      <option value="43114">Avalanche (Trader Joe)</option>
+                      <optgroup label="🔴 MAINNETS (Real Money)">
+                        <option value="1">Ethereum (Uniswap)</option>
+                        <option value="56">BSC (PancakeSwap)</option>
+                        <option value="137">Polygon (QuickSwap)</option>
+                        <option value="43114">Avalanche (Trader Joe)</option>
+                      </optgroup>
+                      <optgroup label="🟡 TESTNETS (Para Testes)">
+                        <option value="11155111">Sepolia Testnet (tETH)</option>
+                        <option value="97" selected>BSC Testnet (tBNB)</option>
+                        <option value="80001">Mumbai Testnet (tMATIC)</option>
+                        <option value="43113">Fuji Testnet (tAVAX)</option>
+                      </optgroup>
                     </select>
+                    <div class="form-text text-muted">Use testnets para testar sem gastar dinheiro real</div>
                   </div>
                 </div>
 
@@ -194,41 +203,6 @@
                   </div>
                 </div>
 
-                <!-- Advanced Settings -->
-                <div class="card bg-secondary mb-4">
-                  <div class="card-header">
-                    <h6 class="mb-0 text-white">
-                      <i class="bi bi-gear text-primary me-2"></i>Configurações Avançadas
-                    </h6>
-                  </div>
-                  <div class="card-body">
-                    <div class="row g-3">
-                      <div class="col-md-6">
-                        <label for="slippage" class="form-label text-white">Slippage (%)</label>
-                        <select class="form-control bg-dark text-white border-secondary" id="slippage">
-                          <option value="0.5">0.5% (Baixo)</option>
-                          <option value="1" selected>1% (Padrão)</option>
-                          <option value="2">2% (Médio)</option>
-                          <option value="5">5% (Alto)</option>
-                          <option value="custom">Personalizado</option>
-                        </select>
-                      </div>
-                      <div class="col-md-6">
-                        <label for="deadline" class="form-label text-white">Deadline (minutos)</label>
-                        <input type="number" class="form-control bg-dark text-white border-secondary" 
-                               id="deadline" value="20" min="1" max="60">
-                      </div>
-                    </div>
-                    <div class="row g-3 mt-2" id="customSlippageRow" style="display: none;">
-                      <div class="col-md-6">
-                        <label for="customSlippage" class="form-label text-white">Slippage Personalizado (%)</label>
-                        <input type="number" class="form-control bg-dark text-white border-secondary" 
-                               id="customSlippage" placeholder="3.5" step="0.1" min="0.1" max="50">
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
                 <!-- Action Buttons -->
                 <div class="d-grid gap-2">
                   <button type="button" id="calculateBtn" class="btn btn-outline-primary btn-lg" disabled>
@@ -263,29 +237,62 @@
           <div class="card bg-secondary mt-4">
             <div class="card-body">
               <h6 class="text-white mb-3">
-                <i class="bi bi-info-circle text-primary me-2"></i>Como Funciona
+                <i class="bi bi-info-circle text-primary me-2"></i>Como Funciona & Como Testar
               </h6>
+              
+              <!-- Testnet Info -->
+              <div class="alert alert-warning mb-3">
+                <h6 class="alert-heading">🟡 Para Testes Seguros (Recomendado)</h6>
+                <p class="mb-2">Use <strong>BSC Testnet</strong> para testar sem gastar dinheiro real:</p>
+                <ol class="mb-2">
+                  <li>Conecte à <strong>BSC Testnet</strong> no MetaMask</li>
+                  <li>Obtenha <strong>tBNB grátis</strong>: <a href="https://testnet.binance.org/faucet" target="_blank" class="text-primary">https://testnet.binance.org/faucet</a></li>
+                  <li>Use o endereço do seu token de teste</li>
+                  <li>Teste à vontade - não custa nada real!</li>
+                </ol>
+              </div>
+              
               <div class="row g-3">
                 <div class="col-md-4">
                   <div class="text-center">
                     <i class="bi bi-wallet2 text-primary" style="font-size: 2rem;"></i>
                     <h6 class="text-white mt-2">1. Conecte</h6>
-                    <small class="text-muted">Conecte sua MetaMask à rede desejada</small>
+                    <small class="text-muted">Conecte MetaMask à rede desejada (use testnet para testes)</small>
                   </div>
                 </div>
                 <div class="col-md-4">
                   <div class="text-center">
-                    <i class="bi bi-calculator text-primary" style="font-size: 2rem;"></i>
-                    <h6 class="text-white mt-2">2. Calcule</h6>
-                    <small class="text-muted">Veja o preço atual e quantidade estimada</small>
+                    <i class="bi bi-toggles text-primary" style="font-size: 2rem;"></i>
+                    <h6 class="text-white mt-2">2. Escolha Modo</h6>
+                    <small class="text-muted"><strong>DEX:</strong> Tokens listados | <strong>Manual:</strong> Seus tokens</small>
                   </div>
                 </div>
                 <div class="col-md-4">
                   <div class="text-center">
                     <i class="bi bi-arrow-left-right text-primary" style="font-size: 2rem;"></i>
-                    <h6 class="text-white mt-2">3. Troque</h6>
-                    <small class="text-muted">Execute o swap via DEX com melhor preço</small>
+                    <h6 class="text-white mt-2">3. Execute</h6>
+                    <small class="text-muted">Modo manual: Recebe pagamento + envia tokens automaticamente</small>
                   </div>
+                </div>
+              </div>
+              
+              <!-- Faucets -->
+              <div class="mt-3">
+                <h6 class="text-white">🚰 Faucets para Testes (Tokens Grátis):</h6>
+                <ul class="list-unstyled text-muted small">
+                  <li>• <strong>tBNB:</strong> <a href="https://testnet.binance.org/faucet" target="_blank" class="text-primary">BSC Testnet Faucet</a></li>
+                  <li>• <strong>tETH:</strong> <a href="https://faucets.chain.link/sepolia" target="_blank" class="text-primary">Chainlink Sepolia Faucet</a></li>
+                  <li>• <strong>tMATIC:</strong> <a href="https://faucet.polygon.technology/" target="_blank" class="text-primary">Polygon Mumbai Faucet</a></li>
+                  <li>• <strong>tAVAX:</strong> <a href="https://faucet.avax.network/" target="_blank" class="text-primary">Avalanche Fuji Faucet</a></li>
+                </ul>
+                
+                <div class="alert alert-info mt-3">
+                  <h6 class="alert-heading">💡 Dica: Teste com seu próprio token</h6>
+                  <p class="mb-0">
+                    1. Vá em <a href="add-index.html" class="text-primary"><strong>Criar Token</strong></a> e crie um token de teste na BSC Testnet<br>
+                    2. Volte aqui e use o <strong>Modo Manual</strong> com o endereço do seu token<br>
+                    3. Teste comprando com tBNB - é grátis e funciona perfeitamente!
+                  </p>
                 </div>
               </div>
             </div>
@@ -311,39 +318,79 @@
      * Suporte para múltiplas DEXs: PancakeSwap, Uniswap, QuickSwap, Trader Joe
      */
 
-    // Configurações das DEXs por rede
+    // Configurações das DEXs por rede (incluindo testnets)
     const DEX_CONFIG = {
-      1: { // Ethereum
+      1: { // Ethereum Mainnet
         name: 'Ethereum (Uniswap)',
         router: '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D',
         weth: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
         dexName: 'Uniswap V2',
         nativeCoin: 'ETH',
-        blockExplorer: 'https://etherscan.io'
+        blockExplorer: 'https://etherscan.io',
+        isTestnet: false
       },
-      56: { // BSC
+      11155111: { // Ethereum Sepolia Testnet
+        name: 'Sepolia Testnet (Uniswap)',
+        router: '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D',
+        weth: '0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14', // WETH Sepolia
+        dexName: 'Uniswap V2',
+        nativeCoin: 'tETH',
+        blockExplorer: 'https://sepolia.etherscan.io',
+        isTestnet: true
+      },
+      56: { // BSC Mainnet
         name: 'BSC (PancakeSwap)',
         router: '0x10ED43C718714eb63d5aA57B78B54704E256024E',
         weth: '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c', // WBNB
         dexName: 'PancakeSwap V2',
         nativeCoin: 'BNB',
-        blockExplorer: 'https://bscscan.com'
+        blockExplorer: 'https://bscscan.com',
+        isTestnet: false
       },
-      137: { // Polygon
+      97: { // BSC Testnet
+        name: 'BSC Testnet (PancakeSwap)',
+        router: '0xD99D1c33F9fC3444f8101754aBC46c52416550D1',
+        weth: '0xae13d989daC2f0dEbFf460aC112a837C89BAa7cd', // WBNB Testnet
+        dexName: 'PancakeSwap V2',
+        nativeCoin: 'tBNB',
+        blockExplorer: 'https://testnet.bscscan.com',
+        isTestnet: true
+      },
+      137: { // Polygon Mainnet
         name: 'Polygon (QuickSwap)',
         router: '0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff',
         weth: '0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270', // WMATIC
         dexName: 'QuickSwap',
         nativeCoin: 'MATIC',
-        blockExplorer: 'https://polygonscan.com'
+        blockExplorer: 'https://polygonscan.com',
+        isTestnet: false
       },
-      43114: { // Avalanche
+      80001: { // Polygon Mumbai Testnet
+        name: 'Mumbai Testnet (QuickSwap)',
+        router: '0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff',
+        weth: '0x9c3C9283D3e44854697Cd22D3Faa240Cfb032889', // WMATIC Mumbai
+        dexName: 'QuickSwap',
+        nativeCoin: 'tMATIC',
+        blockExplorer: 'https://mumbai.polygonscan.com',
+        isTestnet: true
+      },
+      43114: { // Avalanche Mainnet
         name: 'Avalanche (Trader Joe)',
         router: '0x60aE616a2155Ee3d9A68541Ba4544862310933d4',
         weth: '0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7', // WAVAX
         dexName: 'Trader Joe',
         nativeCoin: 'AVAX',
-        blockExplorer: 'https://snowtrace.io'
+        blockExplorer: 'https://snowtrace.io',
+        isTestnet: false
+      },
+      43113: { // Avalanche Fuji Testnet
+        name: 'Fuji Testnet (Trader Joe)',
+        router: '0x2D99ABD9008Dc933ff5c0CD271B88309593aB921',
+        weth: '0xd00ae08403B9bbb9124bB305C09058E32C39A48c', // WAVAX Fuji
+        dexName: 'Trader Joe',
+        nativeCoin: 'tAVAX',
+        blockExplorer: 'https://testnet.snowtrace.io',
+        isTestnet: true
       }
     };
 
@@ -379,9 +426,6 @@
       ethAmount: document.getElementById('ethAmount'),
       expectedTokens: document.getElementById('expectedTokens'),
       network: document.getElementById('network'),
-      slippage: document.getElementById('slippage'),
-      customSlippage: document.getElementById('customSlippage'),
-      deadline: document.getElementById('deadline'),
       
       // Manual mode fields
       tokenPrice: document.getElementById('tokenPrice'),
@@ -406,11 +450,18 @@
 
     function updateConnectionStatus(connected, chainId = null) {
       if (connected && userAddress) {
-        const config = DEX_CONFIG[chainId] || { name: `Chain ${chainId}`, nativeCoin: 'ETH' };
-        ui.status.textContent = `Conectado: ${shortAddr(userAddress)} - ${config.name}`;
+        const config = DEX_CONFIG[chainId] || { name: `Chain ${chainId}`, nativeCoin: 'ETH', isTestnet: false };
+        
+        // Indicador visual para testnet
+        const networkIndicator = config.isTestnet ? '🟡 TESTNET' : '🔴 MAINNET';
+        const safetyWarning = config.isTestnet ? '(Seguro para testes)' : '(DINHEIRO REAL!)';
+        
+        ui.status.textContent = `${networkIndicator} ${shortAddr(userAddress)} - ${config.name} ${safetyWarning}`;
         ui.connectBtn.innerHTML = '<i class="bi bi-check-circle me-1"></i>Conectado';
-        ui.connectBtn.className = 'btn btn-success btn-sm';
-        ui.connectionAlert.className = 'alert alert-success d-flex align-items-center';
+        ui.connectBtn.className = config.isTestnet ? 'btn btn-warning btn-sm' : 'btn btn-success btn-sm';
+        ui.connectionAlert.className = config.isTestnet ? 
+          'alert alert-warning d-flex align-items-center' : 
+          'alert alert-success d-flex align-items-center';
         
         ui.calculateBtn.disabled = false;
         currentConfig = config;
@@ -423,7 +474,15 @@
         // Atualizar labels de moeda
         updateCoinLabels(config.nativeCoin);
         
-        log(`Conectado com sucesso à ${config.name}`, 'success');
+        if (config.isTestnet) {
+          log(`🟡 CONECTADO À TESTNET: ${config.name}`, 'info');
+          log(`💡 Esta é uma rede de teste. Tokens aqui não têm valor real.`, 'info');
+          log(`💡 Use https://testnet.binance.org/faucet para obter tBNB grátis`, 'info');
+        } else {
+          log(`🔴 CONECTADO À MAINNET: ${config.name}`, 'success');
+          log(`⚠️ ATENÇÃO: Esta é uma rede real. Cuidado com transações!`, 'error');
+        }
+        
       } else {
         ui.status.textContent = 'MetaMask não conectado';
         ui.connectBtn.innerHTML = '<i class="bi bi-link-45deg me-1"></i>Conectar MetaMask';
@@ -604,7 +663,7 @@
       }
     }
 
-    // Executar transferência manual
+    // Executar transferência manual (compra + transferência automática)
     async function executeManualTransfer() {
       if (!provider || !signer) {
         alert('Conecte sua carteira primeiro');
@@ -622,41 +681,97 @@
       }
 
       try {
-        log('Executando transferência manual...');
+        log('🔄 Iniciando processo de compra manual...');
         
-        // Primeiro: Receber pagamento em ETH/BNB
+        // Verificar se você tem os tokens para enviar
+        const tokenAbi = [
+          'function balanceOf(address owner) view returns (uint256)',
+          'function decimals() view returns (uint8)',
+          'function transfer(address to, uint256 amount) returns (bool)',
+          'function symbol() view returns (string)'
+        ];
+        
+        const tokenContract = new ethers.Contract(tokenAddr, tokenAbi, signer);
+        
+        log('Verificando informações do token...');
+        
+        // Obter informações do token
+        let decimals = 18;
+        let symbol = 'TOKEN';
+        let yourBalance = ethers.BigNumber.from('0');
+        
+        try {
+          decimals = await tokenContract.decimals();
+          symbol = await tokenContract.symbol();
+          yourBalance = await tokenContract.balanceOf(userAddress);
+          
+          log(`Token: ${symbol} | Decimais: ${decimals}`);
+          log(`Seu saldo: ${ethers.utils.formatUnits(yourBalance, decimals)} ${symbol}`);
+        } catch (e) {
+          log('Erro ao ler informações do token. Verificando se o endereço está correto...', 'error');
+          throw new Error('Endereço do token inválido ou você não tem permissão para lê-lo');
+        }
+
+        // Calcular quantidade de tokens em wei
+        const tokenAmountWei = ethers.utils.parseUnits(tokenQuantity.toString(), decimals);
+        
+        // Verificar se você tem saldo suficiente
+        if (yourBalance.lt(tokenAmountWei)) {
+          const needed = ethers.utils.formatUnits(tokenAmountWei, decimals);
+          const have = ethers.utils.formatUnits(yourBalance, decimals);
+          throw new Error(`Saldo insuficiente! Você tem ${have} ${symbol}, mas precisa de ${needed} ${symbol}`);
+        }
+
+        // Passo 1: Receber pagamento do comprador
         const paymentValue = ethers.utils.parseEther(totalCost);
         
-        log(`Solicitando pagamento de ${totalCost} ${currentConfig.nativeCoin} para a carteira...`);
+        log(`💰 Solicitando pagamento de ${totalCost} ${currentConfig.nativeCoin} do comprador...`);
         
-        // Enviar ETH/BNB para o dono do token (sua carteira)
+        // Nota: Na vida real, isso seria o comprador enviando para você
+        // Aqui simulamos como se fosse o comprador pagando
         const paymentTx = await signer.sendTransaction({
           to: userAddress, // Você recebe o pagamento
-          value: paymentValue
+          value: paymentValue,
+          gasLimit: 21000
         });
         
-        log(`Pagamento enviado: ${paymentTx.hash}`, 'success');
-        log('Aguardando confirmação do pagamento...');
+        log(`✅ Pagamento enviado: ${paymentTx.hash}`, 'success');
+        log('⏳ Aguardando confirmação do pagamento...');
         
         await paymentTx.wait();
+        log(`✅ Pagamento confirmado!`, 'success');
+
+        // Passo 2: Enviar tokens automaticamente
+        log(`📤 Enviando ${tokenQuantity} ${symbol} para ${shortAddr(receiverAddr)}...`);
         
-        log(`✅ Pagamento confirmado! Agora envie os tokens manualmente.`, 'success');
-        log(`Detalhes para transferência:`);
-        log(`• Token: ${tokenAddr}`);
-        log(`• Para: ${receiverAddr}`);
-        log(`• Quantidade: ${tokenQuantity} tokens`);
-        log(`• Valor recebido: ${totalCost} ${currentConfig.nativeCoin}`);
+        const transferTx = await tokenContract.transfer(receiverAddr, tokenAmountWei, {
+          gasLimit: 100000 // Gas suficiente para transferência ERC-20
+        });
+        
+        log(`✅ Tokens enviados: ${transferTx.hash}`, 'success');
+        log('⏳ Aguardando confirmação da transferência...');
+        
+        await transferTx.wait();
+        
+        log(`🎉 TRANSAÇÃO COMPLETA!`, 'success');
+        log(`💰 Recebido: ${totalCost} ${currentConfig.nativeCoin}`);
+        log(`📤 Enviado: ${tokenQuantity} ${symbol}`);
+        log(`🔗 Hash do pagamento: ${paymentTx.hash}`);
+        log(`🔗 Hash da transferência: ${transferTx.hash}`);
+        log(`🌐 Explorador: ${currentConfig.blockExplorer}/tx/${transferTx.hash}`);
         
         // Reset form
         ui.tokenPrice.value = '';
         ui.tokenQuantity.value = '';
         ui.totalCost.value = '';
 
+        alert(`✅ Venda realizada com sucesso!\n\nRecebido: ${totalCost} ${currentConfig.nativeCoin}\nEnviado: ${tokenQuantity} ${symbol}\n\nVerifique no explorador: ${currentConfig.blockExplorer}/tx/${transferTx.hash}`);
+
       } catch (error) {
         if (error.code === 4001) {
-          log('Transação rejeitada pelo usuário', 'error');
+          log('❌ Transação rejeitada pelo usuário', 'error');
         } else {
-          log(`Erro na transferência manual: ${error.message}`, 'error');
+          log(`❌ Erro na venda: ${error.message}`, 'error');
         }
       }
     }
@@ -678,14 +793,6 @@
       try {
         log('Preparando transação de compra...');
 
-        // Calcular slippage
-        let slippagePercent = parseFloat(ui.slippage.value);
-        if (ui.slippage.value === 'custom') {
-          slippagePercent = parseFloat(ui.customSlippage.value);
-        }
-        
-        const slippageFactor = (100 - slippagePercent) / 100;
-        
         // Obter amounts out novamente
         const routerAbi = [
           'function getAmountsOut(uint amountIn, address[] calldata path) external view returns (uint[] memory amounts)',
@@ -698,12 +805,13 @@
 
         const amounts = await router.getAmountsOut(amountIn, path);
         const expectedOut = amounts[1];
-        const minAmountOut = expectedOut.mul(Math.floor(slippageFactor * 1000)).div(1000);
+        // Usar 95% como slippage padrão (5% de tolerância)
+        const minAmountOut = expectedOut.mul(95).div(100);
 
-        const deadline = Math.floor(Date.now() / 1000) + (parseInt(ui.deadline.value) * 60);
+        // Deadline de 20 minutos
+        const deadline = Math.floor(Date.now() / 1000) + (20 * 60);
 
         log(`Executando swap: ${ethAmount} ${currentConfig.nativeCoin} → tokens via ${currentConfig.dexName}`);
-        log(`Slippage: ${slippagePercent}% | Deadline: ${ui.deadline.value} min`);
 
         const tx = await router.swapExactETHForTokens(
           minAmountOut,
@@ -762,16 +870,6 @@
       if (purchaseMode === 'dex') {
         ui.expectedTokens.value = '';
         ui.executeBtn.disabled = true;
-      }
-    });
-
-    // Slippage personalizado
-    ui.slippage.addEventListener('change', () => {
-      const customRow = document.getElementById('customSlippageRow');
-      if (ui.slippage.value === 'custom') {
-        customRow.style.display = 'block';
-      } else {
-        customRow.style.display = 'none';
       }
     });
 
@@ -845,5 +943,35 @@
     });
 
   </script>
+  
+  <!-- Footer -->
+  <footer class="bg-secondary mt-5 py-4">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-8">
+          <h6 class="text-white mb-3">✅ Sistema de Compra de Tokens SCCAFE</h6>
+          <ul class="list-unstyled text-muted small mb-0">
+            <li class="mb-2">🟢 <strong>Transferências Automáticas:</strong> Recebe pagamento e envia tokens automaticamente</li>
+            <li class="mb-2">🟡 <strong>Testnet Seguro:</strong> Use BSC Testnet para testes sem custo real</li>
+            <li class="mb-2">🔵 <strong>Multi-Chain:</strong> Suporte a Ethereum, BSC, Polygon, Avalanche</li>
+            <li class="mb-2">🟣 <strong>Dual Mode:</strong> DEX automático para tokens listados, Manual para seus tokens</li>
+          </ul>
+        </div>
+        <div class="col-md-4 text-md-end">
+          <div class="text-muted small">
+            <div class="mb-2">
+              <strong>Links Úteis:</strong><br>
+              <a href="add-index.html" class="text-primary">Criar Token</a> |
+              <a href="index.html" class="text-primary">Home</a>
+            </div>
+            <div>
+              <strong>Para Teste:</strong><br>
+              <a href="https://testnet.binance.org/faucet" target="_blank" class="text-primary">tBNB Grátis</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
 </body>
 </html>
