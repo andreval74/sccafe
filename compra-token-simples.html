@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compra de Token Simples - SCCAFE</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #1a1a1a;
+            color: white;
+        }
+        .container {
+            background: #2a2a2a;
+            padding: 30px;
+            border-radius: 10px;
+            border: 2px solid #ff8c00;
+        }
+        h1 {
+            color: #ff8c00;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #ff8c00;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #555;
+            border-radius: 5px;
+            background: #1a1a1a;
+            color: white;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            background: #ff8c00;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background: #e67e00;
+        }
+        button:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+        .logs {
+            background: #000;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            height: 200px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .log-success { color: #00ff00; }
+        .log-error { color: #ff0000; }
+        .log-warning { color: #ffaa00; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🪙 Compra de Token SCCAFE</h1>
+        
+        <div class="form-group">
+            <label for="tokenAddress">Endereço do Token:</label>
+            <input type="text" id="tokenAddress" placeholder="0x..." value="0x41Ec4Ea7fEe799295E6F53Dc94D8F8Af7e4c8667">
+        </div>
+        
+        <div class="form-group">
+            <label for="sellerAddress">Endereço do Vendedor (quem recebe o pagamento):</label>
+            <input type="text" id="sellerAddress" placeholder="0x..." value="0x742d35Cc6478354Df7e58b5A3Eb4649185F5ce51">
+        </div>
+        
+        <div class="form-group">
+            <label for="tokenAmount">Quantidade de Tokens:</label>
+            <input type="number" id="tokenAmount" placeholder="10" value="10" min="1">
+        </div>
+        
+        <div class="form-group">
+            <label for="tokenPrice">Preço por Token (em BNB):</label>
+            <input type="number" id="tokenPrice" placeholder="0.01" value="0.01" step="0.001" min="0.001">
+        </div>
+        
+        <button id="connectWallet">Conectar MetaMask</button>
+        <button id="buyToken" disabled>Comprar Tokens</button>
+        
+        <div class="logs" id="logs"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/ethers/dist/ethers.min.js"></script>
+    <script>
+        let provider, signer, userAddress;
+        
+        // ABI mínimo para ERC-20
+        const ERC20_ABI = [
+            "function transfer(address to, uint256 amount) external returns (bool)",
+            "function balanceOf(address owner) view returns (uint256)",
+            "function decimals() view returns (uint8)",
+            "function symbol() view returns (string)",
+            "function name() view returns (string)"
+        ];
+
+        function log(message, type = 'info') {
+            const logs = document.getElementById('logs');
+            const time = new Date().toLocaleTimeString();
+            const className = type === 'error' ? 'log-error' : 
+                             type === 'warning' ? 'log-warning' : 
+                             type === 'success' ? 'log-success' : '';
+            logs.innerHTML += `<div class="${className}">[${time}] ${message}</div>`;
+            logs.scrollTop = logs.scrollHeight;
+        }
+
+        // Conectar carteira
+        document.getElementById('connectWallet').onclick = async () => {
+            try {
+                if (!window.ethereum) {
+                    alert("Instale a MetaMask para prosseguir.");
+                    return;
+                }
+
+                provider = new ethers.providers.Web3Provider(window.ethereum);
+                await provider.send("eth_requestAccounts", []);
+                signer = provider.getSigner();
+                userAddress = await signer.getAddress();
+                
+                log(`✅ Carteira conectada: ${userAddress}`, 'success');
+                document.getElementById('buyToken').disabled = false;
+                document.getElementById('connectWallet').textContent = 'Carteira Conectada ✓';
+                document.getElementById('connectWallet').disabled = true;
+                
+            } catch (error) {
+                log(`❌ Erro ao conectar: ${error.message}`, 'error');
+            }
+        };
+
+        // Comprar tokens
+        document.getElementById('buyToken').onclick = async () => {
+            try {
+                const tokenAddress = document.getElementById('tokenAddress').value;
+                const sellerAddress = document.getElementById('sellerAddress').value;
+                const tokenAmount = parseInt(document.getElementById('tokenAmount').value);
+                const tokenPrice = parseFloat(document.getElementById('tokenPrice').value);
+
+                if (!tokenAddress || !sellerAddress || !tokenAmount || !tokenPrice) {
+                    alert('Preencha todos os campos!');
+                    return;
+                }
+
+                log(`🚀 Iniciando compra de ${tokenAmount} tokens...`);
+                
+                // Conectar ao contrato do token
+                const tokenContract = new ethers.Contract(tokenAddress, ERC20_ABI, signer);
+                
+                // Obter informações do token
+                const decimals = await tokenContract.decimals();
+                const symbol = await tokenContract.symbol();
+                const tokenName = await tokenContract.name();
+                
+                log(`📋 Token: ${tokenName} (${symbol}) - ${decimals} decimais`);
+                
+                // Verificar se o vendedor tem tokens suficientes
+                const sellerBalance = await tokenContract.balanceOf(sellerAddress);
+                const tokenAmountWei = ethers.utils.parseUnits(tokenAmount.toString(), decimals);
+                
+                if (sellerBalance.lt(tokenAmountWei)) {
+                    throw new Error(`Vendedor não tem tokens suficientes!`);
+                }
+                
+                log(`✅ Vendedor tem ${ethers.utils.formatUnits(sellerBalance, decimals)} ${symbol}`);
+
+                // Calcular valor total do pagamento
+                const totalValue = ethers.utils.parseEther((tokenAmount * tokenPrice).toString());
+                
+                log(`💰 Valor total: ${tokenAmount * tokenPrice} BNB`);
+
+                // PASSO 1: Enviar pagamento para o vendedor
+                log(`📤 Enviando pagamento para ${sellerAddress}...`);
+                
+                const paymentTx = await signer.sendTransaction({
+                    to: sellerAddress,
+                    value: totalValue
+                });
+
+                log(`⏳ Aguardando confirmação do pagamento: ${paymentTx.hash}`);
+                await paymentTx.wait();
+                log(`✅ Pagamento confirmado!`, 'success');
+
+                // PASSO 2: Solicitar tokens do vendedor (o vendedor precisa aprovar isso)
+                log(`🪙 Agora o vendedor precisa enviar os tokens...`);
+                log(`⚠️ ATENÇÃO: O vendedor precisa executar a transferência manualmente!`, 'warning');
+                log(`📋 Dados para o vendedor:`, 'warning');
+                log(`   - Comprador: ${userAddress}`, 'warning');
+                log(`   - Quantidade: ${tokenAmount} ${symbol}`, 'warning');
+                log(`   - Pagamento recebido: ${paymentTx.hash}`, 'warning');
+
+                // Verificar se recebemos os tokens (loop de verificação)
+                log(`🔍 Verificando se os tokens foram recebidos...`);
+                
+                let received = false;
+                let attempts = 0;
+                const maxAttempts = 12; // 2 minutos (10s cada)
+                
+                while (!received && attempts < maxAttempts) {
+                    attempts++;
+                    const buyerBalance = await tokenContract.balanceOf(userAddress);
+                    
+                    if (buyerBalance.gte(tokenAmountWei)) {
+                        received = true;
+                        log(`🎉 SUCESSO! Você recebeu ${ethers.utils.formatUnits(buyerBalance, decimals)} ${symbol}!`, 'success');
+                        break;
+                    }
+                    
+                    log(`⏳ Tentativa ${attempts}/${maxAttempts} - Aguardando tokens...`);
+                    await new Promise(resolve => setTimeout(resolve, 10000)); // 10 segundos
+                }
+                
+                if (!received) {
+                    log(`⚠️ Tokens não recebidos ainda. Entre em contato com o vendedor.`, 'warning');
+                }
+
+            } catch (error) {
+                log(`❌ Erro na compra: ${error.message}`, 'error');
+            }
+        };
+    </script>
+</body>
+</html>

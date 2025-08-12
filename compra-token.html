@@ -9,7 +9,18 @@
   <link rel="icon" type="image/png" sizes="16x16" href="imgs/sccafe-16x16.png">
   <link rel="icon" type="image/png" sizes="32x32" href="imgs/sccafe-32x32.png">
   <link rel="icon" type="image/png" sizes="192x192" href="imgs/sccafe-192x192.png">
-  <link rel="icon" type="image/png" sizes="512x512" href="imgs/sccafe-512x512.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="imgs/sc        // Calcular quantidade de tokens em wei
+        const tokenAmountWei = ethers.utils.parseUnits(tokenQuantity.toString(), decimals);
+        
+        log(`🔍 Debug: Enviando ${tokenQuantity} tokens`);
+        log(`🔍 Debug: Decimais do token: ${decimals}`);
+        log(`🔍 Debug: Valor em Wei: ${tokenAmountWei.toString()}`);
+        log(`🔍 Debug: Seu saldo em Wei: ${yourBalance.toString()}`);
+        log(`🔍 Debug: Endereço destino: ${receiverAddr}`);
+        
+        // Verificar se você tem saldo suficiente
+        if (yourBalance.lt(tokenAmountWei)) {
+          const needed = ethers.utils.formatUnits(tokenAmountWei, decimals);2.png">
   
   <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -557,6 +568,29 @@
           const have = ethers.utils.formatUnits(yourBalance, decimals);
           throw new Error(`Saldo insuficiente! Você tem ${have} ${symbol}, mas precisa de ${needed} ${symbol}`);
         }
+        
+        // Verificar se o contrato está funcionando corretamente
+        try {
+          const tokenName = await tokenContract.name();
+          const tokenSymbol = await tokenContract.symbol();
+          log(`🔍 Contrato ativo: ${tokenName} (${tokenSymbol})`);
+          
+          // Verificar se existe função paused() e se está pausado
+          try {
+            const isPaused = await tokenContract.paused();
+            if (isPaused) {
+              throw new Error('Contrato está pausado para transferências');
+            }
+            log(`🔍 Contrato não está pausado`, 'info');
+          } catch (e) {
+            // Função paused() não existe, isso é normal
+            log(`🔍 Contrato não tem função paused() (normal)`, 'info');
+          }
+          
+        } catch (contractError) {
+          log(`❌ Erro ao verificar estado do contrato: ${contractError.message}`, 'error');
+          throw new Error(`Contrato pode estar inválido: ${contractError.message}`);
+        }
 
         // Passo 1: Receber pagamento do comprador
         const paymentValue = ethers.utils.parseEther(totalCost);
@@ -579,19 +613,30 @@
 
         // Passo 2: Enviar tokens automaticamente
         log(`📤 Enviando ${tokenQuantity} ${symbol} para ${shortAddr(receiverAddr)}...`);
-        log(`Debug: Chamando transfer(${receiverAddr}, ${tokenAmountWei.toString()})`);
+        log(`🔍 Debug: Chamando transfer(${receiverAddr}, ${tokenAmountWei.toString()})`);
+        
+        // Verificar se a transferência seria bem-sucedida usando callStatic
+        try {
+          log(`🔍 Testando transferência com callStatic...`);
+          const wouldSucceed = await tokenContract.callStatic.transfer(receiverAddr, tokenAmountWei);
+          log(`🔍 CallStatic resultado: ${wouldSucceed}`);
+        } catch (staticError) {
+          log(`❌ CallStatic falhou: ${staticError.message}`, 'error');
+          log(`🔍 Motivo específico: ${staticError.reason || 'Não especificado'}`);
+          throw new Error(`Transferência falharia: ${staticError.reason || staticError.message}`);
+        }
         
         // Tentar estimar gas primeiro
         try {
           const gasEstimate = await tokenContract.estimateGas.transfer(receiverAddr, tokenAmountWei);
-          log(`Debug: Gas estimado: ${gasEstimate.toString()}`);
+          log(`🔍 Debug: Gas estimado: ${gasEstimate.toString()}`);
         } catch (estimateError) {
           log(`⚠️ Erro ao estimar gas: ${estimateError.message}`, 'warning');
           log(`Tentando mesmo assim com gas fixo...`, 'info');
         }
         
         const transferTx = await tokenContract.transfer(receiverAddr, tokenAmountWei, {
-          gasLimit: 100000 // Gas suficiente para transferência ERC-20
+          gasLimit: 150000 // Aumentado o gas limit
         });
         
         log(`✅ Tokens enviados: ${transferTx.hash}`, 'success');
