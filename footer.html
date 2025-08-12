@@ -1,148 +1,25 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Footer - SCCAFE</title>
 </head>
 <body>
-    <!-- Footer Principal -->
-    <footer class="main-footer">
-        <div class="footer-container">
-            <!-- Seção Principal do Footer -->
-            <div class="footer-main">
-                <!-- Informações da Empresa -->
-                <div class="footer-section company-info">
-                    <div class="footer-brand">
-                        <img src="imgs/sccafe-32x32.png" alt="SCCAFE Logo" class="footer-logo">
-                        <h3 class="footer-brand-name">SCCAFE</h3>
-                    </div>
-                    <p class="footer-description">
-                        Plataforma completa para criação, verificação e gestão de tokens blockchain.
-                        Desenvolvida com tecnologia de ponta para máxima segurança e facilidade de uso.
-                    </p>
-                    <div class="social-links">
-                        <a href="#" class="social-link" aria-label="GitHub">
-                            <i class="icon-github"></i>
-                        </a>
-                        <a href="#" class="social-link" aria-label="Twitter">
-                            <i class="icon-twitter"></i>
-                        </a>
-                        <a href="#" class="social-link" aria-label="Discord">
-                            <i class="icon-discord"></i>
-                        </a>
-                        <a href="#" class="social-link" aria-label="Telegram">
-                            <i class="icon-telegram"></i>
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Links Rápidos -->
-                <div class="footer-section quick-links">
-                    <h4 class="footer-title">Links Rápidos</h4>
-                    <ul class="footer-links">
-                        <li><a href="index.html" class="footer-link">Início</a></li>
-                        <li><a href="add-token.html" class="footer-link">Criar Token</a></li>
-                        <li><a href="verificacao-simples.html" class="footer-link">Verificar Contrato</a></li>
-                        <li><a href="service-details.html" class="footer-link">Serviços</a></li>
-                    </ul>
-                </div>
-
-                <!-- Ferramentas -->
-                <div class="footer-section tools-links">
-                    <h4 class="footer-title">Ferramentas</h4>
-                    <ul class="footer-links">
-                        <li><a href="test-detector.html" class="footer-link">Detector de Contratos</a></li>
-                        <li><a href="test-enderecos.html" class="footer-link">Validador de Endereços</a></li>
-                        <li><a href="test-token-data.html" class="footer-link">Dados do Token</a></li>
-                        <li><a href="link-generator.html" class="footer-link">Gerador de Links</a></li>
-                    </ul>
-                </div>
-
-                <!-- Suporte -->
-                <div class="footer-section support-links">
-                    <h4 class="footer-title">Suporte</h4>
-                    <ul class="footer-links">
-                        <li><a href="#" class="footer-link">Documentação</a></li>
-                        <li><a href="#" class="footer-link">FAQ</a></li>
-                        <li><a href="#" class="footer-link">Contato</a></li>
-                        <li><a href="#" class="footer-link">Reportar Bug</a></li>
-                    </ul>
-                </div>
+    <!-- Footer Simples -->
+    <div class="footer-wrapper">
+        <div class="footer-content">
+            <div class="footer-brand">
+                <img src="imgs/sccafe-32x32.png" alt="SCCAFE" />
+                <span>SCCAFE</span>
             </div>
-
-            <!-- Informações Técnicas -->
-            <div class="footer-tech-info">
-                <div class="network-status">
-                    <h5 class="tech-title">Status das Redes</h5>
-                    <div class="network-indicators">
-                        <div class="network-indicator">
-                            <span class="network-dot active"></span>
-                            <span class="network-name">Polygon</span>
-                        </div>
-                        <div class="network-indicator">
-                            <span class="network-dot active"></span>
-                            <span class="network-name">Ethereum</span>
-                        </div>
-                        <div class="network-indicator">
-                            <span class="network-dot active"></span>
-                            <span class="network-name">BSC</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="api-status">
-                    <h5 class="tech-title">APIs</h5>
-                    <div class="api-indicators">
-                        <div class="api-indicator">
-                            <span class="api-dot active"></span>
-                            <span class="api-name">Etherscan</span>
-                        </div>
-                        <div class="api-indicator">
-                            <span class="api-dot active"></span>
-                            <span class="api-name">PolygonScan</span>
-                        </div>
-                    </div>
-                </div>
+            <div class="footer-links">
+                <a href="#">Documentação</a>
+                <a href="#">Suporte</a>
+                <a href="#">GitHub</a>
             </div>
-
-            <!-- Linha de Separação -->
-            <div class="footer-divider"></div>
-
-            <!-- Copyright e Legal -->
-            <div class="footer-bottom">
-                <div class="copyright">
-                    <p>&copy; 2024 SCCAFE. Todos os direitos reservados.</p>
-                    <p class="version-info">Versão 2.0.0 | Build: 20241201</p>
-                </div>
-                
-                <div class="legal-links">
-                    <a href="#" class="legal-link">Termos de Uso</a>
-                    <a href="#" class="legal-link">Política de Privacidade</a>
-                    <a href="#" class="legal-link">Licença</a>
-                </div>
-
-                <div class="powered-by">
-                    <span>Powered by</span>
-                    <img src="imgs/metamask-fox.svg" alt="MetaMask" class="powered-logo">
-                    <span>Web3 Technology</span>
-                </div>
+            <div class="footer-copy">
+                <p>&copy; 2024 SCCAFE. Todos os direitos reservados.</p>
             </div>
         </div>
-    </footer>
-
-    <script>
-        // Atualizar status das redes em tempo real
-        function updateNetworkStatus() {
-            // Implementar verificação real do status das redes
-            console.log('Verificando status das redes...');
-        }
-
-        // Verificar status a cada 30 segundos
-        setInterval(updateNetworkStatus, 30000);
-        
-        // Verificação inicial
-        updateNetworkStatus();
-    </script>
+    </div>
 </body>
 </html>
