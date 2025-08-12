@@ -442,13 +442,97 @@ TOKEN CREATOR SPECIFIC STYLES
   font-weight: 700;
 }
 
-/* Progress Steps Simplificado */
-.progress-steps-simple {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+/* Progress Steps Melhorado */
+.progress-steps {
   padding: 20px 0;
-  margin-bottom: 30px;
+  border-bottom: 1px solid #333;
+}
+
+.step-item {
+  position: relative;
+}
+
+.step-circle {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  font-size: 1.2rem;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  border: 3px solid var(--bs-secondary);
+}
+
+.step-item.active .step-circle {
+  background: var(--bs-primary) !important;
+  color: var(--bs-dark) !important;
+  border-color: var(--bs-primary);
+  transform: scale(1.1);
+}
+
+.step-label {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.step-item.active .step-label {
+  color: var(--bs-primary) !important;
+  font-weight: 600;
+}
+
+/* Token Creator Main */
+.token-creator-main {
+  background: var(--background-color);
+  min-height: calc(100vh - 120px);
+}
+
+/* Wallet Connection Section */
+.wallet-connection-section .card {
+  transition: all 0.3s ease;
+}
+
+.wallet-connection-section .card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(248, 93, 35, 0.2);
+}
+
+/* Form Styling */
+.form-control:focus {
+  border-color: var(--bs-primary);
+  box-shadow: 0 0 0 0.2rem rgba(248, 93, 35, 0.25);
+}
+
+.token-basic-info .form-control {
+  transition: border-color 0.3s ease;
+}
+
+.token-basic-info .form-control:focus {
+  border-color: var(--bs-primary);
+  background-color: #1a1a1a;
+}
+
+/* Step Content */
+.step-content {
+  display: none;
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+.step-content.active {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .step-simple {

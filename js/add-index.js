@@ -265,16 +265,21 @@ function showStep(stepNumber) {
  */
 function updateStepIndicators() {
     for (let i = 1; i <= 3; i++) {
-        const stepIndicator = document.getElementById(`step-simple-${i}`);
-        if (stepIndicator) {
-            stepIndicator.classList.remove('active', 'completed');
-            
-            if (i < currentStep) {
-                stepIndicator.classList.add('completed');
-            } else if (i === currentStep) {
-                stepIndicator.classList.add('active');
+        // Tenta atualizar tanto os indicadores antigos quanto os novos
+        const stepIndicatorOld = document.getElementById(`step-simple-${i}`);
+        const stepIndicatorNew = document.getElementById(`step-indicator-${i}`);
+        
+        [stepIndicatorOld, stepIndicatorNew].forEach(stepIndicator => {
+            if (stepIndicator) {
+                stepIndicator.classList.remove('active', 'completed');
+                
+                if (i < currentStep) {
+                    stepIndicator.classList.add('completed');
+                } else if (i === currentStep) {
+                    stepIndicator.classList.add('active');
+                }
             }
-        }
+        });
     }
 }
 

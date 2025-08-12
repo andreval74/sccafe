@@ -1,14 +1,15 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Criador de Tokens - SCCAFE</title>
   
   <!-- Favicons -->
-  <link href="imgs/sccafe-32x32.png" rel="icon" sizes="32x32" type="image/png">
-  <link href="imgs/sccafe-16x16.png" rel="icon" sizes="16x16" type="image/png">
-  <link href="imgs/sccafe-192x192.png" rel="apple-touch-icon" sizes="192x192">
+  <link rel="icon" type="image/png" sizes="16x16" href="imgs/sccafe-16x16.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="imgs/sccafe-32x32.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="imgs/sccafe-192x192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="imgs/sccafe-512x512.png">
   
   <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -16,156 +17,192 @@
   
   <!-- SCCAFE Global CSS Unificado -->
   <link href="styles/globals.css" rel="stylesheet">
+  
+  <!-- Meta tags SEO -->
+  <meta name="description" content="Crie tokens ERC-20 personalizados na blockchain com a SCCAFE. Interface simples, segura e auditada.">
+  <meta name="keywords" content="criar token, ERC-20, ethereum, blockchain, smart contract, SCCAFE">
 </head>
 <body>
   <!-- Header -->
   <header data-component="header"></header>
   
   <!-- Main Content -->
-  <main class="main">
-    <div class="token-creator-container">
-      <div class="container">
-        <div class="row justify-content-center">
-          <div class="col-xl-10 col-lg-11">
-            <div class="creator-card">
-              <!-- Header -->
-              <div class="creator-header">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                  <div>
-                    <h1><i class="bi bi-rocket-takeoff me-2"></i>Criador de Tokens</h1>
-                    <p class="mb-0">Crie seu token e contrato inteligente ERC-20</p>
-                  </div>
-                  <div>
-                    
-                  </div>
+  <main class="token-creator-main py-5">
+    <div class="container">
+      <div class="row justify-content-center">
+        <div class="col-xl-10 col-lg-11">
+          <div class="creator-card bg-dark border border-primary rounded-4 p-4 shadow-lg">
+            <!-- Header -->
+            <div class="creator-header border-bottom border-secondary pb-4 mb-4">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <h1 class="display-6 fw-bold text-white mb-2">
+                    <i class="bi bi-rocket-takeoff text-primary me-2"></i>Criador de Tokens
+                  </h1>
+                  <p class="text-secondary mb-0">Crie seu token e contrato inteligente ERC-20 com segurança</p>
+                </div>
+                <div class="d-none d-md-block">
+                  <img src="imgs/sccafe.png" alt="SCCAFE" style="height: 60px;">
                 </div>
               </div>
+            </div>
               
-              <!-- Progress Steps -->
-              <!-- Progress Steps Simplificado (3 Etapas) -->
-              <div class="progress-steps-simple mb-4">
-                <div class="step-simple active" id="step-simple-1">
-                  <div class="step-number">1</div>
-                  <div class="step-title">Configuração</div>
+            <!-- Progress Steps -->
+            <div class="progress-steps mb-5">
+              <div class="row text-center">
+                <div class="col-4">
+                  <div class="step-item active" id="step-indicator-1">
+                    <div class="step-circle bg-primary text-dark fw-bold">1</div>
+                    <div class="step-label text-white mt-2">Configuração</div>
+                  </div>
                 </div>
-                <div class="step-simple" id="step-simple-2">
-                  <div class="step-number">2</div>
-                  <div class="step-title">Personalização</div>
+                <div class="col-4">
+                  <div class="step-item" id="step-indicator-2">
+                    <div class="step-circle bg-secondary text-white fw-bold">2</div>
+                    <div class="step-label text-secondary mt-2">Personalização</div>
+                  </div>
                 </div>
-                <div class="step-simple" id="step-simple-3">
-                  <div class="step-number">3</div>
-                  <div class="step-title">Criação</div>
+                <div class="col-4">
+                  <div class="step-item" id="step-indicator-3">
+                    <div class="step-circle bg-secondary text-white fw-bold">3</div>
+                    <div class="step-label text-secondary mt-2">Criação</div>
+                  </div>
                 </div>
               </div>
-              <!-- Step 1: Dados Básicos -->
-              <div class="step-content active" id="step-1">
-                <!-- Conexão MetaMask -->
-                <div class="connection-section mb-4">
-                  <div class="card border-warning">
-                    <div class="card-body">
-                      <h5 class="card-title">
-                        <i class="bi bi-wallet2 text-warning me-2"></i>Conexão da Carteira
-                      </h5>
-                      <div class="d-flex gap-3 align-items-center">
-                        <input type="text" class="form-control" id="wallet-status" 
+            </div>
+            <!-- Step 1: Dados Básicos -->
+            <div class="step-content active" id="step-1">
+              <!-- Conexão MetaMask -->
+              <div class="wallet-connection-section mb-5">
+                <div class="card bg-dark border-warning shadow">
+                  <div class="card-header bg-warning text-dark">
+                    <h5 class="card-title mb-0">
+                      <i class="bi bi-wallet2 me-2"></i>Conexão da Carteira
+                    </h5>
+                  </div>
+                  <div class="card-body">
+                    <p class="text-secondary mb-3">Conecte sua carteira Web3 para começar a criar seu token</p>
+                    <div class="row g-3 align-items-end">
+                      <div class="col-md-8">
+                        <label for="wallet-status" class="form-label text-white">Status da Conexão</label>
+                        <input type="text" class="form-control bg-dark text-white border-secondary" id="wallet-status" 
                                placeholder="Clique em 'Conectar' para iniciar" style="font-family: monospace;" readonly>
-                        <button id="connect-metamask-btn" type="button" class="btn btn-outline-warning">
-                          <i class="bi bi-wallet2"></i> CONECTAR
+                      </div>
+                      <div class="col-md-4">
+                        <button id="connect-metamask-btn" type="button" class="btn btn-warning w-100 fw-bold">
+                          <i class="bi bi-wallet2 me-2"></i>CONECTAR
                         </button>
                       </div>
-                      <div class="row mt-2" id="network-info-section" style="display: none;">
-                        <div class="col-md-12">
-                          <small class="text-muted network-info">
-                            <i class="bi bi-wifi"></i> Rede: <span id="current-network" class="fw-bold">-</span>
-                            <span id="chain-id-display" class="chain-id ms-2">
-                              <i class="bi bi-link-45deg"></i> Chain ID: <span id="chain-id-value">-</span>
-                            </span>
-                          </small>
+                    </div>
+                    <div class="row mt-3" id="network-info-section" style="display: none;">
+                      <div class="col-12">
+                        <div class="alert alert-info mb-0">
+                          <i class="bi bi-wifi me-2"></i>
+                          <strong>Rede:</strong> <span id="current-network" class="fw-bold">-</span>
+                          <span class="ms-3">
+                            <i class="bi bi-link-45deg me-1"></i>
+                            <strong>Chain ID:</strong> <span id="chain-id-value" class="fw-bold">-</span>
+                          </span>
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
+              </div>
 
-                <h3 class="mb-4">
-                  <i class="bi bi-pencil-square text-primary me-2"></i>Dados Básicos do Token
+              <!-- Dados Básicos -->
+              <div class="token-basic-info">
+                <h3 class="text-primary mb-3">
+                  <i class="bi bi-pencil-square me-2"></i>Dados Básicos do Token
                 </h3>
-                <p class="text-muted mb-4">Preencha as informações do seu token abaixo.</p>
+                <p class="text-secondary mb-4">Preencha as informações básicas do seu token ERC-20</p>
 
-                <div class="row g-3 mb-3">
+                <div class="row g-4 mb-4">
                   <div class="col-md-6">
-                    <label for="tokenName" class="form-label">
-                      <i class="bi bi-tag me-1"></i>Nome do Token
+                    <label for="tokenName" class="form-label text-white">
+                      <i class="bi bi-tag text-primary me-2"></i>Nome do Token
                     </label>
-                    <input type="text" class="form-control" id="tokenName" 
-                           placeholder="Ex: BitcoinBR" required>
+                    <input type="text" class="form-control bg-dark text-white border-secondary" id="tokenName" 
+                           placeholder="Ex: Bitcoin Brasil" required>
+                    <div class="form-text text-muted">Nome completo do seu token (ex: Bitcoin Brasil)</div>
                   </div>
                   <div class="col-md-6">
-                    <label for="tokenSymbol" class="form-label">
-                      <i class="bi bi-code-square me-1"></i>Símbolo do Token
+                    <label for="tokenSymbol" class="form-label text-white">
+                      <i class="bi bi-code-square text-primary me-2"></i>Símbolo do Token
                     </label>
-                    <input type="text" class="form-control" id="tokenSymbol" 
-                           placeholder="Ex: BTCBR" required>
+                    <input type="text" class="form-control bg-dark text-white border-secondary" id="tokenSymbol" 
+                           placeholder="Ex: BTCBR" required maxlength="10" style="text-transform: uppercase;">
+                    <div class="form-text text-muted">Símbolo de 3-10 caracteres (ex: BTCBR)</div>
                   </div>
                 </div>
                 
-                <div class="row g-3 mb-3">
+                <div class="row g-4 mb-4">
                   <div class="col-md-6">
-                    <label for="decimals" class="form-label">
-                      <i class="bi bi-123 me-1"></i>Decimais
+                    <label for="decimals" class="form-label text-white">
+                      <i class="bi bi-123 text-primary me-2"></i>Decimais
                     </label>
-                    <input type="number" class="form-control" id="decimals" 
-                           placeholder="18" value="18" min="0" max="18" required>
+                    <select class="form-control bg-dark text-white border-secondary" id="decimals" required>
+                      <option value="18" selected>18 (Padrão - recomendado)</option>
+                      <option value="8">8 (Como Bitcoin)</option>
+                      <option value="6">6 (Como USDC)</option>
+                      <option value="0">0 (Tokens inteiros)</option>
+                    </select>
+                    <div class="form-text text-muted">Número de casas decimais (18 é o padrão)</div>
                   </div>
                   <div class="col-md-6">
-                    <label for="totalSupply" class="form-label">
-                      <i class="bi bi-cash-stack me-1"></i>Total Supply
+                    <label for="totalSupply" class="form-label text-white">
+                      <i class="bi bi-cash-stack text-primary me-2"></i>Total Supply
                     </label>
-                    <input type="text" class="form-control" id="totalSupply" 
+                    <input type="text" class="form-control bg-dark text-white border-secondary" id="totalSupply" 
                            placeholder="Ex: 1000000" required>
+                    <div class="form-text text-muted">Quantidade total de tokens a serem criados</div>
                   </div>
                 </div>
                 
-                <div class="mb-3">
-                  <label for="ownerAddress" class="form-label">
-                    <i class="bi bi-person-badge me-1"></i>Endereço do Proprietário
-                  </label>
-                  <input type="text" class="form-control" id="ownerAddress" 
-                         placeholder="Será preenchido após conectar carteira" required readonly>
+                <div class="row g-4 mb-4">
+                  <div class="col-12">
+                    <label for="ownerAddress" class="form-label text-white">
+                      <i class="bi bi-person-badge text-primary me-2"></i>Endereço do Proprietário
+                    </label>
+                    <input type="text" class="form-control bg-dark text-white border-secondary" id="ownerAddress" 
+                           placeholder="Será preenchido automaticamente após conectar carteira" required readonly>
+                    <div class="form-text text-muted">Endereço que receberá todos os tokens criados</div>
+                  </div>
                 </div>
                 
-                <div class="mb-3">
-                  <label for="tokenImage" class="form-label">
-                    <i class="bi bi-image me-1"></i>URL da Imagem do Token
-                  </label>
-                  <input type="url" class="form-control" id="tokenImage" 
-                         placeholder="https://exemplo.com/logo.png">
-                </div>
-                
-                <!-- Seção de Rede -->
-                <div class="mb-4">
-                  <label for="network-display" class="form-label">
-                    <i class="bi bi-globe me-1"></i>Rede Detectada
-                  </label>
-                  <div class="d-flex gap-2 align-items-center">
-                    <input type="text" class="form-control" id="network-display" 
-                           placeholder="Será detectado após conectar" readonly>
-                    <div class="network-status" id="network-status">
-                      <i class="bi bi-search text-muted"></i> Detectando...
+                <div class="row g-4 mb-4">
+                  <div class="col-md-8">
+                    <label for="tokenImage" class="form-label text-white">
+                      <i class="bi bi-image text-primary me-2"></i>URL da Imagem do Token (Opcional)
+                    </label>
+                    <input type="url" class="form-control bg-dark text-white border-secondary" id="tokenImage" 
+                           placeholder="https://exemplo.com/logo.png">
+                    <div class="form-text text-muted">URL de uma imagem PNG/JPG para o logo do token</div>
+                  </div>
+                  <div class="col-md-4">
+                    <label for="network-display" class="form-label text-white">
+                      <i class="bi bi-globe text-primary me-2"></i>Rede Detectada
+                    </label>
+                    <div class="d-flex gap-2 align-items-center">
+                      <input type="text" class="form-control bg-dark text-white border-secondary" id="network-display" 
+                             placeholder="Detectando..." readonly>
+                      <div class="network-status" id="network-status">
+                        <i class="bi bi-search text-muted"></i>
+                      </div>
                     </div>
                   </div>
                 </div>
-                
                 <!-- Campos ocultos -->
                 <input type="hidden" id="networkValue" name="network">
                 <input type="hidden" id="networkDisplay" name="networkDisplay">
                 
-                <div class="d-flex justify-content-end">
-                  <button id="next-step-1" class="btn btn-primary">
-                    Próximo: Personalização <i class="bi bi-arrow-right ms-1"></i>
+                <div class="d-flex justify-content-end mt-4">
+                  <button id="next-step-1" class="btn btn-primary btn-lg px-4">
+                    Próximo: Personalização <i class="bi bi-arrow-right ms-2"></i>
                   </button>
                 </div>
               </div>
+            </div>
               <!-- Step 2: Personalização do Endereço -->
               <div class="step-content" id="step-2">
                 <h3 class="mb-4">
@@ -313,51 +350,29 @@
                   </button>
                 </div>
               </div>
-            </div>
           </div>
         </div>
       </div>
-    </main>
-
-    <!-- Footer -->
-    <div id="footer-include"></div>
-
-    <!-- Bootstrap JS -->
-    <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-    
-    <!-- AOS JS -->
-    <script src="assets/vendor/aos/aos.js"></script>
-    
-    <!-- Custom JS -->
-    <script src="assets/js/include.js"></script>
-    <script src="assets/js/main.js"></script>
-    
-    <!-- Ethers.js -->
-    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
-    
-    <!-- API Key Manager -->
-    <script src="js/api-key-manager.js"></script>
-    
-    <!-- Sistema de Detecção de Contrato -->
-    <script src="js/contract-detector.js"></script>
-    
-    <!-- Etherscan V2 API -->
-    <script src="js/etherscan-v2-verification.js"></script>
-    
-    <!-- Verificação Automática Simplificada -->
-    <script src="js/verification-simple.js"></script>
+    </div>
   </main>
-  
+
   <!-- Footer -->
   <footer data-component="footer"></footer>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
   
   <!-- Template Loader -->
   <script src="js/template-loader.js"></script>
   
-  <!-- Bootstrap JS -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- SCCAFE Scripts -->
+  <script src="js/api-key-manager.js"></script>
+  <script src="js/contract-detector.js"></script>
+  <script src="js/etherscan-v2-verification.js"></script>
+  <script src="js/verification-simple.js"></script>
   
   <!-- Main Token Creation Script -->
   <script type="module" src="js/add-index.js"></script>
-  </body>
+</body>
 </html>
