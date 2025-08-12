@@ -1,0 +1,381 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Compra de Tokens via MetaMask — Demo (corrigido)</title>
+  <style>
+    body{font-family:Inter, system-ui, Arial;margin:24px;background:#f7f8fa}
+    .card{background:#fff;padding:18px;border-radius:12px;box-shadow:0 6px 18px rgba(20,20,30,0.06);max-width:880px;margin:auto}
+    label{display:block;margin-top:12px;font-weight:600}
+    input,select{width:100%;padding:10px;border-radius:8px;border:1px solid #e6e9ef;margin-top:6px}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    button{margin-top:16px;padding:10px 14px;border-radius:10px;border:0;background:#2563eb;color:#fff;font-weight:700;cursor:pointer}
+    button[disabled]{opacity:0.5;cursor:not-allowed}
+    pre{background:#0b1221;color:#e6eef8;padding:12px;border-radius:8px;overflow:auto}
+    .muted{color:#6b7280;font-size:0.9rem}
+    .status{margin-top:8px;font-weight:600}
+    .help{font-size:0.9rem;color:#374151}
+    a.install{color:#2563eb;text-decoration:none;font-weight:700}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>Compra de Tokens (MetaMask) — Versão corrigida</h2>
+    <p class="muted">Este arquivo corrige problemas comuns de conexão com MetaMask e melhora tratamento de erros. Teste com MetaMask instalado no navegador.</p>
+
+    <div class="status" id="status">Detectando MetaMask...</div>
+    <p class="help">Se não tiver MetaMask, instale-a: <a class="install" href="https://metamask.io/" target="_blank" rel="noopener">metamask.io</a></p>
+
+    <label>Endereço do token (ERC-20)</label>
+    <input id="tokenAddress" placeholder="0x..." />
+
+    <label>Endereço recebedor (onde enviar o ETH ou receber os tokens)</label>
+    <input id="receiverAddress" placeholder="0x..." />
+
+    <div class="row">
+      <div>
+        <label>Valor por token em ETH (preço estimado)</label>
+        <input id="pricePerToken" placeholder="ex: 0.01" />
+      </div>
+      <div>
+        <label>Quantidade de tokens que deseja comprar</label>
+        <input id="quantity" placeholder="ex: 100" />
+      </div>
+    </div>
+
+    <label>Modo de execução</label>
+    <select id="mode">
+      <option value="transfer">Enviar ETH direto ao recebedor (simples)</option>
+      <option value="uniswap">Trocar ETH por token via Uniswap V2 Router</option>
+    </select>
+
+    <div class="row">
+      <div>
+        <label>Slippage (%) (quando usar Uniswap)</label>
+        <input id="slippage" value="1" />
+      </div>
+      <div>
+        <label>Deadline (minutos)</label>
+        <input id="deadlineMin" value="20" />
+      </div>
+    </div>
+
+    <label>Total estimado (ETH)</label>
+    <input id="totalEth" readonly />
+
+    <div style="display:flex;gap:8px;align-items:center">
+      <button id="connectBtn">Conectar MetaMask</button>
+      <button id="executeBtn" disabled>Executar compra (abrir MetaMask)</button>
+    </div>
+
+    <h3>Log / Status</h3>
+    <pre id="log">Aguardando ação...</pre>
+
+    <p class="muted">Observação: este é um exemplo didático. Em produção, adicione validações adicionais, consulta de preço on-chain (getAmountsOut), tratamento para tokens com taxa/transferência e testes em testnet.</p>
+  </div>
+
+  <!-- Ethers.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
+
+  <script>
+    // ----- Configurações padrão (pode ajustar conforme rede) -----
+    const UNISWAP_V2_ROUTER = {
+      1: '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D' // Ethereum Mainnet
+      // adicione outros chainId -> router aqui, ex: 56: '0x...' para BSC
+    };
+
+    const WETH = {
+      1: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2'
+    };
+
+    // ----- Estado global -----
+    let provider = null;
+    let signer = null;
+    let userAddress = null;
+    let currentChainId = null;
+
+    const ui = {
+      status: document.getElementById('status'),
+      connectBtn: document.getElementById('connectBtn'),
+      executeBtn: document.getElementById('executeBtn'),
+      tokenAddress: document.getElementById('tokenAddress'),
+      receiverAddress: document.getElementById('receiverAddress'),
+      pricePerToken: document.getElementById('pricePerToken'),
+      quantity: document.getElementById('quantity'),
+      totalEth: document.getElementById('totalEth'),
+      mode: document.getElementById('mode'),
+      slippage: document.getElementById('slippage'),
+      deadlineMin: document.getElementById('deadlineMin'),
+      log: document.getElementById('log')
+    };
+
+    function log(...texts){
+      ui.log.textContent = texts.join('\n') + '\n\n' + ui.log.textContent;
+    }
+
+    function shortAddr(addr){
+      if(!addr) return '';
+      return addr.slice(0,6) + '...' + addr.slice(-4);
+    }
+
+    // calcular total (preço * quantidade)
+    function calcTotal(){
+      const pRaw = ui.pricePerToken.value.trim();
+      const qRaw = ui.quantity.value.trim();
+      const p = parseFloat(pRaw.replace(',', '.'));
+      const q = parseFloat(qRaw.replace(',', '.'));
+      if(isNaN(p) || isNaN(q)){
+        ui.totalEth.value = '';
+        return '0';
+      }
+      const total = p * q;
+      // mantém string com ponto decimal para ethers.parse
+      ui.totalEth.value = total === 0 ? '0' : total.toString();
+      return ui.totalEth.value;
+    }
+
+    // atualiza botões dependendo do estado
+    function setConnectedUI(connected){
+      if(connected){
+        ui.connectBtn.textContent = 'Conectado: ' + shortAddr(userAddress);
+        ui.executeBtn.disabled = false;
+        ui.connectBtn.disabled = false;
+      }else{
+        ui.connectBtn.textContent = 'Conectar MetaMask';
+        ui.executeBtn.disabled = true;
+      }
+    }
+
+    // detectar se MetaMask/ethereum existe
+    function detectProvider(){
+      if(typeof window.ethereum === 'undefined'){
+        ui.status.textContent = 'MetaMask NÃO detectado no navegador.';
+        ui.connectBtn.disabled = true;
+        ui.executeBtn.disabled = true;
+        log('MetaMask não encontrada. Instale MetaMask e recarregue a página.');
+        return false;
+      }
+      ui.status.textContent = 'MetaMask detectado.';
+      ui.connectBtn.disabled = false;
+      // cria provider (de forma preguiçosa, mas já podemos criar)
+      provider = new ethers.providers.Web3Provider(window.ethereum, 'any');
+      return true;
+    }
+
+    // conecta ao MetaMask pedindo permissão ao usuário
+    async function connectWallet(){
+      if(!window.ethereum){
+        alert('MetaMask não encontrada. Instale MetaMask e tente novamente.');
+        return;
+      }
+
+      try{
+        // Recomendado: usar ethereum.request diretamente para evitar diferenças de provider
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        if(!accounts || accounts.length === 0){
+          log('Nenhuma conta retornada. MetaMask pode estar bloqueada.');
+          setConnectedUI(false);
+          return;
+        }
+
+        // (re)cria provider e signer
+        provider = new ethers.providers.Web3Provider(window.ethereum, 'any');
+        signer = provider.getSigner();
+        userAddress = accounts[0] || await signer.getAddress();
+
+        const network = await provider.getNetwork();
+        currentChainId = network.chainId;
+
+        ui.status.textContent = `Conectado: ${shortAddr(userAddress)} (chain ${currentChainId})`;
+        log('Conectado com sucesso: ' + userAddress + ' (chainId: ' + currentChainId + ')');
+        setConnectedUI(true);
+      }catch(err){
+        // código 4001 significa 'user rejected request'
+        if(err && err.code === 4001){
+          log('Conexão rejeitada pelo usuário.');
+        }else{
+          log('Erro ao conectar: ' + (err && err.message ? err.message : String(err)));
+        }
+        setConnectedUI(false);
+      }
+    }
+
+    // função principal que executa a compra (transfer ou swap)
+    async function executePurchase(){
+      // recalcula total e valida
+      const tokenAddr = (ui.tokenAddress.value || '').trim();
+      const receiver = (ui.receiverAddress.value || '').trim();
+      const mode = ui.mode.value;
+      const totalEthStr = calcTotal();
+
+      if(!tokenAddr || !receiver){
+        alert('Preencha token e endereço recebedor.');
+        return;
+      }
+
+      if(!provider || !signer){
+        alert('Carteira não conectada. Clique em "Conectar MetaMask" antes de executar a compra.');
+        return;
+      }
+
+      // valida string numérica
+      if(!totalEthStr || isNaN(Number(totalEthStr))){
+        alert('Total inválido. Verifique preço e quantidade.');
+        return;
+      }
+
+      try{
+        if(mode === 'transfer'){
+          // envia ETH simples para recebedor com o valor calculado
+          const value = ethers.utils.parseEther(totalEthStr || '0');
+          log('Solicitando envio de ' + ethers.utils.formatEther(value) + ' ETH para ' + receiver);
+          const tx = await signer.sendTransaction({ to: receiver, value });
+          log('Transação enviada (transfer): ' + tx.hash);
+          await tx.wait();
+          log('Transação confirmada: ' + tx.hash);
+          return;
+        }
+
+        if(mode === 'uniswap'){
+          const network = await provider.getNetwork();
+          const chainId = network.chainId;
+          const routerAddr = UNISWAP_V2_ROUTER[chainId];
+          const wethAddr = WETH[chainId];
+          if(!routerAddr || !wethAddr){
+            alert('Router/WETH não configurados para chainId: ' + chainId + '. Ajuste o código se necessário.');
+            return;
+          }
+
+          // ABI mínimo do token para ler decimals (alguns tokens podem falhar -> fallback 18)
+          const ERC20 = [ 'function decimals() view returns (uint8)' ];
+          const tokenContract = new ethers.Contract(tokenAddr, ERC20, provider);
+          let decimals = 18;
+          try{
+            decimals = await tokenContract.decimals();
+          }catch(e){
+            log('Não foi possível ler decimals do token, assumindo 18. Erro: ' + (e.message || e));
+            decimals = 18;
+          }
+
+          // quantidade de tokens desejada (em unidades inteiras do token)
+          const qtyRaw = ui.quantity.value.trim();
+          if(!qtyRaw || isNaN(Number(qtyRaw))){
+            alert('Quantidade inválida.');
+            return;
+          }
+          const qty = ethers.utils.parseUnits(qtyRaw.replace(',', '.'), decimals);
+
+          // calcular amountOutMin baseado no qty e slippage
+          const slippagePerc = parseFloat(ui.slippage.value || '1')/100;
+          const slippageFactor = 1 - (isNaN(slippagePerc) ? 0.01 : slippagePerc);
+          // amountOutMin = qty * slippageFactor
+          const amountOutMin = qty.mul(Math.floor(slippageFactor * 10000)).div(10000);
+
+          // router ABI mínimo
+          const routerAbi = [
+            'function swapExactETHForTokens(uint amountOutMin, address[] calldata path, address to, uint deadline) payable returns (uint[] memory amounts)'
+          ];
+
+          const router = new ethers.Contract(routerAddr, routerAbi, signer);
+
+          const path = [wethAddr, tokenAddr];
+          const deadline = Math.floor(Date.now()/1000) + (parseInt(ui.deadlineMin.value || '20') * 60);
+
+          // value a ser enviado = total ETH estimado
+          const valueToSend = ethers.utils.parseEther(totalEthStr || '0');
+
+          log('Executando swapExactETHForTokens no router: ' + routerAddr);
+          log('amountOutMin (com slippage): ' + amountOutMin.toString());
+          log('value (ETH enviado): ' + ethers.utils.formatEther(valueToSend));
+
+          const tx = await router.swapExactETHForTokens(
+            amountOutMin,
+            path,
+            receiver,
+            deadline,
+            { value: valueToSend }
+          );
+
+          log('Transação enviada (swap): ' + tx.hash);
+          await tx.wait();
+          log('Swap confirmado: ' + tx.hash);
+          return;
+        }
+
+        alert('Modo desconhecido: ' + mode);
+      }catch(err){
+        // Mensagens mais amigáveis para erros comuns
+        const msg = err && (err.message || err.error && err.error.message) ? (err.message || err.error.message) : String(err);
+        if(err && err.code === 4001){
+          log('A transação foi rejeitada pelo usuário.');
+        }else{
+          log('Erro ao executar compra: ' + msg);
+        }
+      }
+    }
+
+    // detecta mudanças de conta e rede
+    function setupWalletListeners(){
+      if(!window.ethereum) return;
+      window.ethereum.on('accountsChanged', (accounts)=>{
+        if(!accounts || accounts.length === 0){
+          log('Carteira desconectada (accountsChanged -> nenhum account).');
+          signer = null;
+          userAddress = null;
+          setConnectedUI(false);
+          ui.status.textContent = 'Nenhuma conta conectada.';
+        }else{
+          userAddress = accounts[0];
+          signer = provider.getSigner();
+          setConnectedUI(true);
+          ui.status.textContent = `Conectado: ${shortAddr(userAddress)}`;
+          log('accountsChanged: ' + accounts.join(', '));
+        }
+      });
+
+      window.ethereum.on('chainChanged', (chainIdHex)=>{
+        // chainIdHex vem em hex (ex: 0x1)
+        try{
+          const chainId = parseInt(chainIdHex, 16);
+          currentChainId = chainId;
+          ui.status.textContent = `Conectado: ${shortAddr(userAddress)} (chain ${currentChainId})`;
+          log('chainChanged: ' + chainId);
+        }catch(e){
+          log('chainChanged (erro ao parsear): ' + chainIdHex);
+        }
+        // não forçamos reload, apenas atualizamos estado
+      });
+    }
+
+    // eventos UI
+    ui.pricePerToken.addEventListener('input', calcTotal);
+    ui.quantity.addEventListener('input', calcTotal);
+    ui.connectBtn.addEventListener('click', connectWallet);
+    ui.executeBtn.addEventListener('click', executePurchase);
+
+    // inicialização
+    (function init(){
+      const has = detectProvider();
+      if(has){
+        // verifica se já está conectado previamente
+        provider.listAccounts().then(accounts=>{
+          if(accounts && accounts.length>0){
+            signer = provider.getSigner();
+            userAddress = accounts[0];
+            provider.getNetwork().then(net=>{ currentChainId = net.chainId; ui.status.textContent = `Conectado: ${shortAddr(userAddress)} (chain ${currentChainId})`; setConnectedUI(true); });
+          }else{
+            setConnectedUI(false);
+          }
+        }).catch(err=>{ log('Erro ao listar contas: ' + (err.message||err)); setConnectedUI(false); });
+
+        setupWalletListeners();
+      }
+
+      // calcular total inicial caso campos default
+      calcTotal();
+    })();
+
+  </script>
+</body>
+</html>
