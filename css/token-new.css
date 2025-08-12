@@ -1,0 +1,170 @@
+/**
+* SCCAFE Token Creator - Estilos Adicionais
+*/
+
+/*--------------------------------------------------------------
+# Wallet Connection Enhanced Styles
+--------------------------------------------------------------*/
+.wallet-status-connected {
+  background-color: rgba(16, 185, 129, 0.1) !important;
+  border-color: #10b981 !important;
+  color: #6ee7b7 !important;
+  font-family: 'Courier New', monospace !important;
+  font-weight: 600;
+}
+
+.connection-section.connected-state .card {
+  border-color: #10b981 !important;
+}
+
+.network-info {
+  font-size: 0.875rem;
+  color: #9ca3af !important;
+  font-family: 'Courier New', monospace;
+  font-weight: 500;
+}
+
+.network-info .chain-id {
+  color: #9ca3af !important;
+  font-family: 'Courier New', monospace;
+  font-weight: 500;
+}
+
+.network-info #current-network {
+  color: var(--token-warning) !important;
+  font-weight: 600;
+}
+
+/*--------------------------------------------------------------
+# Form Enhancements
+--------------------------------------------------------------*/
+.form-control:valid {
+  border-color: #10b981 !important;
+  background: rgba(16, 185, 129, 0.05);
+}
+
+.form-control:invalid:not(:placeholder-shown) {
+  border-color: #ef4444 !important;
+  background: rgba(239, 68, 68, 0.05);
+}
+
+/*--------------------------------------------------------------
+# Loading States
+--------------------------------------------------------------*/
+.loading-spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: var(--token-primary);
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/*--------------------------------------------------------------
+# Enhanced Buttons
+--------------------------------------------------------------*/
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-outline-warning {
+  background: transparent;
+  border: 2px solid var(--token-warning);
+  color: var(--token-warning);
+}
+
+.btn-outline-warning:hover:not(:disabled) {
+  background: var(--token-warning);
+  color: #000;
+}
+
+/*--------------------------------------------------------------
+# Salt Search Animation
+--------------------------------------------------------------*/
+.progress-bar-animated {
+  animation: progress-bar-stripes 1s linear infinite;
+}
+
+@keyframes progress-bar-stripes {
+  0% { background-position: 1rem 0; }
+  100% { background-position: 0 0; }
+}
+
+/*--------------------------------------------------------------
+# Tooltip Styles
+--------------------------------------------------------------*/
+.tooltip-custom {
+  position: relative;
+  cursor: help;
+}
+
+.tooltip-custom:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1f2937;
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  z-index: 1000;
+}
+
+/*--------------------------------------------------------------
+# Card Hover Effects
+--------------------------------------------------------------*/
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+  transition: all 0.3s ease;
+}
+
+/*--------------------------------------------------------------
+# Status Indicators
+--------------------------------------------------------------*/
+.status-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 8px;
+}
+
+.status-dot.success {
+  background: #10b981;
+}
+
+.status-dot.warning {
+  background: #f59e0b;
+}
+
+.status-dot.danger {
+  background: #ef4444;
+}
+
+/*--------------------------------------------------------------
+# Mobile Optimizations
+--------------------------------------------------------------*/
+@media (max-width: 576px) {
+  .btn {
+    font-size: 14px;
+    padding: 8px 16px;
+  }
+  
+  .form-control {
+    font-size: 16px; /* Prevent zoom on iOS */
+  }
+  
+  .card-body {
+    padding: 15px;
+  }
+}

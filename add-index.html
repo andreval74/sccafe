@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Criador de Tokens - SCCAFE</title>
+  
+  <!-- Favicons -->
+  <link href="imgs/sccafe-32x32.png" rel="icon" sizes="32x32" type="image/png">
+  <link href="imgs/sccafe-16x16.png" rel="icon" sizes="16x16" type="image/png">
+  <link href="imgs/sccafe-192x192.png" rel="apple-touch-icon" sizes="192x192">
+  
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  
+  <!-- Custom Token CSS -->
+  <link href="css/token.css" rel="stylesheet">
+  <link href="css/token-new.css" rel="stylesheet">
+</head>
+<body>
+  <!-- Header -->
+  <header data-component="header"></header>
+  
+  <!-- Main Content -->
+  <main class="main">
+    <div class="token-creator-container">
+      <div class="container">
+        <div class="row justify-content-center">
+          <div class="col-xl-10 col-lg-11">
+            <div class="creator-card">
+              <!-- Header -->
+              <div class="creator-header">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                  <div>
+                    <h1><i class="bi bi-rocket-takeoff me-2"></i>Criador de Tokens</h1>
+                    <p class="mb-0">Crie seu token e contrato inteligente ERC-20</p>
+                  </div>
+                  <div>
+                    
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Progress Steps -->
+              <!-- Progress Steps Simplificado (3 Etapas) -->
+              <div class="progress-steps-simple mb-4">
+                <div class="step-simple active" id="step-simple-1">
+                  <div class="step-number">1</div>
+                  <div class="step-title">Configuração</div>
+                </div>
+                <div class="step-simple" id="step-simple-2">
+                  <div class="step-number">2</div>
+                  <div class="step-title">Personalização</div>
+                </div>
+                <div class="step-simple" id="step-simple-3">
+                  <div class="step-number">3</div>
+                  <div class="step-title">Criação</div>
+                </div>
+              </div>
+              <!-- Step 1: Dados Básicos -->
+              <div class="step-content active" id="step-1">
+                <!-- Conexão MetaMask -->
+                <div class="connection-section mb-4">
+                  <div class="card border-warning">
+                    <div class="card-body">
+                      <h5 class="card-title">
+                        <i class="bi bi-wallet2 text-warning me-2"></i>Conexão da Carteira
+                      </h5>
+                      <div class="d-flex gap-3 align-items-center">
+                        <input type="text" class="form-control" id="wallet-status" 
+                               placeholder="Clique em 'Conectar' para iniciar" style="font-family: monospace;" readonly>
+                        <button id="connect-metamask-btn" type="button" class="btn btn-outline-warning">
+                          <i class="bi bi-wallet2"></i> CONECTAR
+                        </button>
+                      </div>
+                      <div class="row mt-2" id="network-info-section" style="display: none;">
+                        <div class="col-md-12">
+                          <small class="text-muted network-info">
+                            <i class="bi bi-wifi"></i> Rede: <span id="current-network" class="fw-bold">-</span>
+                            <span id="chain-id-display" class="chain-id ms-2">
+                              <i class="bi bi-link-45deg"></i> Chain ID: <span id="chain-id-value">-</span>
+                            </span>
+                          </small>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <h3 class="mb-4">
+                  <i class="bi bi-pencil-square text-primary me-2"></i>Dados Básicos do Token
+                </h3>
+                <p class="text-muted mb-4">Preencha as informações do seu token abaixo.</p>
+
+                <div class="row g-3 mb-3">
+                  <div class="col-md-6">
+                    <label for="tokenName" class="form-label">
+                      <i class="bi bi-tag me-1"></i>Nome do Token
+                    </label>
+                    <input type="text" class="form-control" id="tokenName" 
+                           placeholder="Ex: BitcoinBR" required>
+                  </div>
+                  <div class="col-md-6">
+                    <label for="tokenSymbol" class="form-label">
+                      <i class="bi bi-code-square me-1"></i>Símbolo do Token
+                    </label>
+                    <input type="text" class="form-control" id="tokenSymbol" 
+                           placeholder="Ex: BTCBR" required>
+                  </div>
+                </div>
+                
+                <div class="row g-3 mb-3">
+                  <div class="col-md-6">
+                    <label for="decimals" class="form-label">
+                      <i class="bi bi-123 me-1"></i>Decimais
+                    </label>
+                    <input type="number" class="form-control" id="decimals" 
+                           placeholder="18" value="18" min="0" max="18" required>
+                  </div>
+                  <div class="col-md-6">
+                    <label for="totalSupply" class="form-label">
+                      <i class="bi bi-cash-stack me-1"></i>Total Supply
+                    </label>
+                    <input type="text" class="form-control" id="totalSupply" 
+                           placeholder="Ex: 1000000" required>
+                  </div>
+                </div>
+                
+                <div class="mb-3">
+                  <label for="ownerAddress" class="form-label">
+                    <i class="bi bi-person-badge me-1"></i>Endereço do Proprietário
+                  </label>
+                  <input type="text" class="form-control" id="ownerAddress" 
+                         placeholder="Será preenchido após conectar carteira" required readonly>
+                </div>
+                
+                <div class="mb-3">
+                  <label for="tokenImage" class="form-label">
+                    <i class="bi bi-image me-1"></i>URL da Imagem do Token
+                  </label>
+                  <input type="url" class="form-control" id="tokenImage" 
+                         placeholder="https://exemplo.com/logo.png">
+                </div>
+                
+                <!-- Seção de Rede -->
+                <div class="mb-4">
+                  <label for="network-display" class="form-label">
+                    <i class="bi bi-globe me-1"></i>Rede Detectada
+                  </label>
+                  <div class="d-flex gap-2 align-items-center">
+                    <input type="text" class="form-control" id="network-display" 
+                           placeholder="Será detectado após conectar" readonly>
+                    <div class="network-status" id="network-status">
+                      <i class="bi bi-search text-muted"></i> Detectando...
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Campos ocultos -->
+                <input type="hidden" id="networkValue" name="network">
+                <input type="hidden" id="networkDisplay" name="networkDisplay">
+                
+                <div class="d-flex justify-content-end">
+                  <button id="next-step-1" class="btn btn-primary">
+                    Próximo: Personalização <i class="bi bi-arrow-right ms-1"></i>
+                  </button>
+                </div>
+              </div>
+              <!-- Step 2: Personalização do Endereço -->
+              <div class="step-content" id="step-2">
+                <h3 class="mb-4">
+                  <i class="bi bi-geo-alt text-warning me-2"></i>Personalização do Endereço
+                </h3>
+                <p class="text-muted mb-4">Escolha se deseja personalizar o endereço do seu token ou usar um endereço padrão.</p>
+                
+                <div class="card mb-4">
+                  <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                      <i class="bi bi-lightbulb-fill me-2"></i>Opções Disponíveis
+                    </h5>
+                  </div>
+                  <div class="card-body">
+                    <div class="form-check mb-3">
+                      <input class="form-check-input" type="radio" name="tipo-contrato" 
+                             id="contrato-simples" checked onchange="toggleAddressCustomization()">
+                      <label class="form-check-label" for="contrato-simples">
+                        <i class="bi bi-speedometer2 text-success me-2"></i>
+                        <strong>Contrato Simples (Endereço padrão)</strong>
+                      </label>
+                    </div>
+                    
+                    <div class="form-check mb-3">
+                      <input class="form-check-input" type="radio" name="tipo-contrato" 
+                             id="contrato-personalizado" onchange="toggleAddressCustomization()">
+                      <label class="form-check-label" for="contrato-personalizado">
+                        <i class="bi bi-star text-warning me-2"></i>
+                        <strong>Contrato com Endereço Personalizado (CREATE2)</strong>
+                      </label>
+                    </div>
+                    
+                    <div class="row mt-3">
+                      <div class="col-md-6">
+                        <div class="alert alert-info">
+                          <strong>Endereço Personalizado:</strong> Use CREATE2 para gerar um endereço com os últimos 4 caracteres de sua escolha. Custa um pouco mais de gas, mas oferece um endereço memorável.
+                        </div>
+                      </div>
+                      <div class="col-md-6">
+                        <div class="alert alert-success">
+                          <strong>Endereço Padrão:</strong> Use CREATE normal para um deploy mais rápido e barato, mas com endereço aleatório.
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Seção de Personalização -->
+                <div id="customization-section" style="display: none;">
+                  <div class="card">
+                    <div class="card-header bg-warning text-dark">
+                      <h5 class="mb-0">
+                        <i class="bi bi-gear-fill me-2"></i>Configuração do Endereço Personalizado
+                      </h5>
+                    </div>
+                    <div class="card-body">
+                      <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                          <label for="targetSuffix" class="form-label">
+                            <i class="bi bi-bullseye me-1"></i>Últimos 4 caracteres desejados (hex)
+                          </label>
+                          <input type="text" class="form-control" id="targetSuffix" 
+                                 maxlength="4" placeholder="Ex: cafe" pattern="[0-9a-fA-F]{4}">
+                        </div>
+                        <div class="col-md-6">
+                          <label for="predictedAddress" class="form-label">
+                            <i class="bi bi-pin-map me-1"></i>Endereço Previsto
+                          </label>
+                          <input type="text" class="form-control" id="predictedAddress" 
+                                 placeholder="Será calculado automaticamente" readonly>
+                        </div>
+                      </div>
+                      
+                      <div class="mb-3">
+                        <label for="saltFound" class="form-label">
+                          <i class="bi bi-hash me-1"></i>SALT Encontrado
+                        </label>
+                        <input type="text" class="form-control" id="saltFound" 
+                               placeholder="Será gerado automaticamente" readonly>
+                      </div>
+                      
+                      <div class="d-flex gap-2 mb-3">
+                        <button onclick="buscarSalt()" id="search-salt-btn" class="btn btn-primary">
+                          <i class="bi bi-search me-1"></i>Buscar SALT
+                        </button>
+                        <button onclick="pararBusca()" id="stop-search-btn" 
+                                style="display:none;" class="btn btn-secondary">
+                          <i class="bi bi-stop-circle me-1"></i>Parar Busca
+                        </button>
+                      </div>
+                      
+                      <div id="salt-progress" class="mb-3" style="display:none;">
+                        <div class="progress">
+                          <div id="salt-progress-bar" class="progress-bar progress-bar-striped progress-bar-animated" 
+                               role="progressbar" style="width: 0%"></div>
+                        </div>
+                      </div>
+                      
+                      <div id="salt-output" class="alert alert-success" style="display:none;">
+                        <pre class="mb-0">// O resultado da busca será exibido aqui...</pre>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="d-flex justify-content-between mt-4">
+                  <button onclick="prevStep()" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i>Anterior
+                  </button>
+                  <button id="next-step-2" class="btn btn-primary">
+                    Próximo: Resumo <i class="bi bi-arrow-right ms-1"></i>
+                  </button>
+                </div>
+              </div>
+              <!-- Step 3: Resumo e Criação -->
+              <div class="step-content" id="step-3">
+                <h3 class="mb-4">
+                  <i class="bi bi-clipboard-check text-success me-2"></i>Resumo e Criação do Token
+                </h3>
+                <p class="text-muted mb-4">Revise os dados e crie seu token.</p>
+                
+                <!-- Seção de Criação com Resumo Integrado -->
+                <div class="card mb-4">
+                  <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                      <i class="bi bi-rocket-takeoff me-2"></i>Criação do Token
+                    </h5>
+                  </div>
+                  <div class="card-body">
+                    <p class="mb-3">Revise os dados e crie seu token na blockchain. Certifique-se de ter BNB suficiente para o gas.</p>
+                    
+                    <!-- O resumo e botões estão no template resumo-template.html carregado via add-index.js linha 719 -->
+                    <div id="token-summary" class="row g-3">
+                      <!-- Conteúdo preenchido dinamicamente pelo template-loader.js -->
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="d-flex justify-content-between mt-4">
+                  <button onclick="prevStep()" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i>Anterior
+                  </button>
+                  <button onclick="reiniciarFluxo()" class="btn btn-success" style="display: none;" id="btn-finalizado">
+                    <i class="bi bi-arrow-clockwise me-1"></i>Criar Outro Token
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <div id="footer-include"></div>
+
+    <!-- Bootstrap JS -->
+    <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- AOS JS -->
+    <script src="assets/vendor/aos/aos.js"></script>
+    
+    <!-- Custom JS -->
+    <script src="assets/js/include.js"></script>
+    <script src="assets/js/main.js"></script>
+    
+    <!-- Ethers.js -->
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+    
+    <!-- API Key Manager -->
+    <script src="js/api-key-manager.js"></script>
+    
+    <!-- Sistema de Detecção de Contrato -->
+    <script src="js/contract-detector.js"></script>
+    
+    <!-- Etherscan V2 API -->
+    <script src="js/etherscan-v2-verification.js"></script>
+    
+    <!-- Verificação Automática Simplificada -->
+    <script src="js/verification-simple.js"></script>
+  </main>
+  
+  <!-- Footer -->
+  <footer data-component="footer"></footer>
+  
+  <!-- Template Loader -->
+  <script src="js/template-loader.js"></script>
+  
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <!-- Main Token Creation Script -->
+  <script type="module" src="js/add-index.js"></script>
+  </body>
+</html>
