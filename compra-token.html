@@ -332,18 +332,9 @@
     const ui = {
       status: document.getElementById('status'),
       connectBtn: document.getElementById('connectBtn'),
-      calculateBtn: document.getElementById('calculateBtn'),
-      executeBtn: document.getElementById('executeBtn'),
       transferBtn: document.getElementById('transferBtn'),
       connectionAlert: document.getElementById('connectionAlert'),
       
-      // Mode elements
-      modeDex: document.getElementById('mode-dex'),
-      modeManual: document.getElementById('mode-manual'),
-      dexModeFields: document.getElementById('dex-mode-fields'),
-      manualModeFields: document.getElementById('manual-mode-fields'),
-      calculateBtnText: document.getElementById('calculateBtnText'),
-      executeBtnText: document.getElementById('executeBtnText'),
       nativeCoinLabel: document.getElementById('nativeCoinLabel'),
       totalCostCoin: document.getElementById('totalCostCoin'),
       
@@ -387,7 +378,7 @@
           'alert alert-warning d-flex align-items-center' : 
           'alert alert-success d-flex align-items-center';
         
-        ui.calculateBtn.disabled = false;
+        ui.transferBtn.disabled = false;
         currentConfig = config;
         
         // Auto-preencher endereço recebedor se vazio
@@ -413,8 +404,6 @@
         ui.connectBtn.className = 'btn btn-dark btn-sm';
         ui.connectionAlert.className = 'alert alert-warning d-flex align-items-center';
         
-        ui.calculateBtn.disabled = true;
-        ui.executeBtn.disabled = true;
         ui.transferBtn.disabled = true;
         currentConfig = null;
       }
@@ -426,34 +415,6 @@
       ui.totalCoinLabel.textContent = coinName;
     }
 
-    // Alternar entre modos
-    function switchPurchaseMode() {
-      purchaseMode = ui.modeDex.checked ? 'dex' : 'manual';
-      
-      if (purchaseMode === 'dex') {
-        ui.dexModeFields.style.display = 'block';
-        ui.manualModeFields.style.display = 'none';
-        ui.executeBtn.style.display = 'block';
-        ui.transferBtn.style.display = 'none';
-        ui.calculateBtnText.textContent = 'Calcular Preço DEX';
-        ui.executeBtnText.textContent = 'Executar Compra via DEX';
-      } else {
-        ui.dexModeFields.style.display = 'none';
-        ui.manualModeFields.style.display = 'block';
-        ui.executeBtn.style.display = 'none';
-        ui.transferBtn.style.display = 'block';
-        ui.calculateBtnText.textContent = 'Calcular Total Manual';
-        ui.transferBtn.disabled = false;
-      }
-      
-      // Reset campos
-      ui.expectedTokens.value = '';
-      ui.totalCost.value = '';
-      ui.executeBtn.disabled = true;
-      
-      log(`Modo alterado para: ${purchaseMode === 'dex' ? 'DEX (Automático)' : 'Manual (Você define preço)'}`, 'info');
-    }
-
     // Calcular total no modo manual
     function calculateManualTotal() {
       const price = parseFloat(ui.tokenPrice.value || '0');
@@ -462,9 +423,11 @@
       if (price > 0 && quantity > 0) {
         const total = price * quantity;
         ui.totalCost.value = total.toFixed(8);
-        log(`Cálculo manual: ${quantity} tokens × ${price} ${currentConfig?.nativeCoin || 'ETH'} = ${total.toFixed(8)} ${currentConfig?.nativeCoin || 'ETH'}`, 'info');
+        log(`Cálculo: ${quantity} tokens × ${price} ${currentConfig?.nativeCoin || 'ETH'} = ${total.toFixed(8)} ${currentConfig?.nativeCoin || 'ETH'}`, 'info');
+        ui.transferBtn.disabled = false;
       } else {
         ui.totalCost.value = '';
+        ui.transferBtn.disabled = true;
       }
     }
 
@@ -521,69 +484,6 @@
           log(`Erro ao conectar: ${error.message}`, 'error');
         }
         updateConnectionStatus(false);
-      }
-    }
-
-    // Calcular preço
-    async function calculatePrice() {
-      if (!provider || !currentConfig) {
-        alert('Conecte sua carteira primeiro');
-        return;
-      }
-
-      if (purchaseMode === 'manual') {
-        calculateManualTotal();
-        return;
-      }
-
-      // Modo DEX
-      const tokenAddr = ui.tokenAddress.value.trim();
-      const ethAmount = ui.ethAmount.value;
-
-      if (!tokenAddr || !ethAmount) {
-        alert('Preencha o endereço do token e valor em ETH');
-        return;
-      }
-
-      try {
-        log('Calculando preço via DEX...');
-        ui.expectedTokens.value = 'Calculando...';
-
-        // Router ABI para getAmountsOut
-        const routerAbi = [
-          'function getAmountsOut(uint amountIn, address[] calldata path) external view returns (uint[] memory amounts)'
-        ];
-
-        const router = new ethers.Contract(currentConfig.router, routerAbi, provider);
-        const amountIn = ethers.utils.parseEther(ethAmount);
-        const path = [currentConfig.weth, tokenAddr];
-
-        const amounts = await router.getAmountsOut(amountIn, path);
-        const tokensOut = amounts[1];
-
-        // Obter decimais do token
-        const tokenAbi = ['function decimals() view returns (uint8)'];
-        const tokenContract = new ethers.Contract(tokenAddr, tokenAbi, provider);
-        let decimals = 18;
-        
-        try {
-          decimals = await tokenContract.decimals();
-        } catch (e) {
-          log('Assumindo 18 decimais para o token', 'info');
-        }
-
-        const formattedTokens = ethers.utils.formatUnits(tokensOut, decimals);
-        ui.expectedTokens.value = parseFloat(formattedTokens).toFixed(6);
-        
-        ui.executeBtn.disabled = false;
-        
-        log(`Preço via ${currentConfig.dexName}: ${ethAmount} ${currentConfig.nativeCoin} = ${parseFloat(formattedTokens).toFixed(6)} tokens`, 'success');
-        
-      } catch (error) {
-        log(`Erro ao calcular preço via DEX: ${error.message}`, 'error');
-        log('Tente usar o Modo Manual se o token não estiver listado na DEX', 'info');
-        ui.expectedTokens.value = 'Token não listado na DEX';
-        ui.executeBtn.disabled = true;
       }
     }
 
@@ -699,104 +599,15 @@
         }
       }
     }
-    async function executePurchase() {
-      if (!provider || !signer || !currentConfig) {
-        alert('Conecte sua carteira primeiro');
-        return;
-      }
-
-      const tokenAddr = ui.tokenAddress.value.trim();
-      const receiverAddr = ui.receiverAddress.value.trim();
-      const ethAmount = ui.ethAmount.value;
-      
-      if (!tokenAddr || !receiverAddr || !ethAmount) {
-        alert('Preencha todos os campos obrigatórios');
-        return;
-      }
-
-      try {
-        log('Preparando transação de compra...');
-
-        // Obter amounts out novamente
-        const routerAbi = [
-          'function getAmountsOut(uint amountIn, address[] calldata path) external view returns (uint[] memory amounts)',
-          'function swapExactETHForTokens(uint amountOutMin, address[] calldata path, address to, uint deadline) external payable returns (uint[] memory amounts)'
-        ];
-
-        const router = new ethers.Contract(currentConfig.router, routerAbi, signer);
-        const amountIn = ethers.utils.parseEther(ethAmount);
-        const path = [currentConfig.weth, tokenAddr];
-
-        const amounts = await router.getAmountsOut(amountIn, path);
-        const expectedOut = amounts[1];
-        // Usar 95% como slippage padrão (5% de tolerância)
-        const minAmountOut = expectedOut.mul(95).div(100);
-
-        // Deadline de 20 minutos
-        const deadline = Math.floor(Date.now() / 1000) + (20 * 60);
-
-        log(`Executando swap: ${ethAmount} ${currentConfig.nativeCoin} → tokens via ${currentConfig.dexName}`);
-
-        const tx = await router.swapExactETHForTokens(
-          minAmountOut,
-          path,
-          receiverAddr,
-          deadline,
-          { value: amountIn }
-        );
-
-        log(`Transação enviada: ${tx.hash}`, 'success');
-        log(`Aguardando confirmação...`);
-
-        const receipt = await tx.wait();
-        
-        log(`✅ Compra realizada com sucesso!`, 'success');
-        log(`Hash: ${tx.hash}`);
-        log(`Explorador: ${currentConfig.blockExplorer}/tx/${tx.hash}`);
-        
-        // Reset form
-        ui.ethAmount.value = '';
-        ui.expectedTokens.value = '';
-        ui.executeBtn.disabled = true;
-
-      } catch (error) {
-        if (error.code === 4001) {
-          log('Transação rejeitada pelo usuário', 'error');
-        } else {
-          log(`Erro na compra: ${error.message}`, 'error');
-        }
-      }
-    }
 
     // Event listeners
     ui.connectBtn.addEventListener('click', connectWallet);
-    ui.calculateBtn.addEventListener('click', calculatePrice);
-    ui.executeBtn.addEventListener('click', executePurchase);
     ui.transferBtn.addEventListener('click', executeManualTransfer);
     
-    // Mode switching
-    ui.modeDex.addEventListener('change', switchPurchaseMode);
-    ui.modeManual.addEventListener('change', switchPurchaseMode);
-    
-    // Manual mode calculations
+    // Auto-calcular quando mudar valores do modo manual
     ui.tokenPrice.addEventListener('input', calculateManualTotal);
     ui.tokenQuantity.addEventListener('input', calculateManualTotal);
     
-    // Auto-calcular quando mudar valores (modo DEX)
-    ui.ethAmount.addEventListener('input', () => {
-      if (purchaseMode === 'dex' && ui.ethAmount.value && ui.tokenAddress.value) {
-        ui.expectedTokens.value = 'Clique em calcular para atualizar';
-        ui.executeBtn.disabled = true;
-      }
-    });
-
-    ui.tokenAddress.addEventListener('input', () => {
-      if (purchaseMode === 'dex') {
-        ui.expectedTokens.value = '';
-        ui.executeBtn.disabled = true;
-      }
-    });
-
     // Mudança de rede
     ui.network.addEventListener('change', () => {
       const selectedChain = parseInt(ui.network.value);
