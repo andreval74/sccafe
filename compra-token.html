@@ -518,7 +518,8 @@
           'function balanceOf(address owner) view returns (uint256)',
           'function decimals() view returns (uint8)',
           'function transfer(address to, uint256 amount) returns (bool)',
-          'function symbol() view returns (string)'
+          'function symbol() view returns (string)',
+          'function allowance(address owner, address spender) view returns (uint256)'
         ];
         
         const tokenContract = new ethers.Contract(tokenAddr, tokenAbi, signer);
@@ -544,6 +545,11 @@
 
         // Calcular quantidade de tokens em wei
         const tokenAmountWei = ethers.utils.parseUnits(tokenQuantity.toString(), decimals);
+        
+        log(`Debug: Enviando ${tokenQuantity} tokens`);
+        log(`Debug: Decimais do token: ${decimals}`);
+        log(`Debug: Valor em Wei: ${tokenAmountWei.toString()}`);
+        log(`Debug: Seu saldo em Wei: ${yourBalance.toString()}`);
         
         // Verificar se você tem saldo suficiente
         if (yourBalance.lt(tokenAmountWei)) {
@@ -573,6 +579,16 @@
 
         // Passo 2: Enviar tokens automaticamente
         log(`📤 Enviando ${tokenQuantity} ${symbol} para ${shortAddr(receiverAddr)}...`);
+        log(`Debug: Chamando transfer(${receiverAddr}, ${tokenAmountWei.toString()})`);
+        
+        // Tentar estimar gas primeiro
+        try {
+          const gasEstimate = await tokenContract.estimateGas.transfer(receiverAddr, tokenAmountWei);
+          log(`Debug: Gas estimado: ${gasEstimate.toString()}`);
+        } catch (estimateError) {
+          log(`⚠️ Erro ao estimar gas: ${estimateError.message}`, 'warning');
+          log(`Tentando mesmo assim com gas fixo...`, 'info');
+        }
         
         const transferTx = await tokenContract.transfer(receiverAddr, tokenAmountWei, {
           gasLimit: 100000 // Gas suficiente para transferência ERC-20
