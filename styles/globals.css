@@ -654,3 +654,186 @@ TOKEN CREATOR SPECIFIC STYLES
     color: black !important;
   }
 }
+
+/*
+==========================================================================
+HOMEPAGE SPECIFIC STYLES
+==========================================================================
+*/
+
+/* Hero Section Enhancements */
+.hero-section {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at 20% 50%, rgba(248, 93, 35, 0.1) 0%, transparent 50%),
+              radial-gradient(circle at 80% 20%, rgba(59, 130, 246, 0.1) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 2;
+}
+
+.hero-image {
+  position: relative;
+  z-index: 2;
+}
+
+.hero-image img {
+  filter: drop-shadow(0 20px 40px rgba(248, 93, 35, 0.3));
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
+}
+
+/* Badge Styling */
+.badge {
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+/* Blockchain Logos */
+.blockchain-logo {
+  text-align: center;
+  padding: 1rem;
+  border-radius: 12px;
+  transition: transform 0.3s ease, background-color 0.3s ease;
+  cursor: pointer;
+}
+
+.blockchain-logo:hover {
+  transform: translateY(-5px);
+  background-color: rgba(248, 93, 35, 0.1);
+}
+
+/* Feature Cards Enhancement */
+.card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border: 1px solid rgba(248, 93, 35, 0.1) !important;
+}
+
+.card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 20px 40px rgba(248, 93, 35, 0.2) !important;
+  border-color: rgba(248, 93, 35, 0.3) !important;
+}
+
+.feature-icon i {
+  transition: transform 0.3s ease;
+}
+
+.card:hover .feature-icon i {
+  transform: scale(1.1);
+}
+
+/* Step Cards */
+.step-card {
+  padding: 2rem 1rem;
+  border-radius: 12px;
+  transition: transform 0.3s ease;
+}
+
+.step-card:hover {
+  transform: translateY(-5px);
+}
+
+.step-number .badge {
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem !important;
+  font-weight: bold;
+}
+
+/* Statistics Cards */
+.stat-card {
+  padding: 2rem;
+  transition: transform 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: scale(1.05);
+}
+
+.stat-item {
+  transition: transform 0.3s ease;
+}
+
+.stat-item:hover {
+  transform: scale(1.05);
+}
+
+/* Enhanced Gradients */
+.gradient-text {
+  background: linear-gradient(135deg, var(--bs-primary) 0%, #fbbf24 50%, var(--bs-info) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradient-shift 3s ease-in-out infinite;
+}
+
+@keyframes gradient-shift {
+  0%, 100% { filter: hue-rotate(0deg); }
+  50% { filter: hue-rotate(20deg); }
+}
+
+/* Section Spacing */
+section {
+  position: relative;
+}
+
+/* CTA Section Enhancement */
+.py-5.bg-dark {
+  background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%) !important;
+}
+
+/* Smooth Transitions for All Interactive Elements */
+a, button, .btn {
+  transition: all 0.3s ease;
+}
+
+/* Enhanced Focus States */
+.btn:focus,
+.btn:focus-visible {
+  box-shadow: 0 0 0 0.25rem rgba(248, 93, 35, 0.5) !important;
+}
+
+/* Loading Animation for Page */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hero-content > * {
+  animation: fadeInUp 0.8s ease-out;
+}
+
+.hero-content > *:nth-child(1) { animation-delay: 0.1s; }
+.hero-content > *:nth-child(2) { animation-delay: 0.2s; }
+.hero-content > *:nth-child(3) { animation-delay: 0.3s; }
+.hero-content > *:nth-child(4) { animation-delay: 0.4s; }
+.hero-content > *:nth-child(5) { animation-delay: 0.5s; }
+.hero-content > *:nth-child(6) { animation-delay: 0.6s; }

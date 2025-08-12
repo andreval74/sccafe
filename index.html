@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SCCAFE - Plataforma de Criação de Tokens</title>
+    <title>SCCAFE - Plataforma de Criação de Tokens Blockchain</title>
     
     <!-- Favicons -->
     <link rel="icon" type="image/png" sizes="16x16" href="imgs/sccafe-16x16.png">
@@ -11,42 +11,376 @@
     <link rel="icon" type="image/png" sizes="192x192" href="imgs/sccafe-192x192.png">
     <link rel="icon" type="image/png" sizes="512x512" href="imgs/sccafe-512x512.png">
     
-    <!-- Preconnect para performance -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    
-    <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-    
-    <!-- Bootstrap Icons -->
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     
-    <!-- CSS Global -->
-    <link rel="stylesheet" href="styles/globals.css">
+    <!-- SCCAFE Global CSS Unificado -->
+    <link href="styles/globals.css" rel="stylesheet">
     
-    <!-- Meta tags para SEO -->
-    <meta name="description" content="SCCAFE - Plataforma moderna para criação e verificação de tokens na blockchain. Simplifique o desenvolvimento de contratos inteligentes.">
-    <meta name="keywords" content="blockchain, token, ethereum, smart contract, crypto, defi, sccafe">
+    <!-- Meta tags SEO -->
+    <meta name="description" content="SCCAFE - Crie tokens blockchain personalizados sem conhecimento técnico. Suporte para Ethereum, Polygon, BSC e outras redes. Plataforma segura e auditada.">
+    <meta name="keywords" content="criar token, blockchain, ethereum, polygon, smart contract, crypto, defi, sccafe, token creator">
     <meta name="author" content="SCCAFE Team">
     
     <!-- Open Graph -->
-    <meta property="og:title" content="SCCAFE - Plataforma de Criação de Tokens">
-    <meta property="og:description" content="Plataforma moderna para criação e verificação de tokens na blockchain">
+    <meta property="og:title" content="SCCAFE - Criador de Tokens Blockchain">
+    <meta property="og:description" content="Crie tokens personalizados em múltiplas blockchains sem conhecimento técnico">
     <meta property="og:image" content="imgs/sccafe-512x512.png">
     <meta property="og:type" content="website">
 </head>
 <body>
-    <!-- Loading Screen -->
-    <div id="loading-screen" class="loading-screen">
-        <div class="loading-content">
-            <img src="imgs/sccafe.png" alt="SCCAFE" class="loading-logo">
-            <div class="loading-spinner"></div>
-            <p class="loading-text">Carregando SCCAFE...</p>
-        </div>
-    </div>
-
     <!-- Header -->
     <header data-component="header"></header>
+
+    <!-- Hero Section -->
+    <section class="hero-section py-5">
+        <div class="container">
+            <div class="row align-items-center min-vh-100">
+                <div class="col-lg-6">
+                    <div class="hero-content">
+                        <div class="badge bg-primary text-dark mb-3 px-3 py-2">
+                            <i class="bi bi-shield-check me-2"></i>
+                            Plataforma Auditada e Segura
+                        </div>
+                        
+                        <h1 class="hero-title display-3 fw-bold mb-4">
+                            Token Personalizado para Seu 
+                            <span class="gradient-text">Projeto</span>
+                        </h1>
+                        
+                        <p class="lead text-secondary mb-4 fs-5">
+                            Escolha as funcionalidades que precisa e tenha controle total dos seus tokens. 
+                            Economize tempo e até 40% em taxas de gas com nosso gerador otimizado.
+                        </p>
+                        
+                        <div class="hero-stats row g-4 mb-5">
+                            <div class="col-6 col-md-3">
+                                <div class="stat-item text-center">
+                                    <h3 class="text-primary fw-bold mb-1">1000+</h3>
+                                    <p class="text-muted small mb-0">Tokens Criados</p>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="stat-item text-center">
+                                    <h3 class="text-primary fw-bold mb-1">15+</h3>
+                                    <p class="text-muted small mb-0">Funcionalidades</p>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="stat-item text-center">
+                                    <h3 class="text-primary fw-bold mb-1">10+</h3>
+                                    <p class="text-muted small mb-0">Blockchains</p>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="stat-item text-center">
+                                    <h3 class="text-primary fw-bold mb-1">500+</h3>
+                                    <p class="text-muted small mb-0">Usuários Ativos</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="hero-actions d-flex flex-column flex-sm-row gap-3">
+                            <a href="add-index.html" class="btn btn-primary btn-lg px-4 py-3">
+                                <i class="bi bi-plus-circle me-2"></i>
+                                Criar Token
+                            </a>
+                            <a href="#features" class="btn btn-outline-primary btn-lg px-4 py-3">
+                                <i class="bi bi-info-circle me-2"></i>
+                                Ver Funcionalidades
+                            </a>
+                        </div>
+                        
+                        <p class="text-muted small mt-3">
+                            <i class="bi bi-check-circle-fill text-success me-2"></i>
+                            Sem conhecimento técnico necessário
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="col-lg-6">
+                    <div class="hero-image text-center">
+                        <img src="imgs/sccafe.png" alt="SCCAFE Token Creator" class="img-fluid" style="max-width: 400px;">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Blockchain Support Section -->
+    <section class="py-5 bg-dark">
+        <div class="container">
+            <div class="text-center mb-4">
+                <h6 class="text-muted text-uppercase mb-3">Suportado por</h6>
+            </div>
+            <div class="row align-items-center justify-content-center">
+                <div class="col-auto">
+                    <div class="d-flex align-items-center gap-4 flex-wrap justify-content-center">
+                        <div class="blockchain-logo">
+                            <i class="bi bi-ethereum text-primary fs-2"></i>
+                            <small class="d-block text-muted">Ethereum</small>
+                        </div>
+                        <div class="blockchain-logo">
+                            <i class="bi bi-triangle text-warning fs-2"></i>
+                            <small class="d-block text-muted">Polygon</small>
+                        </div>
+                        <div class="blockchain-logo">
+                            <i class="bi bi-currency-bitcoin text-warning fs-2"></i>
+                            <small class="d-block text-muted">BSC</small>
+                        </div>
+                        <div class="blockchain-logo">
+                            <i class="bi bi-snow text-info fs-2"></i>
+                            <small class="d-block text-muted">Avalanche</small>
+                        </div>
+                        <div class="blockchain-logo">
+                            <i class="bi bi-gem text-primary fs-2"></i>
+                            <small class="d-block text-muted">Base</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12 text-center mb-5">
+                    <h2 class="display-5 fw-bold mb-3">Benefícios dos Tokens Personalizados</h2>
+                    <p class="lead text-secondary">
+                        Confiado por 1000+ proprietários de projetos crypto
+                    </p>
+                </div>
+            </div>
+            
+            <div class="row g-4">
+                <div class="col-lg-4">
+                    <div class="card h-100 border-0 bg-dark text-center p-4">
+                        <div class="card-body">
+                            <div class="feature-icon mb-4">
+                                <i class="bi bi-lightbulb text-primary" style="font-size: 3rem;"></i>
+                            </div>
+                            <h4 class="card-title mb-3">Desperte a Inovação</h4>
+                            <p class="card-text text-secondary">
+                                Para todos que querem criar seu primeiro token mais inovador com nossa ajuda e da comunidade SCCAFE.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4">
+                    <div class="card h-100 border-0 bg-dark text-center p-4">
+                        <div class="card-body">
+                            <div class="feature-icon mb-4">
+                                <i class="bi bi-clock text-primary" style="font-size: 3rem;"></i>
+                            </div>
+                            <h4 class="card-title mb-3">Maximize a Eficiência</h4>
+                            <p class="card-text text-secondary">
+                                Para freelancers e entusiastas crypto que preferem economizar tempo e personalizar o token conforme suas necessidades específicas.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4">
+                    <div class="card h-100 border-0 bg-dark text-center p-4">
+                        <div class="card-body">
+                            <div class="feature-icon mb-4">
+                                <i class="bi bi-shield-check text-primary" style="font-size: 3rem;"></i>
+                            </div>
+                            <h4 class="card-title mb-3">Gere com Confiança</h4>
+                            <p class="card-text text-secondary">
+                                Para proprietários de projetos ambiciosos e responsáveis que querem criar tokens seguros para impulsionar sua jornada crypto.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section class="py-5 bg-dark">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12 text-center mb-5">
+                    <h2 class="display-5 fw-bold mb-3">Como Gerar Seu Primeiro Token Crypto?</h2>
+                    <p class="lead text-secondary">
+                        Queremos que usuários se tornem criadores.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="row g-4">
+                <div class="col-lg-3">
+                    <div class="step-card text-center">
+                        <div class="step-number mb-3">
+                            <span class="badge bg-primary text-dark rounded-circle p-3 fs-4">1</span>
+                        </div>
+                        <h5 class="mb-3">Conecte Sua Carteira</h5>
+                        <p class="text-secondary">
+                            Escolha seu padrão de token e conecte sua carteira Web3 para começar a construir seu token personalizado.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="col-lg-3">
+                    <div class="step-card text-center">
+                        <div class="step-number mb-3">
+                            <span class="badge bg-primary text-dark rounded-circle p-3 fs-4">2</span>
+                        </div>
+                        <h5 class="mb-3">Selecione Funcionalidades</h5>
+                        <p class="text-secondary">
+                            Personalize a configuração do seu token selecionando e ajustando as funcionalidades que atendem aos objetivos do seu projeto.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="col-lg-3">
+                    <div class="step-card text-center">
+                        <div class="step-number mb-3">
+                            <span class="badge bg-primary text-dark rounded-circle p-3 fs-4">3</span>
+                        </div>
+                        <h5 class="mb-3">Teste Gratuitamente</h5>
+                        <p class="text-secondary">
+                            Opcionalmente, implante uma versão de teste em redes de teste para verificar se seu token funciona exatamente como pretendido.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="col-lg-3">
+                    <div class="step-card text-center">
+                        <div class="step-number mb-3">
+                            <span class="badge bg-primary text-dark rounded-circle p-3 fs-4">4</span>
+                        </div>
+                        <h5 class="mb-3">Lance na Mainnet</h5>
+                        <p class="text-secondary">
+                            Crie seu token na rede principal e tenha controle total através do seu painel abrangente de proprietário de token.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Statistics Section -->
+    <section class="py-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12 text-center mb-5">
+                    <h2 class="display-5 fw-bold mb-3">Agora Sabemos Que</h2>
+                    <p class="lead text-secondary">
+                        O que mais importa é a liberdade de personalizar funcionalidades, economizar taxas de gas e a segurança para o proprietário e todos os detentores de tokens.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="row g-4 text-center">
+                <div class="col-lg-3 col-md-6">
+                    <div class="stat-card">
+                        <h3 class="display-4 fw-bold text-primary mb-2">15+</h3>
+                        <p class="text-secondary mb-0">Funcionalidades Personalizáveis</p>
+                    </div>
+                </div>
+                
+                <div class="col-lg-3 col-md-6">
+                    <div class="stat-card">
+                        <h3 class="display-4 fw-bold text-primary mb-2">10+</h3>
+                        <p class="text-secondary mb-0">Blockchains Suportadas</p>
+                    </div>
+                </div>
+                
+                <div class="col-lg-3 col-md-6">
+                    <div class="stat-card">
+                        <h3 class="display-4 fw-bold text-primary mb-2">800+</h3>
+                        <p class="text-secondary mb-0">Membros da Comunidade</p>
+                    </div>
+                </div>
+                
+                <div class="col-lg-3 col-md-6">
+                    <div class="stat-card">
+                        <h3 class="display-4 fw-bold text-primary mb-2">1000+</h3>
+                        <p class="text-secondary mb-0">Tokens Criados</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="py-5 bg-dark">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12 text-center">
+                    <h2 class="display-5 fw-bold mb-3">Pronto para Criar Seu Token?</h2>
+                    <p class="lead text-secondary mb-4">
+                        Junte-se a centenas de criadores que já lançaram seus projetos com SCCAFE
+                    </p>
+                    <div class="d-flex flex-column flex-sm-row gap-3 justify-content-center">
+                        <a href="add-index.html" class="btn btn-primary btn-lg px-5 py-3">
+                            <i class="bi bi-rocket-takeoff me-2"></i>
+                            Começar Agora
+                        </a>
+                        <a href="#" class="btn btn-outline-primary btn-lg px-5 py-3">
+                            <i class="bi bi-telegram me-2"></i>
+                            Comunidade
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer data-component="footer"></footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Template Loader -->
+    <script src="js/template-loader.js"></script>
+    
+    <!-- Custom JS -->
+    <script>
+        // Smooth scrolling para links internos
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Animação simples para estatísticas
+        const animateStats = () => {
+            const stats = document.querySelectorAll('.stat-card h3, .stat-item h3');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.transform = 'scale(1.1)';
+                        entry.target.style.transition = 'transform 0.3s ease';
+                        setTimeout(() => {
+                            entry.target.style.transform = 'scale(1)';
+                        }, 300);
+                    }
+                });
+            });
+            
+            stats.forEach(stat => observer.observe(stat));
+        };
+
+        // Inicializar animações quando o DOM estiver carregado
+        document.addEventListener('DOMContentLoaded', animateStats);
+    </script>
+</body>
+</html>
 
     <!-- Main Content -->
     <main class="main-content">
