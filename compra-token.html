@@ -364,6 +364,12 @@
     }
 
     function updateConnectionStatus(connected, chainId = null) {
+      // Verificação de segurança para elementos UI
+      if (!ui.status || !ui.connectBtn || !ui.connectionAlert) {
+        console.warn('Elementos de UI não encontrados para updateConnectionStatus');
+        return;
+      }
+      
       if (connected && userAddress) {
         const config = NETWORK_CONFIG[chainId] || { name: `Chain ${chainId}`, nativeCoin: 'ETH', isTestnet: false };
         
@@ -378,11 +384,11 @@
           'alert alert-warning d-flex align-items-center' : 
           'alert alert-success d-flex align-items-center';
         
-        ui.transferBtn.disabled = false;
+        if (ui.transferBtn) ui.transferBtn.disabled = false;
         currentConfig = config;
         
         // Auto-preencher endereço recebedor se vazio
-        if (!ui.receiverAddress.value) {
+        if (ui.receiverAddress && !ui.receiverAddress.value) {
           ui.receiverAddress.value = userAddress;
         }
         
@@ -404,15 +410,15 @@
         ui.connectBtn.className = 'btn btn-dark btn-sm';
         ui.connectionAlert.className = 'alert alert-warning d-flex align-items-center';
         
-        ui.transferBtn.disabled = true;
+        if (ui.transferBtn) ui.transferBtn.disabled = true;
         currentConfig = null;
       }
     }
 
     // Atualizar labels de moeda nativa
     function updateCoinLabels(coinName) {
-      ui.nativeCoinLabel.textContent = coinName;
-      ui.totalCoinLabel.textContent = coinName;
+      if (ui.nativeCoinLabel) ui.nativeCoinLabel.textContent = coinName;
+      if (ui.totalCostCoin) ui.totalCostCoin.textContent = coinName;
     }
 
     // Calcular total no modo manual
@@ -601,21 +607,23 @@
     }
 
     // Event listeners
-    ui.connectBtn.addEventListener('click', connectWallet);
-    ui.transferBtn.addEventListener('click', executeManualTransfer);
+    if (ui.connectBtn) ui.connectBtn.addEventListener('click', connectWallet);
+    if (ui.transferBtn) ui.transferBtn.addEventListener('click', executeManualTransfer);
     
     // Auto-calcular quando mudar valores do modo manual
-    ui.tokenPrice.addEventListener('input', calculateManualTotal);
-    ui.tokenQuantity.addEventListener('input', calculateManualTotal);
+    if (ui.tokenPrice) ui.tokenPrice.addEventListener('input', calculateManualTotal);
+    if (ui.tokenQuantity) ui.tokenQuantity.addEventListener('input', calculateManualTotal);
     
     // Mudança de rede
-    ui.network.addEventListener('change', () => {
-      const selectedChain = parseInt(ui.network.value);
-      if (currentChainId !== selectedChain) {
-        log(`Mudança de rede necessária: ${NETWORK_CONFIG[selectedChain]?.name}`);
-        // Aqui poderia solicitar mudança de rede via MetaMask
-      }
-    });
+    if (ui.network) {
+      ui.network.addEventListener('change', () => {
+        const selectedChain = parseInt(ui.network.value);
+        if (currentChainId !== selectedChain) {
+          log(`Mudança de rede necessária: ${NETWORK_CONFIG[selectedChain]?.name}`);
+          // Aqui poderia solicitar mudança de rede via MetaMask
+        }
+      });
+    }
 
     // Listeners para mudanças da carteira
     function setupWalletListeners() {
@@ -650,9 +658,6 @@
     // Inicialização
     document.addEventListener('DOMContentLoaded', async function() {
       log('🚀 SCCAFE Token Purchase iniciado');
-      
-      // Configurar modo inicial
-      switchPurchaseMode();
       
       if (detectProvider()) {
         setupWalletListeners();
