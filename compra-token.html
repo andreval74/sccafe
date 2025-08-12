@@ -1,380 +1,632 @@
-<!doctype html>
-<html lang="pt-BR">
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Compra de Tokens via MetaMask — Demo (corrigido)</title>
-  <style>
-    body{font-family:Inter, system-ui, Arial;margin:24px;background:#f7f8fa}
-    .card{background:#fff;padding:18px;border-radius:12px;box-shadow:0 6px 18px rgba(20,20,30,0.06);max-width:880px;margin:auto}
-    label{display:block;margin-top:12px;font-weight:600}
-    input,select{width:100%;padding:10px;border-radius:8px;border:1px solid #e6e9ef;margin-top:6px}
-    .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    button{margin-top:16px;padding:10px 14px;border-radius:10px;border:0;background:#2563eb;color:#fff;font-weight:700;cursor:pointer}
-    button[disabled]{opacity:0.5;cursor:not-allowed}
-    pre{background:#0b1221;color:#e6eef8;padding:12px;border-radius:8px;overflow:auto}
-    .muted{color:#6b7280;font-size:0.9rem}
-    .status{margin-top:8px;font-weight:600}
-    .help{font-size:0.9rem;color:#374151}
-    a.install{color:#2563eb;text-decoration:none;font-weight:700}
-  </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Compra de Tokens - SCCAFE</title>
+  
+  <!-- Favicons -->
+  <link rel="icon" type="image/png" sizes="16x16" href="imgs/sccafe-16x16.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="imgs/sccafe-32x32.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="imgs/sccafe-192x192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="imgs/sccafe-512x512.png">
+  
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  
+  <!-- SCCAFE Global CSS Unificado -->
+  <link href="styles/globals.css" rel="stylesheet">
+  
+  <!-- Meta tags SEO -->
+  <meta name="description" content="Compre tokens diretamente via MetaMask com os melhores preços do mercado. Suporte para Ethereum, BSC, Polygon e outras redes.">
+  <meta name="keywords" content="comprar token, metamask, pancakeswap, uniswap, DEX, swap, SCCAFE">
 </head>
 <body>
-  <div class="card">
-    <h2>Compra de Tokens (MetaMask) — Versão corrigida</h2>
-    <p class="muted">Este arquivo corrige problemas comuns de conexão com MetaMask e melhora tratamento de erros. Teste com MetaMask instalado no navegador.</p>
+  <!-- Header -->
+  <header data-component="header"></header>
+  
+  <!-- Main Content -->
+  <main class="token-purchase-main py-5">
+    <div class="container">
+      <div class="row justify-content-center">
+        <div class="col-xl-8 col-lg-10">
+          <!-- Page Header -->
+          <div class="text-center mb-5">
+            <h1 class="display-5 fw-bold text-white mb-3">
+              <i class="bi bi-cart-check text-primary me-3"></i>Compra de Tokens
+            </h1>
+            <p class="lead text-secondary">
+              Compre tokens diretamente via MetaMask com os melhores preços das principais DEXs
+            </p>
+          </div>
+          
+          <!-- Purchase Card -->
+          <div class="card bg-dark border-primary shadow-lg">
+            <!-- Connection Status -->
+            <div class="card-header bg-primary text-dark">
+              <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                  <i class="bi bi-wallet2 me-2"></i>Status da Conexão
+                </h5>
+                <button id="connectBtn" class="btn btn-dark btn-sm">
+                  <i class="bi bi-link-45deg me-1"></i>Conectar MetaMask
+                </button>
+              </div>
+            </div>
 
-    <div class="status" id="status">Detectando MetaMask...</div>
-    <p class="help">Se não tiver MetaMask, instale-a: <a class="install" href="https://metamask.io/" target="_blank" rel="noopener">metamask.io</a></p>
+            
+            <div class="card-body p-4">
+              <!-- Connection Status Display -->
+              <div class="connection-status mb-4">
+                <div class="alert alert-info d-flex align-items-center" id="connectionAlert">
+                  <i class="bi bi-info-circle me-2"></i>
+                  <span id="status">Detectando MetaMask...</span>
+                </div>
+                <div class="text-center">
+                  <small class="text-muted">
+                    Não tem MetaMask? 
+                    <a href="https://metamask.io/" target="_blank" class="text-primary text-decoration-none fw-bold">
+                      <i class="bi bi-download me-1"></i>Instalar aqui
+                    </a>
+                  </small>
+                </div>
+              </div>
 
-    <label>Endereço do token (ERC-20)</label>
-    <input id="tokenAddress" placeholder="0x..." />
+              <!-- Purchase Form -->
+              <form id="purchaseForm">
+                <!-- Token Selection -->
+                <div class="row g-4 mb-4">
+                  <div class="col-md-8">
+                    <label for="tokenAddress" class="form-label text-white">
+                      <i class="bi bi-coin text-primary me-2"></i>Endereço do Token (ERC-20/BEP-20)
+                    </label>
+                    <input type="text" class="form-control bg-dark text-white border-secondary" 
+                           id="tokenAddress" placeholder="0x..." required>
+                    <div class="form-text text-muted">Endereço do contrato do token que deseja comprar</div>
+                  </div>
+                  <div class="col-md-4">
+                    <label for="network" class="form-label text-white">
+                      <i class="bi bi-globe text-primary me-2"></i>Rede/DEX
+                    </label>
+                    <select class="form-control bg-dark text-white border-secondary" id="network">
+                      <option value="1">Ethereum (Uniswap)</option>
+                      <option value="56" selected>BSC (PancakeSwap)</option>
+                      <option value="137">Polygon (QuickSwap)</option>
+                      <option value="43114">Avalanche (Trader Joe)</option>
+                    </select>
+                  </div>
+                </div>
 
-    <label>Endereço recebedor (onde enviar o ETH ou receber os tokens)</label>
-    <input id="receiverAddress" placeholder="0x..." />
+                <!-- Receiver Address -->
+                <div class="mb-4">
+                  <label for="receiverAddress" class="form-label text-white">
+                    <i class="bi bi-person-badge text-primary me-2"></i>Endereço Recebedor
+                  </label>
+                  <input type="text" class="form-control bg-dark text-white border-secondary" 
+                         id="receiverAddress" placeholder="0x..." required>
+                  <div class="form-text text-muted">Endereço que receberá os tokens comprados (deixe vazio para usar sua carteira)</div>
+                </div>
 
-    <div class="row">
-      <div>
-        <label>Valor por token em ETH (preço estimado)</label>
-        <input id="pricePerToken" placeholder="ex: 0.01" />
-      </div>
-      <div>
-        <label>Quantidade de tokens que deseja comprar</label>
-        <input id="quantity" placeholder="ex: 100" />
+                <!-- Purchase Details -->
+                <div class="row g-4 mb-4">
+                  <div class="col-md-6">
+                    <label for="ethAmount" class="form-label text-white">
+                      <i class="bi bi-currency-exchange text-primary me-2"></i>Valor em ETH/BNB/MATIC
+                    </label>
+                    <input type="number" class="form-control bg-dark text-white border-secondary" 
+                           id="ethAmount" placeholder="0.1" step="0.001" min="0.001" required>
+                    <div class="form-text text-muted">Quantidade de moeda nativa que deseja trocar</div>
+                  </div>
+                  <div class="col-md-6">
+                    <label for="expectedTokens" class="form-label text-white">
+                      <i class="bi bi-graph-up text-primary me-2"></i>Tokens Estimados
+                    </label>
+                    <input type="text" class="form-control bg-dark text-white border-secondary" 
+                           id="expectedTokens" placeholder="Calculando..." readonly>
+                    <div class="form-text text-muted">Quantidade estimada de tokens que receberá</div>
+                  </div>
+                </div>
+
+                <!-- Advanced Settings -->
+                <div class="card bg-secondary mb-4">
+                  <div class="card-header">
+                    <h6 class="mb-0 text-white">
+                      <i class="bi bi-gear text-primary me-2"></i>Configurações Avançadas
+                    </h6>
+                  </div>
+                  <div class="card-body">
+                    <div class="row g-3">
+                      <div class="col-md-6">
+                        <label for="slippage" class="form-label text-white">Slippage (%)</label>
+                        <select class="form-control bg-dark text-white border-secondary" id="slippage">
+                          <option value="0.5">0.5% (Baixo)</option>
+                          <option value="1" selected>1% (Padrão)</option>
+                          <option value="2">2% (Médio)</option>
+                          <option value="5">5% (Alto)</option>
+                          <option value="custom">Personalizado</option>
+                        </select>
+                      </div>
+                      <div class="col-md-6">
+                        <label for="deadline" class="form-label text-white">Deadline (minutos)</label>
+                        <input type="number" class="form-control bg-dark text-white border-secondary" 
+                               id="deadline" value="20" min="1" max="60">
+                      </div>
+                    </div>
+                    <div class="row g-3 mt-2" id="customSlippageRow" style="display: none;">
+                      <div class="col-md-6">
+                        <label for="customSlippage" class="form-label text-white">Slippage Personalizado (%)</label>
+                        <input type="number" class="form-control bg-dark text-white border-secondary" 
+                               id="customSlippage" placeholder="3.5" step="0.1" min="0.1" max="50">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="d-grid gap-2">
+                  <button type="button" id="calculateBtn" class="btn btn-outline-primary btn-lg" disabled>
+                    <i class="bi bi-calculator me-2"></i>Calcular Preço
+                  </button>
+                  <button type="submit" id="executeBtn" class="btn btn-primary btn-lg" disabled>
+                    <i class="bi bi-cart-check me-2"></i>Executar Compra
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <!-- Transaction Log -->
+          <div class="card bg-dark border-secondary mt-4">
+            <div class="card-header">
+              <h5 class="mb-0 text-white">
+                <i class="bi bi-journal-text text-primary me-2"></i>Log de Transações
+              </h5>
+            </div>
+            <div class="card-body">
+              <pre id="log" class="bg-black text-light p-3 rounded" style="max-height: 300px; overflow-y: auto;">Aguardando ação do usuário...</pre>
+            </div>
+          </div>
+
+          <!-- Help Section -->
+          <div class="card bg-secondary mt-4">
+            <div class="card-body">
+              <h6 class="text-white mb-3">
+                <i class="bi bi-info-circle text-primary me-2"></i>Como Funciona
+              </h6>
+              <div class="row g-3">
+                <div class="col-md-4">
+                  <div class="text-center">
+                    <i class="bi bi-wallet2 text-primary" style="font-size: 2rem;"></i>
+                    <h6 class="text-white mt-2">1. Conecte</h6>
+                    <small class="text-muted">Conecte sua MetaMask à rede desejada</small>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="text-center">
+                    <i class="bi bi-calculator text-primary" style="font-size: 2rem;"></i>
+                    <h6 class="text-white mt-2">2. Calcule</h6>
+                    <small class="text-muted">Veja o preço atual e quantidade estimada</small>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="text-center">
+                    <i class="bi bi-arrow-left-right text-primary" style="font-size: 2rem;"></i>
+                    <h6 class="text-white mt-2">3. Troque</h6>
+                    <small class="text-muted">Execute o swap via DEX com melhor preço</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
+  </main>
 
-    <label>Modo de execução</label>
-    <select id="mode">
-      <option value="transfer">Enviar ETH direto ao recebedor (simples)</option>
-      <option value="uniswap">Trocar ETH por token via Uniswap V2 Router</option>
-    </select>
+  <!-- Footer -->
+  <footer data-component="footer"></footer>
 
-    <div class="row">
-      <div>
-        <label>Slippage (%) (quando usar Uniswap)</label>
-        <input id="slippage" value="1" />
-      </div>
-      <div>
-        <label>Deadline (minutos)</label>
-        <input id="deadlineMin" value="20" />
-      </div>
-    </div>
-
-    <label>Total estimado (ETH)</label>
-    <input id="totalEth" readonly />
-
-    <div style="display:flex;gap:8px;align-items:center">
-      <button id="connectBtn">Conectar MetaMask</button>
-      <button id="executeBtn" disabled>Executar compra (abrir MetaMask)</button>
-    </div>
-
-    <h3>Log / Status</h3>
-    <pre id="log">Aguardando ação...</pre>
-
-    <p class="muted">Observação: este é um exemplo didático. Em produção, adicione validações adicionais, consulta de preço on-chain (getAmountsOut), tratamento para tokens com taxa/transferência e testes em testnet.</p>
-  </div>
-
-  <!-- Ethers.js CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+  
+  <!-- Template Loader -->
+  <script src="js/template-loader.js"></script>
 
   <script>
-    // ----- Configurações padrão (pode ajustar conforme rede) -----
-    const UNISWAP_V2_ROUTER = {
-      1: '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D' // Ethereum Mainnet
-      // adicione outros chainId -> router aqui, ex: 56: '0x...' para BSC
+    /**
+     * SCCAFE Token Purchase System
+     * Suporte para múltiplas DEXs: PancakeSwap, Uniswap, QuickSwap, Trader Joe
+     */
+
+    // Configurações das DEXs por rede
+    const DEX_CONFIG = {
+      1: { // Ethereum
+        name: 'Ethereum (Uniswap)',
+        router: '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D',
+        weth: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+        dexName: 'Uniswap V2',
+        nativeCoin: 'ETH',
+        blockExplorer: 'https://etherscan.io'
+      },
+      56: { // BSC
+        name: 'BSC (PancakeSwap)',
+        router: '0x10ED43C718714eb63d5aA57B78B54704E256024E',
+        weth: '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c', // WBNB
+        dexName: 'PancakeSwap V2',
+        nativeCoin: 'BNB',
+        blockExplorer: 'https://bscscan.com'
+      },
+      137: { // Polygon
+        name: 'Polygon (QuickSwap)',
+        router: '0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff',
+        weth: '0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270', // WMATIC
+        dexName: 'QuickSwap',
+        nativeCoin: 'MATIC',
+        blockExplorer: 'https://polygonscan.com'
+      },
+      43114: { // Avalanche
+        name: 'Avalanche (Trader Joe)',
+        router: '0x60aE616a2155Ee3d9A68541Ba4544862310933d4',
+        weth: '0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7', // WAVAX
+        dexName: 'Trader Joe',
+        nativeCoin: 'AVAX',
+        blockExplorer: 'https://snowtrace.io'
+      }
     };
 
-    const WETH = {
-      1: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2'
-    };
-
-    // ----- Estado global -----
+    // Estado global
     let provider = null;
     let signer = null;
     let userAddress = null;
     let currentChainId = null;
+    let currentConfig = null;
 
+    // Elementos da UI
     const ui = {
       status: document.getElementById('status'),
       connectBtn: document.getElementById('connectBtn'),
+      calculateBtn: document.getElementById('calculateBtn'),
       executeBtn: document.getElementById('executeBtn'),
+      connectionAlert: document.getElementById('connectionAlert'),
+      
       tokenAddress: document.getElementById('tokenAddress'),
       receiverAddress: document.getElementById('receiverAddress'),
-      pricePerToken: document.getElementById('pricePerToken'),
-      quantity: document.getElementById('quantity'),
-      totalEth: document.getElementById('totalEth'),
-      mode: document.getElementById('mode'),
+      ethAmount: document.getElementById('ethAmount'),
+      expectedTokens: document.getElementById('expectedTokens'),
+      network: document.getElementById('network'),
       slippage: document.getElementById('slippage'),
-      deadlineMin: document.getElementById('deadlineMin'),
+      customSlippage: document.getElementById('customSlippage'),
+      deadline: document.getElementById('deadline'),
+      
       log: document.getElementById('log')
     };
 
-    function log(...texts){
-      ui.log.textContent = texts.join('\n') + '\n\n' + ui.log.textContent;
+    // Funções utilitárias
+    function log(message, type = 'info') {
+      const timestamp = new Date().toLocaleTimeString();
+      const icon = type === 'error' ? '❌' : type === 'success' ? '✅' : 'ℹ️';
+      ui.log.textContent = `[${timestamp}] ${icon} ${message}\n` + ui.log.textContent;
+      console.log(`[SCCAFE Purchase] ${message}`);
     }
 
-    function shortAddr(addr){
-      if(!addr) return '';
-      return addr.slice(0,6) + '...' + addr.slice(-4);
+    function shortAddr(addr) {
+      if (!addr) return '';
+      return addr.slice(0, 6) + '...' + addr.slice(-4);
     }
 
-    // calcular total (preço * quantidade)
-    function calcTotal(){
-      const pRaw = ui.pricePerToken.value.trim();
-      const qRaw = ui.quantity.value.trim();
-      const p = parseFloat(pRaw.replace(',', '.'));
-      const q = parseFloat(qRaw.replace(',', '.'));
-      if(isNaN(p) || isNaN(q)){
-        ui.totalEth.value = '';
-        return '0';
-      }
-      const total = p * q;
-      // mantém string com ponto decimal para ethers.parse
-      ui.totalEth.value = total === 0 ? '0' : total.toString();
-      return ui.totalEth.value;
-    }
-
-    // atualiza botões dependendo do estado
-    function setConnectedUI(connected){
-      if(connected){
-        ui.connectBtn.textContent = 'Conectado: ' + shortAddr(userAddress);
-        ui.executeBtn.disabled = false;
-        ui.connectBtn.disabled = false;
-      }else{
-        ui.connectBtn.textContent = 'Conectar MetaMask';
+    function updateConnectionStatus(connected, chainId = null) {
+      if (connected && userAddress) {
+        const config = DEX_CONFIG[chainId] || { name: `Chain ${chainId}`, nativeCoin: 'ETH' };
+        ui.status.textContent = `Conectado: ${shortAddr(userAddress)} - ${config.name}`;
+        ui.connectBtn.innerHTML = '<i class="bi bi-check-circle me-1"></i>Conectado';
+        ui.connectBtn.className = 'btn btn-success btn-sm';
+        ui.connectionAlert.className = 'alert alert-success d-flex align-items-center';
+        
+        ui.calculateBtn.disabled = false;
+        currentConfig = config;
+        
+        // Auto-preencher endereço recebedor se vazio
+        if (!ui.receiverAddress.value) {
+          ui.receiverAddress.value = userAddress;
+        }
+        
+        log(`Conectado com sucesso à ${config.name}`, 'success');
+      } else {
+        ui.status.textContent = 'MetaMask não conectado';
+        ui.connectBtn.innerHTML = '<i class="bi bi-link-45deg me-1"></i>Conectar MetaMask';
+        ui.connectBtn.className = 'btn btn-dark btn-sm';
+        ui.connectionAlert.className = 'alert alert-warning d-flex align-items-center';
+        
+        ui.calculateBtn.disabled = true;
         ui.executeBtn.disabled = true;
+        currentConfig = null;
       }
     }
 
-    // detectar se MetaMask/ethereum existe
-    function detectProvider(){
-      if(typeof window.ethereum === 'undefined'){
-        ui.status.textContent = 'MetaMask NÃO detectado no navegador.';
+    // Detectar provider
+    function detectProvider() {
+      if (typeof window.ethereum === 'undefined') {
+        ui.status.textContent = 'MetaMask não detectado';
+        ui.connectionAlert.className = 'alert alert-danger d-flex align-items-center';
         ui.connectBtn.disabled = true;
-        ui.executeBtn.disabled = true;
-        log('MetaMask não encontrada. Instale MetaMask e recarregue a página.');
+        log('MetaMask não encontrado. Instale MetaMask para continuar.', 'error');
         return false;
       }
-      ui.status.textContent = 'MetaMask detectado.';
-      ui.connectBtn.disabled = false;
-      // cria provider (de forma preguiçosa, mas já podemos criar)
+      
       provider = new ethers.providers.Web3Provider(window.ethereum, 'any');
+      log('MetaMask detectado com sucesso');
       return true;
     }
 
-    // conecta ao MetaMask pedindo permissão ao usuário
-    async function connectWallet(){
-      if(!window.ethereum){
-        alert('MetaMask não encontrada. Instale MetaMask e tente novamente.');
+    // Conectar carteira
+    async function connectWallet() {
+      if (!window.ethereum) {
+        alert('MetaMask não encontrado. Instale MetaMask para continuar.');
         return;
       }
 
-      try{
-        // Recomendado: usar ethereum.request diretamente para evitar diferenças de provider
-        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-        if(!accounts || accounts.length === 0){
-          log('Nenhuma conta retornada. MetaMask pode estar bloqueada.');
-          setConnectedUI(false);
+      try {
+        log('Solicitando conexão com MetaMask...');
+        
+        const accounts = await window.ethereum.request({ 
+          method: 'eth_requestAccounts' 
+        });
+        
+        if (!accounts || accounts.length === 0) {
+          log('Nenhuma conta retornada pelo MetaMask', 'error');
           return;
         }
 
-        // (re)cria provider e signer
         provider = new ethers.providers.Web3Provider(window.ethereum, 'any');
         signer = provider.getSigner();
-        userAddress = accounts[0] || await signer.getAddress();
+        userAddress = accounts[0];
 
         const network = await provider.getNetwork();
         currentChainId = network.chainId;
 
-        ui.status.textContent = `Conectado: ${shortAddr(userAddress)} (chain ${currentChainId})`;
-        log('Conectado com sucesso: ' + userAddress + ' (chainId: ' + currentChainId + ')');
-        setConnectedUI(true);
-      }catch(err){
-        // código 4001 significa 'user rejected request'
-        if(err && err.code === 4001){
-          log('Conexão rejeitada pelo usuário.');
-        }else{
-          log('Erro ao conectar: ' + (err && err.message ? err.message : String(err)));
+        updateConnectionStatus(true, currentChainId);
+        
+        // Atualizar select de rede
+        ui.network.value = currentChainId.toString();
+        
+      } catch (error) {
+        if (error.code === 4001) {
+          log('Conexão rejeitada pelo usuário', 'error');
+        } else {
+          log(`Erro ao conectar: ${error.message}`, 'error');
         }
-        setConnectedUI(false);
+        updateConnectionStatus(false);
       }
     }
 
-    // função principal que executa a compra (transfer ou swap)
-    async function executePurchase(){
-      // recalcula total e valida
-      const tokenAddr = (ui.tokenAddress.value || '').trim();
-      const receiver = (ui.receiverAddress.value || '').trim();
-      const mode = ui.mode.value;
-      const totalEthStr = calcTotal();
-
-      if(!tokenAddr || !receiver){
-        alert('Preencha token e endereço recebedor.');
+    // Calcular preço
+    async function calculatePrice() {
+      if (!provider || !currentConfig) {
+        alert('Conecte sua carteira primeiro');
         return;
       }
 
-      if(!provider || !signer){
-        alert('Carteira não conectada. Clique em "Conectar MetaMask" antes de executar a compra.');
+      const tokenAddr = ui.tokenAddress.value.trim();
+      const ethAmount = ui.ethAmount.value;
+
+      if (!tokenAddr || !ethAmount) {
+        alert('Preencha o endereço do token e valor em ETH');
         return;
       }
 
-      // valida string numérica
-      if(!totalEthStr || isNaN(Number(totalEthStr))){
-        alert('Total inválido. Verifique preço e quantidade.');
-        return;
-      }
+      try {
+        log('Calculando preço...');
+        ui.expectedTokens.value = 'Calculando...';
 
-      try{
-        if(mode === 'transfer'){
-          // envia ETH simples para recebedor com o valor calculado
-          const value = ethers.utils.parseEther(totalEthStr || '0');
-          log('Solicitando envio de ' + ethers.utils.formatEther(value) + ' ETH para ' + receiver);
-          const tx = await signer.sendTransaction({ to: receiver, value });
-          log('Transação enviada (transfer): ' + tx.hash);
-          await tx.wait();
-          log('Transação confirmada: ' + tx.hash);
-          return;
+        // Router ABI para getAmountsOut
+        const routerAbi = [
+          'function getAmountsOut(uint amountIn, address[] calldata path) external view returns (uint[] memory amounts)'
+        ];
+
+        const router = new ethers.Contract(currentConfig.router, routerAbi, provider);
+        const amountIn = ethers.utils.parseEther(ethAmount);
+        const path = [currentConfig.weth, tokenAddr];
+
+        const amounts = await router.getAmountsOut(amountIn, path);
+        const tokensOut = amounts[1];
+
+        // Obter decimais do token
+        const tokenAbi = ['function decimals() view returns (uint8)'];
+        const tokenContract = new ethers.Contract(tokenAddr, tokenAbi, provider);
+        let decimals = 18;
+        
+        try {
+          decimals = await tokenContract.decimals();
+        } catch (e) {
+          log('Assumindo 18 decimais para o token', 'info');
         }
 
-        if(mode === 'uniswap'){
-          const network = await provider.getNetwork();
-          const chainId = network.chainId;
-          const routerAddr = UNISWAP_V2_ROUTER[chainId];
-          const wethAddr = WETH[chainId];
-          if(!routerAddr || !wethAddr){
-            alert('Router/WETH não configurados para chainId: ' + chainId + '. Ajuste o código se necessário.');
-            return;
-          }
+        const formattedTokens = ethers.utils.formatUnits(tokensOut, decimals);
+        ui.expectedTokens.value = parseFloat(formattedTokens).toFixed(6);
+        
+        ui.executeBtn.disabled = false;
+        
+        log(`Preço calculado: ${ethAmount} ${currentConfig.nativeCoin} = ${parseFloat(formattedTokens).toFixed(6)} tokens`, 'success');
+        
+      } catch (error) {
+        log(`Erro ao calcular preço: ${error.message}`, 'error');
+        ui.expectedTokens.value = 'Erro no cálculo';
+        ui.executeBtn.disabled = true;
+      }
+    }
 
-          // ABI mínimo do token para ler decimals (alguns tokens podem falhar -> fallback 18)
-          const ERC20 = [ 'function decimals() view returns (uint8)' ];
-          const tokenContract = new ethers.Contract(tokenAddr, ERC20, provider);
-          let decimals = 18;
-          try{
-            decimals = await tokenContract.decimals();
-          }catch(e){
-            log('Não foi possível ler decimals do token, assumindo 18. Erro: ' + (e.message || e));
-            decimals = 18;
-          }
+    // Executar compra
+    async function executePurchase() {
+      if (!provider || !signer || !currentConfig) {
+        alert('Conecte sua carteira primeiro');
+        return;
+      }
 
-          // quantidade de tokens desejada (em unidades inteiras do token)
-          const qtyRaw = ui.quantity.value.trim();
-          if(!qtyRaw || isNaN(Number(qtyRaw))){
-            alert('Quantidade inválida.');
-            return;
-          }
-          const qty = ethers.utils.parseUnits(qtyRaw.replace(',', '.'), decimals);
+      const tokenAddr = ui.tokenAddress.value.trim();
+      const receiverAddr = ui.receiverAddress.value.trim();
+      const ethAmount = ui.ethAmount.value;
+      
+      if (!tokenAddr || !receiverAddr || !ethAmount) {
+        alert('Preencha todos os campos obrigatórios');
+        return;
+      }
 
-          // calcular amountOutMin baseado no qty e slippage
-          const slippagePerc = parseFloat(ui.slippage.value || '1')/100;
-          const slippageFactor = 1 - (isNaN(slippagePerc) ? 0.01 : slippagePerc);
-          // amountOutMin = qty * slippageFactor
-          const amountOutMin = qty.mul(Math.floor(slippageFactor * 10000)).div(10000);
+      try {
+        log('Preparando transação de compra...');
 
-          // router ABI mínimo
-          const routerAbi = [
-            'function swapExactETHForTokens(uint amountOutMin, address[] calldata path, address to, uint deadline) payable returns (uint[] memory amounts)'
-          ];
-
-          const router = new ethers.Contract(routerAddr, routerAbi, signer);
-
-          const path = [wethAddr, tokenAddr];
-          const deadline = Math.floor(Date.now()/1000) + (parseInt(ui.deadlineMin.value || '20') * 60);
-
-          // value a ser enviado = total ETH estimado
-          const valueToSend = ethers.utils.parseEther(totalEthStr || '0');
-
-          log('Executando swapExactETHForTokens no router: ' + routerAddr);
-          log('amountOutMin (com slippage): ' + amountOutMin.toString());
-          log('value (ETH enviado): ' + ethers.utils.formatEther(valueToSend));
-
-          const tx = await router.swapExactETHForTokens(
-            amountOutMin,
-            path,
-            receiver,
-            deadline,
-            { value: valueToSend }
-          );
-
-          log('Transação enviada (swap): ' + tx.hash);
-          await tx.wait();
-          log('Swap confirmado: ' + tx.hash);
-          return;
+        // Calcular slippage
+        let slippagePercent = parseFloat(ui.slippage.value);
+        if (ui.slippage.value === 'custom') {
+          slippagePercent = parseFloat(ui.customSlippage.value);
         }
+        
+        const slippageFactor = (100 - slippagePercent) / 100;
+        
+        // Obter amounts out novamente
+        const routerAbi = [
+          'function getAmountsOut(uint amountIn, address[] calldata path) external view returns (uint[] memory amounts)',
+          'function swapExactETHForTokens(uint amountOutMin, address[] calldata path, address to, uint deadline) external payable returns (uint[] memory amounts)'
+        ];
 
-        alert('Modo desconhecido: ' + mode);
-      }catch(err){
-        // Mensagens mais amigáveis para erros comuns
-        const msg = err && (err.message || err.error && err.error.message) ? (err.message || err.error.message) : String(err);
-        if(err && err.code === 4001){
-          log('A transação foi rejeitada pelo usuário.');
-        }else{
-          log('Erro ao executar compra: ' + msg);
+        const router = new ethers.Contract(currentConfig.router, routerAbi, signer);
+        const amountIn = ethers.utils.parseEther(ethAmount);
+        const path = [currentConfig.weth, tokenAddr];
+
+        const amounts = await router.getAmountsOut(amountIn, path);
+        const expectedOut = amounts[1];
+        const minAmountOut = expectedOut.mul(Math.floor(slippageFactor * 1000)).div(1000);
+
+        const deadline = Math.floor(Date.now() / 1000) + (parseInt(ui.deadline.value) * 60);
+
+        log(`Executando swap: ${ethAmount} ${currentConfig.nativeCoin} → tokens via ${currentConfig.dexName}`);
+        log(`Slippage: ${slippagePercent}% | Deadline: ${ui.deadline.value} min`);
+
+        const tx = await router.swapExactETHForTokens(
+          minAmountOut,
+          path,
+          receiverAddr,
+          deadline,
+          { value: amountIn }
+        );
+
+        log(`Transação enviada: ${tx.hash}`, 'success');
+        log(`Aguardando confirmação...`);
+
+        const receipt = await tx.wait();
+        
+        log(`✅ Compra realizada com sucesso!`, 'success');
+        log(`Hash: ${tx.hash}`);
+        log(`Explorador: ${currentConfig.blockExplorer}/tx/${tx.hash}`);
+        
+        // Reset form
+        ui.ethAmount.value = '';
+        ui.expectedTokens.value = '';
+        ui.executeBtn.disabled = true;
+
+      } catch (error) {
+        if (error.code === 4001) {
+          log('Transação rejeitada pelo usuário', 'error');
+        } else {
+          log(`Erro na compra: ${error.message}`, 'error');
         }
       }
     }
 
-    // detecta mudanças de conta e rede
-    function setupWalletListeners(){
-      if(!window.ethereum) return;
-      window.ethereum.on('accountsChanged', (accounts)=>{
-        if(!accounts || accounts.length === 0){
-          log('Carteira desconectada (accountsChanged -> nenhum account).');
-          signer = null;
-          userAddress = null;
-          setConnectedUI(false);
-          ui.status.textContent = 'Nenhuma conta conectada.';
-        }else{
-          userAddress = accounts[0];
-          signer = provider.getSigner();
-          setConnectedUI(true);
-          ui.status.textContent = `Conectado: ${shortAddr(userAddress)}`;
-          log('accountsChanged: ' + accounts.join(', '));
-        }
-      });
-
-      window.ethereum.on('chainChanged', (chainIdHex)=>{
-        // chainIdHex vem em hex (ex: 0x1)
-        try{
-          const chainId = parseInt(chainIdHex, 16);
-          currentChainId = chainId;
-          ui.status.textContent = `Conectado: ${shortAddr(userAddress)} (chain ${currentChainId})`;
-          log('chainChanged: ' + chainId);
-        }catch(e){
-          log('chainChanged (erro ao parsear): ' + chainIdHex);
-        }
-        // não forçamos reload, apenas atualizamos estado
-      });
-    }
-
-    // eventos UI
-    ui.pricePerToken.addEventListener('input', calcTotal);
-    ui.quantity.addEventListener('input', calcTotal);
+    // Event listeners
     ui.connectBtn.addEventListener('click', connectWallet);
+    ui.calculateBtn.addEventListener('click', calculatePrice);
     ui.executeBtn.addEventListener('click', executePurchase);
+    
+    // Auto-calcular quando mudar valores
+    ui.ethAmount.addEventListener('input', () => {
+      if (ui.ethAmount.value && ui.tokenAddress.value) {
+        ui.expectedTokens.value = 'Digite calcular para atualizar';
+        ui.executeBtn.disabled = true;
+      }
+    });
 
-    // inicialização
-    (function init(){
-      const has = detectProvider();
-      if(has){
-        // verifica se já está conectado previamente
-        provider.listAccounts().then(accounts=>{
-          if(accounts && accounts.length>0){
+    ui.tokenAddress.addEventListener('input', () => {
+      ui.expectedTokens.value = '';
+      ui.executeBtn.disabled = true;
+    });
+
+    // Slippage personalizado
+    ui.slippage.addEventListener('change', () => {
+      const customRow = document.getElementById('customSlippageRow');
+      if (ui.slippage.value === 'custom') {
+        customRow.style.display = 'block';
+      } else {
+        customRow.style.display = 'none';
+      }
+    });
+
+    // Mudança de rede
+    ui.network.addEventListener('change', () => {
+      const selectedChain = parseInt(ui.network.value);
+      if (currentChainId !== selectedChain) {
+        log(`Mudança de rede necessária: ${DEX_CONFIG[selectedChain]?.name}`);
+        // Aqui poderia solicitar mudança de rede via MetaMask
+      }
+    });
+
+    // Listeners para mudanças da carteira
+    function setupWalletListeners() {
+      if (!window.ethereum) return;
+
+      window.ethereum.on('accountsChanged', (accounts) => {
+        if (!accounts || accounts.length === 0) {
+          log('Carteira desconectada');
+          userAddress = null;
+          updateConnectionStatus(false);
+        } else {
+          userAddress = accounts[0];
+          updateConnectionStatus(true, currentChainId);
+          log(`Conta alterada: ${shortAddr(userAddress)}`);
+        }
+      });
+
+      window.ethereum.on('chainChanged', (chainIdHex) => {
+        const chainId = parseInt(chainIdHex, 16);
+        currentChainId = chainId;
+        currentConfig = DEX_CONFIG[chainId];
+        updateConnectionStatus(true, chainId);
+        ui.network.value = chainId.toString();
+        log(`Rede alterada: ${currentConfig?.name || `Chain ${chainId}`}`);
+        
+        // Reset cálculos
+        ui.expectedTokens.value = '';
+        ui.executeBtn.disabled = true;
+      });
+    }
+
+    // Inicialização
+    document.addEventListener('DOMContentLoaded', async function() {
+      log('🚀 SCCAFE Token Purchase iniciado');
+      
+      if (detectProvider()) {
+        setupWalletListeners();
+        
+        // Verificar se já está conectado
+        try {
+          const accounts = await provider.listAccounts();
+          if (accounts && accounts.length > 0) {
             signer = provider.getSigner();
             userAddress = accounts[0];
-            provider.getNetwork().then(net=>{ currentChainId = net.chainId; ui.status.textContent = `Conectado: ${shortAddr(userAddress)} (chain ${currentChainId})`; setConnectedUI(true); });
-          }else{
-            setConnectedUI(false);
+            const network = await provider.getNetwork();
+            currentChainId = network.chainId;
+            updateConnectionStatus(true, currentChainId);
+            ui.network.value = currentChainId.toString();
+          } else {
+            updateConnectionStatus(false);
           }
-        }).catch(err=>{ log('Erro ao listar contas: ' + (err.message||err)); setConnectedUI(false); });
-
-        setupWalletListeners();
+        } catch (error) {
+          log('Erro ao verificar conexão existente', 'error');
+          updateConnectionStatus(false);
+        }
       }
-
-      // calcular total inicial caso campos default
-      calcTotal();
-    })();
+    });
 
   </script>
 </body>
