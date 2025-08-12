@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Header - SCCAFE</title>
+</head>
+<body>
+    <!-- Header Principal -->
+    <header class="main-header">
+        <div class="header-container">
+            <!-- Logo e Brand -->
+            <div class="brand-section">
+                <a href="index.html" class="brand-link">
+                    <img src="imgs/sccafe-32x32.png" alt="SCCAFE Logo" class="brand-logo">
+                    <span class="brand-text">SCCAFE</span>
+                </a>
+            </div>
+
+            <!-- Navegação Desktop -->
+            <nav class="main-nav desktop-nav">
+                <ul class="nav-list">
+                    <li class="nav-item">
+                        <a href="index.html" class="nav-link">
+                            <i class="icon-home"></i>
+                            <span>Início</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="add-token.html" class="nav-link">
+                            <i class="icon-plus"></i>
+                            <span>Criar Token</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="verificacao-simples.html" class="nav-link">
+                            <i class="icon-verify"></i>
+                            <span>Verificar</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="service-details.html" class="nav-link">
+                            <i class="icon-info"></i>
+                            <span>Serviços</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+            <!-- Conexão Wallet -->
+            <div class="wallet-section">
+                <div class="network-selector">
+                    <select id="networkSelect" class="network-select">
+                        <option value="polygon">Polygon</option>
+                        <option value="ethereum">Ethereum</option>
+                        <option value="bsc">BSC</option>
+                    </select>
+                </div>
+                <button id="connectWallet" class="btn-wallet">
+                    <i class="icon-wallet"></i>
+                    <span class="wallet-text">Conectar Wallet</span>
+                </button>
+            </div>
+
+            <!-- Menu Mobile -->
+            <button class="mobile-menu-toggle" id="mobileMenuToggle">
+                <span class="hamburger-line"></span>
+                <span class="hamburger-line"></span>
+                <span class="hamburger-line"></span>
+            </button>
+        </div>
+
+        <!-- Menu Mobile -->
+        <nav class="mobile-nav" id="mobileNav">
+            <ul class="mobile-nav-list">
+                <li class="mobile-nav-item">
+                    <a href="index.html" class="mobile-nav-link">
+                        <i class="icon-home"></i>
+                        <span>Início</span>
+                    </a>
+                </li>
+                <li class="mobile-nav-item">
+                    <a href="add-token.html" class="mobile-nav-link">
+                        <i class="icon-plus"></i>
+                        <span>Criar Token</span>
+                    </a>
+                </li>
+                <li class="mobile-nav-item">
+                    <a href="verificacao-simples.html" class="mobile-nav-link">
+                        <i class="icon-verify"></i>
+                        <span>Verificar</span>
+                    </a>
+                </li>
+                <li class="mobile-nav-item">
+                    <a href="service-details.html" class="mobile-nav-link">
+                        <i class="icon-info"></i>
+                        <span>Serviços</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </header>
+
+    <script>
+        // Toggle do menu mobile
+        document.getElementById('mobileMenuToggle').addEventListener('click', function() {
+            const mobileNav = document.getElementById('mobileNav');
+            mobileNav.classList.toggle('active');
+            this.classList.toggle('active');
+        });
+
+        // Conexão da wallet (placeholder)
+        document.getElementById('connectWallet').addEventListener('click', function() {
+            console.log('Conectando wallet...');
+            // Implementar lógica de conexão
+        });
+    </script>
+</body>
+</html>
