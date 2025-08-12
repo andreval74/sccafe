@@ -1,0 +1,656 @@
+/*
+==========================================================================
+SCCAFE - GLOBAL STYLES UNIFICADO
+Sistema de Design baseado em BOOTSTRAP 5 PURO + Token Creator
+==========================================================================
+*/
+
+/* Bootstrap 5 CSS Variables Override - SCCAFE Theme */
+:root {
+  /* SCCAFE Brand Colors */
+  --bs-primary: #f85d23;
+  --bs-primary-rgb: 248, 93, 35;
+  --bs-secondary: #6b7280;
+  --bs-secondary-rgb: 107, 114, 128;
+  --bs-success: #10b981;
+  --bs-success-rgb: 16, 185, 129;
+  --bs-danger: #ef4444;
+  --bs-danger-rgb: 239, 68, 68;
+  --bs-warning: #f59e0b;
+  --bs-warning-rgb: 245, 158, 11;
+  --bs-info: #3b82f6;
+  --bs-info-rgb: 59, 130, 246;
+  --bs-light: #f8fafc;
+  --bs-light-rgb: 248, 250, 252;
+  --bs-dark: #1a1a1a;
+  --bs-dark-rgb: 26, 26, 26;
+  
+  /* Bootstrap Body & Background - Dark Theme */
+  --bs-body-bg: #0a0a0a;
+  --bs-body-color: #ffffff;
+  --bs-body-color-rgb: 255, 255, 255;
+  --bs-body-font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --bs-body-font-size: 1rem;
+  --bs-body-font-weight: 400;
+  --bs-body-line-height: 1.6;
+  
+  /* Bootstrap Text Colors - Dark Theme */
+  --bs-emphasis-color: #ffffff;
+  --bs-emphasis-color-rgb: 255, 255, 255;
+  --bs-secondary-color: #e5e7eb;
+  --bs-secondary-color-rgb: 229, 231, 235;
+  --bs-tertiary-color: #9ca3af;
+  --bs-tertiary-color-rgb: 156, 163, 175;
+  
+  /* Bootstrap Link Colors */
+  --bs-link-color: #f85d23;
+  --bs-link-color-rgb: 248, 93, 35;
+  --bs-link-hover-color: #fbbf24;
+  --bs-link-hover-color-rgb: 251, 191, 36;
+  
+  /* Bootstrap Border Colors - Dark Theme */
+  --bs-border-color: #374151;
+  --bs-border-color-translucent: rgba(55, 65, 81, 0.175);
+  
+  /* Bootstrap Form Colors - Dark Theme */
+  --bs-form-valid-color: #10b981;
+  --bs-form-invalid-color: #ef4444;
+  
+  /* Bootstrap Card/Surface - Dark Theme */
+  --bs-card-bg: #1a1a1a;
+  --bs-modal-bg: #1a1a1a;
+  --bs-offcanvas-bg: #1a1a1a;
+  --bs-dropdown-bg: #1a1a1a;
+  --bs-popover-bg: #1a1a1a;
+  --bs-tooltip-bg: #1a1a1a;
+  
+  /* SCCAFE Custom Variables (compatibilidade com código existente) */
+  --primary: #f85d23;
+  --primary-dark: #d97706;
+  --primary-light: #fbbf24;
+  --background-color: #0a0a0a;
+  --surface-color: #1a1a1a;
+  --card-color: #2d2d2d;
+  --text-primary: #ffffff;
+  --text-secondary: #e5e7eb;
+  --text-muted: #9ca3af;
+  --border-color: #374151;
+  --contrast-color: #ffffff;
+  --default-color: #ffffff;
+  
+  /* Token Creator Variables */
+  --token-primary: var(--bs-primary);
+  --token-secondary: var(--bs-secondary);
+  --token-success: var(--bs-success);
+  --token-warning: var(--bs-warning);
+  --token-danger: var(--bs-danger);
+  --token-info: var(--bs-info);
+  --token-light: var(--bs-light);
+  --token-dark: var(--bs-dark);
+  
+  /* Typography */
+  --heading-font: 'Inter', sans-serif;
+  --body-font: 'Inter', sans-serif;
+  --mono-font: 'Courier New', monospace;
+  
+  /* Transitions */
+  --transition: all 0.3s ease;
+}
+
+/* Body Dark Theme Adjustment */
+body {
+  background-color: var(--bs-body-bg) !important;
+  color: var(--bs-body-color) !important;
+  font-family: var(--bs-body-font-family) !important;
+  line-height: var(--bs-body-line-height) !important;
+  padding-top: 70px; /* Espaço para header fixo */
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Header fixo usando Bootstrap */
+.header-wrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1030; /* Bootstrap z-index for fixed elements */
+  height: 70px;
+  background-color: #1a1a1a;
+  border-bottom: 1px solid var(--bs-border-color);
+  backdrop-filter: blur(10px);
+}
+
+/* Footer usando Bootstrap */
+.footer-wrapper {
+  background-color: #1a1a1a;
+  border-top: 1px solid var(--bs-border-color);
+  margin-top: auto;
+}
+
+/* Bootstrap Form Controls - Dark Theme */
+.form-control {
+  background-color: #2d2d2d !important;
+  border-color: var(--bs-border-color) !important;
+  color: var(--bs-body-color) !important;
+}
+
+.form-control:focus {
+  background-color: #2d2d2d !important;
+  border-color: var(--bs-primary) !important;
+  color: var(--bs-body-color) !important;
+  box-shadow: 0 0 0 0.25rem rgba(248, 93, 35, 0.25) !important;
+}
+
+.form-control::placeholder {
+  color: var(--bs-tertiary-color) !important;
+}
+
+.form-control:valid {
+  border-color: var(--bs-success) !important;
+  background: rgba(16, 185, 129, 0.05);
+}
+
+.form-control:invalid:not(:placeholder-shown) {
+  border-color: var(--bs-danger) !important;
+  background: rgba(239, 68, 68, 0.05);
+}
+
+.form-select {
+  background-color: #2d2d2d !important;
+  border-color: var(--bs-border-color) !important;
+  color: var(--bs-body-color) !important;
+}
+
+.form-select:focus {
+  background-color: #2d2d2d !important;
+  border-color: var(--bs-primary) !important;
+  color: var(--bs-body-color) !important;
+  box-shadow: 0 0 0 0.25rem rgba(248, 93, 35, 0.25) !important;
+}
+
+/* Bootstrap Cards - Dark Theme */
+.card {
+  background-color: var(--bs-card-bg) !important;
+  border-color: var(--bs-border-color) !important;
+  color: var(--bs-body-color) !important;
+}
+
+.card-header {
+  background-color: #2d2d2d !important;
+  border-color: var(--bs-border-color) !important;
+  color: var(--bs-body-color) !important;
+}
+
+.card-body {
+  color: var(--bs-body-color) !important;
+}
+
+/* Bootstrap Buttons - Mantém padrão mas ajusta cores */
+.btn-primary {
+  --bs-btn-bg: var(--bs-primary);
+  --bs-btn-border-color: var(--bs-primary);
+  --bs-btn-hover-bg: #d97706;
+  --bs-btn-hover-border-color: #d97706;
+  --bs-btn-focus-shadow-rgb: var(--bs-primary-rgb);
+  --bs-btn-active-bg: #d97706;
+  --bs-btn-active-border-color: #d97706;
+  color: #000 !important; /* Texto preto no botão laranja */
+}
+
+.btn-outline-primary {
+  --bs-btn-color: var(--bs-primary);
+  --bs-btn-border-color: var(--bs-primary);
+  --bs-btn-hover-bg: var(--bs-primary);
+  --bs-btn-hover-border-color: var(--bs-primary);
+  --bs-btn-hover-color: #000;
+  --bs-btn-focus-shadow-rgb: var(--bs-primary-rgb);
+  --bs-btn-active-bg: var(--bs-primary);
+  --bs-btn-active-border-color: var(--bs-primary);
+  --bs-btn-active-color: #000;
+}
+
+.btn-outline-warning {
+  background: transparent;
+  border: 2px solid var(--bs-warning);
+  color: var(--bs-warning);
+  --bs-btn-color: var(--bs-warning);
+  --bs-btn-border-color: var(--bs-warning);
+  --bs-btn-hover-bg: var(--bs-warning);
+  --bs-btn-hover-border-color: var(--bs-warning);
+  --bs-btn-hover-color: #000;
+  --bs-btn-focus-shadow-rgb: var(--bs-warning-rgb);
+  --bs-btn-active-bg: var(--bs-warning);
+  --bs-btn-active-border-color: var(--bs-warning);
+  --bs-btn-active-color: #000;
+}
+
+.btn-outline-warning:hover:not(:disabled) {
+  background: var(--bs-warning);
+  color: #000;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Bootstrap Alerts - Dark Theme */
+.alert-success {
+  --bs-alert-bg: rgba(16, 185, 129, 0.1);
+  --bs-alert-color: #6ee7b7;
+  --bs-alert-border-color: var(--bs-success);
+  border-left: 4px solid var(--bs-success);
+}
+
+.alert-danger {
+  --bs-alert-bg: rgba(239, 68, 68, 0.1);
+  --bs-alert-color: #fca5a5;
+  --bs-alert-border-color: var(--bs-danger);
+  border-left: 4px solid var(--bs-danger);
+}
+
+.alert-warning {
+  --bs-alert-bg: rgba(245, 158, 11, 0.1);
+  --bs-alert-color: #fbbf24;
+  --bs-alert-border-color: var(--bs-warning);
+  border-left: 4px solid var(--bs-warning);
+}
+
+.alert-info {
+  --bs-alert-bg: rgba(59, 130, 246, 0.1);
+  --bs-alert-color: #93c5fd;
+  --bs-alert-border-color: var(--bs-info);
+  border-left: 4px solid var(--bs-info);
+}
+
+/* Bootstrap Progress - Dark Theme */
+.progress {
+  background-color: #374151 !important;
+}
+
+.progress-bar {
+  background-color: var(--bs-primary) !important;
+}
+
+.progress-bar-animated {
+  animation: progress-bar-stripes 1s linear infinite;
+}
+
+@keyframes progress-bar-stripes {
+  0% { background-position: 1rem 0; }
+  100% { background-position: 0 0; }
+}
+
+/* Bootstrap Text Colors */
+.text-primary {
+  color: var(--bs-primary) !important;
+}
+
+.text-secondary {
+  color: var(--bs-secondary-color) !important;
+}
+
+.text-muted {
+  color: var(--bs-tertiary-color) !important;
+}
+
+.text-success {
+  color: var(--bs-success) !important;
+}
+
+.text-danger {
+  color: var(--bs-danger) !important;
+}
+
+.text-warning {
+  color: var(--bs-warning) !important;
+}
+
+.text-info {
+  color: var(--bs-info) !important;
+}
+
+/* Bootstrap Background Colors */
+.bg-primary {
+  background-color: var(--bs-primary) !important;
+}
+
+.bg-secondary {
+  background-color: var(--bs-dark) !important;
+}
+
+.bg-dark {
+  background-color: #1a1a1a !important;
+}
+
+/* Bootstrap Border Colors */
+.border-primary {
+  border-color: var(--bs-primary) !important;
+}
+
+.border-secondary {
+  border-color: var(--bs-border-color) !important;
+}
+
+/* Loading Screen - Usando Bootstrap */
+.loading-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: var(--bs-body-bg);
+  color: var(--bs-body-color);
+  z-index: 1070; /* Bootstrap z-index for modals */
+}
+
+.loading-spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: var(--bs-primary);
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Bootstrap Modal Dark Theme */
+.modal-content {
+  background-color: var(--bs-modal-bg) !important;
+  color: var(--bs-body-color) !important;
+  border-color: var(--bs-border-color) !important;
+}
+
+.modal-header {
+  border-color: var(--bs-border-color) !important;
+}
+
+.modal-footer {
+  border-color: var(--bs-border-color) !important;
+}
+
+/* Bootstrap Dropdown Dark Theme */
+.dropdown-menu {
+  background-color: var(--bs-dropdown-bg) !important;
+  border-color: var(--bs-border-color) !important;
+}
+
+.dropdown-item {
+  color: var(--bs-body-color) !important;
+}
+
+.dropdown-item:hover,
+.dropdown-item:focus {
+  background-color: rgba(248, 93, 35, 0.1) !important;
+  color: var(--bs-primary) !important;
+}
+
+/* Bootstrap Table Dark Theme */
+.table {
+  color: var(--bs-body-color) !important;
+}
+
+.table-dark {
+  --bs-table-bg: #1a1a1a;
+  --bs-table-striped-bg: #2d2d2d;
+  --bs-table-hover-bg: #374151;
+  --bs-table-border-color: var(--bs-border-color);
+}
+
+/*
+==========================================================================
+TOKEN CREATOR SPECIFIC STYLES
+==========================================================================
+*/
+
+/* Token Creator Container */
+.token-creator-container {
+  background: var(--background-color);
+  min-height: calc(100vh - 120px);
+  padding: 80px 0 40px 0;
+}
+
+.creator-card {
+  background: var(--surface-color);
+  border-radius: 20px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+  border: 1px solid #333;
+  padding: 30px;
+}
+
+/* Creator Header */
+.creator-header {
+  background: linear-gradient(135deg, var(--token-primary) 0%, #d97706 100%);
+  color: var(--contrast-color);
+  padding: 30px;
+  text-align: center;
+  margin: -30px -30px 30px -30px;
+  border-radius: 20px 20px 0 0;
+}
+
+.creator-header h1 {
+  color: var(--contrast-color);
+  font-family: var(--heading-font);
+  margin-bottom: 10px;
+  font-size: 2.5rem;
+  font-weight: 700;
+}
+
+/* Progress Steps Simplificado */
+.progress-steps-simple {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 0;
+  margin-bottom: 30px;
+}
+
+.step-simple {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  position: relative;
+  transition: var(--transition);
+}
+
+.step-simple:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  width: 100%;
+  height: 2px;
+  background: #333;
+  z-index: 1;
+}
+
+.step-simple.active:not(:last-child)::after {
+  background: var(--token-primary);
+}
+
+.step-number {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #333;
+  color: #666;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  margin-bottom: 8px;
+  position: relative;
+  z-index: 2;
+  transition: var(--transition);
+}
+
+.step-simple.active .step-number {
+  background: var(--token-primary);
+  color: #000;
+}
+
+.step-simple.completed .step-number {
+  background: var(--token-success);
+  color: #000;
+}
+
+.step-label {
+  font-size: 0.875rem;
+  color: #666;
+  text-align: center;
+  transition: var(--transition);
+}
+
+.step-simple.active .step-label {
+  color: var(--token-primary);
+  font-weight: 600;
+}
+
+.step-simple.completed .step-label {
+  color: var(--token-success);
+}
+
+/* Form Steps */
+.form-step {
+  display: none;
+}
+
+.form-step.active {
+  display: block;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Wallet Connection Enhanced Styles */
+.wallet-status-connected {
+  background-color: rgba(16, 185, 129, 0.1) !important;
+  border-color: #10b981 !important;
+  color: #6ee7b7 !important;
+  font-family: 'Courier New', monospace !important;
+  font-weight: 600;
+}
+
+.connection-section.connected-state .card {
+  border-color: #10b981 !important;
+}
+
+.network-info {
+  font-size: 0.875rem;
+  color: #9ca3af !important;
+  font-family: 'Courier New', monospace;
+  font-weight: 500;
+}
+
+.network-info .chain-id {
+  color: #9ca3af !important;
+  font-family: 'Courier New', monospace;
+  font-weight: 500;
+}
+
+.network-info #current-network {
+  color: var(--token-warning) !important;
+  font-weight: 600;
+}
+
+/* Hero Section usando Bootstrap */
+.hero-section {
+  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+}
+
+.hero-title {
+  font-weight: 700;
+  font-family: var(--bs-body-font-family);
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, var(--bs-primary), #fbbf24);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Step Navigation */
+.step-navigation {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid #333;
+}
+
+.nav-buttons {
+  display: flex;
+  gap: 15px;
+}
+
+/* Responsive adjustments using Bootstrap breakpoints */
+@media (max-width: 767.98px) {
+  body {
+    padding-top: 60px;
+  }
+  
+  .header-wrapper {
+    height: 60px;
+  }
+  
+  .progress-steps-simple {
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .step-simple:not(:last-child)::after {
+    display: none;
+  }
+  
+  .creator-header h1 {
+    font-size: 2rem;
+  }
+  
+  .token-creator-container {
+    padding: 60px 0 20px 0;
+  }
+}
+
+@media (max-width: 575.98px) {
+  body {
+    padding-top: 50px;
+  }
+  
+  .header-wrapper {
+    height: 50px;
+  }
+  
+  .creator-card {
+    padding: 20px;
+  }
+  
+  .creator-header {
+    margin: -20px -20px 20px -20px;
+    padding: 20px;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .header-wrapper,
+  .footer-wrapper {
+    display: none !important;
+  }
+  
+  body {
+    padding-top: 0;
+    background: white !important;
+    color: black !important;
+  }
+}
