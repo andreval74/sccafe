@@ -167,6 +167,15 @@
             margin: 15px 0;
             text-align: center;
         }
+        .rpc-status {
+            background: #2a2a2a;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-size: 0.9em;
+        }
+        .rpc-active { border-left: 4px solid #44ff44; }
+        .rpc-failed { border-left: 4px solid #ff4444; }
     </style>
 </head>
 <body>
@@ -182,6 +191,10 @@
                 <div class="status-label">Rede Atual</div>
                 <div class="status-value" id="networkStatus">—</div>
             </div>
+        </div>
+
+        <div id="rpcStatus" class="rpc-status">
+            <strong>Provedor RPC:</strong> <span id="currentRpc">Não conectado</span>
         </div>
 
         <div id="networkWarning" class="network-warning" style="display: none;">
@@ -221,8 +234,20 @@
         let tokenPrice = 0;
         let networkId;
         let contractInfo = null;
+        let currentRpcIndex = 0;
 
-        // ABI expandida para diferentes tipos de contratos de venda <mcreference link="https://docs.bscscan.com/bscscan-testnet/api-endpoints/contracts" index="2">2</mcreference>
+        // Múltiplos provedores RPC para BSC Testnet (fallback)
+        const BSC_TESTNET_RPCS = [
+            'https://data-seed-prebsc-1-s1.binance.org:8545/',
+            'https://data-seed-prebsc-2-s1.binance.org:8545/',
+            'https://data-seed-prebsc-1-s2.binance.org:8545/',
+            'https://data-seed-prebsc-2-s2.binance.org:8545/',
+            'https://data-seed-prebsc-1-s3.binance.org:8545/',
+            'https://bsc-testnet.public.blastapi.io',
+            'https://bsc-testnet-rpc.publicnode.com'
+        ];
+
+        // ABI expandida para diferentes tipos de contratos de venda
         const SALE_ABI = [
             // Funções de preço
             {"constant": true, "inputs": [], "name": "tokenPrice", "outputs": [{"name": "", "type": "uint256"}], "type": "function"},
@@ -242,6 +267,77 @@
             // Eventos
             {"anonymous": false, "inputs": [{"indexed": true, "name": "buyer", "type": "address"}, {"indexed": false, "name": "amount", "type": "uint256"}, {"indexed": false, "name": "cost", "type": "uint256"}], "name": "TokensPurchased", "type": "event"}
         ];
+
+        // Função para criar Web3 com fallback RPC
+        async function createWeb3WithFallback() {
+            if (window.ethereum) {
+                // Usar MetaMask se disponível
+                web3 = new Web3(window.ethereum);
+                document.getElementById('currentRpc').textContent = 'MetaMask Provider';
+                return web3;
+            }
+            
+            // Tentar provedores RPC públicos
+            for (let i = 0; i < BSC_TESTNET_RPCS.length; i++) {
+                try {
+                    const rpcUrl = BSC_TESTNET_RPCS[i];
+                    const testWeb3 = new Web3(new Web3.providers.HttpProvider(rpcUrl));
+                    
+                    // Testar conectividade
+                    await testWeb3.eth.getBlockNumber();
+                    
+                    web3 = testWeb3;
+                    currentRpcIndex = i;
+                    document.getElementById('currentRpc').textContent = `RPC ${i + 1}: ${rpcUrl.split('/')[2]}`;
+                    document.getElementById('rpcStatus').className = 'rpc-status rpc-active';
+                    
+                    return web3;
+                } catch (error) {
+                    console.log(`RPC ${i + 1} falhou:`, error.message);
+                    continue;
+                }
+            }
+            
+            throw new Error('Todos os provedores RPC falharam');
+        }
+
+        // Função para retry com diferentes RPCs
+        async function retryWithFallback(operation, maxRetries = 3) {
+            let lastError;
+            
+            for (let attempt = 0; attempt < maxRetries; attempt++) {
+                try {
+                    return await operation();
+                } catch (error) {
+                    lastError = error;
+                    console.log(`Tentativa ${attempt + 1} falhou:`, error.message);
+                    
+                    if (error.message.includes('missing trie node') || 
+                        error.message.includes('Internal JSON-RPC error') ||
+                        error.message.includes('timeout')) {
+                        
+                        // Tentar próximo RPC se não estiver usando MetaMask
+                        if (!window.ethereum) {
+                            currentRpcIndex = (currentRpcIndex + 1) % BSC_TESTNET_RPCS.length;
+                            const newRpcUrl = BSC_TESTNET_RPCS[currentRpcIndex];
+                            web3 = new Web3(new Web3.providers.HttpProvider(newRpcUrl));
+                            document.getElementById('currentRpc').textContent = `RPC ${currentRpcIndex + 1}: ${newRpcUrl.split('/')[2]}`;
+                            
+                            showMessage(`Tentando RPC alternativo... (${attempt + 1}/${maxRetries})`, 'warning');
+                            await new Promise(resolve => setTimeout(resolve, 1000)); // Aguardar 1s
+                        } else {
+                            // Com MetaMask, apenas aguardar antes de tentar novamente
+                            await new Promise(resolve => setTimeout(resolve, 2000));
+                        }
+                    } else {
+                        // Para outros erros, não tentar novamente
+                        break;
+                    }
+                }
+            }
+            
+            throw lastError;
+        }
 
         function showMessage(message, type = 'info', autoHide = true) {
             const messages = document.getElementById('messages');
@@ -294,6 +390,8 @@
                 
                 document.getElementById('walletStatus').textContent = `${account.substring(0, 6)}...${account.substring(38)}`;
                 document.getElementById('networkStatus').textContent = networkName;
+                document.getElementById('currentRpc').textContent = 'MetaMask Provider';
+                document.getElementById('rpcStatus').className = 'rpc-status rpc-active';
                 
                 if (networkId === 97) {
                     showMessage(`Carteira conectada com sucesso! Rede: ${networkName}`, 'success');
@@ -348,8 +446,11 @@
 
                 showLoading("Verificando contrato na blockchain...");
                 
-                // Verificar se existe código no endereço
-                const code = await web3.eth.getCode(address);
+                // Verificar se existe código no endereço com retry
+                const code = await retryWithFallback(async () => {
+                    return await web3.eth.getCode(address);
+                });
+                
                 if (code === '0x' || code === '0x0') {
                     showMessage("❌ Nenhum contrato encontrado neste endereço!", 'error');
                     return;
@@ -360,14 +461,18 @@
                 saleContract = new web3.eth.Contract(SALE_ABI, address);
                 contractInfo = { address };
                 
-                // Tentar diferentes métodos para obter o preço
+                // Tentar diferentes métodos para obter o preço com retry
                 let priceWei = null;
                 const priceMethods = ['tokenPrice', 'price', 'rate'];
                 
                 for (const method of priceMethods) {
                     try {
-                        showLoading(`Tentando método ${method}()...`);
-                        priceWei = await saleContract.methods[method]().call();
+                        showLoading(`Tentando método ${method}() com retry...`);
+                        
+                        priceWei = await retryWithFallback(async () => {
+                            return await saleContract.methods[method]().call();
+                        });
+                        
                         contractInfo.priceMethod = method;
                         break;
                     } catch (e) {
@@ -376,7 +481,7 @@
                 }
                 
                 if (!priceWei) {
-                    showMessage("❌ Não foi possível obter o preço do token. Verifique se o contrato está correto.", 'error');
+                    showMessage("❌ Não foi possível obter o preço do token após múltiplas tentativas. Verifique se o contrato está correto.", 'error');
                     saleContract = null;
                     contractInfo = null;
                     updateUI();
@@ -386,16 +491,20 @@
                 tokenPrice = web3.utils.fromWei(priceWei.toString(), 'ether');
                 contractInfo.price = tokenPrice;
                 
-                // Tentar obter informações adicionais
+                // Tentar obter informações adicionais com retry
                 try {
-                    const tokenAddress = await saleContract.methods.token().call();
+                    const tokenAddress = await retryWithFallback(async () => {
+                        return await saleContract.methods.token().call();
+                    });
                     contractInfo.tokenAddress = tokenAddress;
                 } catch (e) {
                     console.log('Token address não disponível');
                 }
                 
                 try {
-                    const owner = await saleContract.methods.owner().call();
+                    const owner = await retryWithFallback(async () => {
+                        return await saleContract.methods.owner().call();
+                    });
                     contractInfo.owner = owner;
                 } catch (e) {
                     console.log('Owner não disponível');
@@ -404,16 +513,19 @@
                 document.getElementById('precoToken').textContent = `${parseFloat(tokenPrice).toFixed(8)} BNB`;
                 calcularTotal();
                 
-                showMessage(`✅ Contrato carregado! Preço: ${parseFloat(tokenPrice).toFixed(8)} BNB por token (método: ${contractInfo.priceMethod})`, 'success');
+                showMessage(`✅ Contrato carregado com sucesso! Preço: ${parseFloat(tokenPrice).toFixed(8)} BNB por token (método: ${contractInfo.priceMethod})`, 'success');
                 updateUI();
                 
             } catch (error) {
                 console.error('Erro ao carregar contrato:', error);
+                document.getElementById('rpcStatus').className = 'rpc-status rpc-failed';
                 
                 if (error.message.includes('Internal JSON-RPC error') || error.message.includes('missing trie node')) {
-                    showMessage("❌ Erro de conectividade com a blockchain. Tente novamente em alguns segundos.", 'error');
+                    showMessage("❌ Erro persistente de conectividade. Todos os provedores RPC falharam. Tente novamente mais tarde.", 'error');
                 } else if (error.message.includes('execution reverted')) {
-                    showMessage("❌ Contrato rejeitou a chamada. Verifique se o endereço está correto.", 'error');
+                    showMessage("❌ Contrato rejeitou a chamada. Verifique se o endereço está correto e se o contrato tem as funções necessárias.", 'error');
+                } else if (error.message.includes('Todos os provedores RPC falharam')) {
+                    showMessage("❌ Falha em todos os provedores RPC. Verifique sua conexão com a internet.", 'error');
                 } else {
                     showMessage(`❌ Erro: ${error.message}`, 'error');
                 }
@@ -448,8 +560,11 @@
 
                 showLoading(`Preparando compra de ${qtd} tokens por ${totalBNB.toFixed(8)} BNB...`);
 
-                // Verificar saldo
-                const balance = await web3.eth.getBalance(account);
+                // Verificar saldo com retry
+                const balance = await retryWithFallback(async () => {
+                    return await web3.eth.getBalance(account);
+                });
+                
                 const balanceBNB = parseFloat(web3.utils.fromWei(balance, 'ether'));
                 
                 if (balanceBNB < totalBNB) {
@@ -544,6 +659,15 @@
         document.addEventListener('DOMContentLoaded', function() {
             updateUI();
             showMessage("Conecte sua carteira à BSC Testnet para começar", 'info');
+            
+            // Tentar inicializar Web3 com fallback se MetaMask não estiver disponível
+            if (!window.ethereum) {
+                createWeb3WithFallback().catch(error => {
+                    console.error('Falha ao inicializar Web3:', error);
+                    document.getElementById('rpcStatus').className = 'rpc-status rpc-failed';
+                    document.getElementById('currentRpc').textContent = 'Falha na conexão';
+                });
+            }
         });
     </script>
 </body>
