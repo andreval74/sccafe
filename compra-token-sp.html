@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Compra de Tokens</title>
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
+</head>
+<body>
+    <h2>Compra de Tokens</h2>
+
+    <label>Contrato de Venda (Sale):</label><br>
+    <input type="text" id="saleAddress" placeholder="0x..."><br><br>
+
+    <label>Quantidade de Tokens:</label><br>
+    <input type="number" id="tokenAmount" min="1" step="1" value="1" oninput="calcularTotal()"><br><br>
+
+    <div>Preço unitário: <span id="precoToken">0</span> BNB</div>
+    <div>Total a pagar: <span id="totalBNB">0</span> BNB</div><br>
+
+    <button onclick="connectWallet()">Conectar MetaMask</button>
+    <button onclick="loadPrice()">Carregar Preço</button>
+    <button onclick="comprar()">Comprar Tokens</button>
+
+    <script>
+        let web3;
+        let account;
+        let saleContract;
+        let tokenPrice = 0;
+
+        // ABI mínima só para pegar preço e comprar
+        const saleAbi = [
+            {
+                "constant": true,
+                "inputs": [],
+                "name": "tokenPrice",
+                "outputs": [{"name": "", "type": "uint256"}],
+                "type": "function"
+            },
+            {
+                "constant": false,
+                "inputs": [{"name": "amount", "type": "uint256"}],
+                "name": "buyTokens",
+                "outputs": [],
+                "type": "function"
+            }
+        ];
+
+        async function connectWallet() {
+            if (window.ethereum) {
+                web3 = new Web3(window.ethereum);
+                const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+                account = accounts[0];
+                alert("Carteira conectada: " + account);
+            } else {
+                alert("MetaMask não encontrada");
+            }
+        }
+
+        async function loadPrice() {
+            const address = document.getElementById('saleAddress').value;
+            saleContract = new web3.eth.Contract(saleAbi, address);
+            const priceWei = await saleContract.methods.tokenPrice().call();
+            tokenPrice = web3.utils.fromWei(priceWei, 'ether');
+            document.getElementById('precoToken').innerText = tokenPrice;
+            calcularTotal();
+        }
+
+        function calcularTotal() {
+            const qtd = parseFloat(document.getElementById('tokenAmount').value);
+            const total = qtd * parseFloat(tokenPrice);
+            document.getElementById('totalBNB').innerText = isNaN(total) ? 0 : total.toFixed(6);
+        }
+
+        async function comprar() {
+            const qtd = document.getElementById('tokenAmount').value;
+            const totalBNB = (qtd * tokenPrice).toString();
+            const totalWei = web3.utils.toWei(totalBNB, 'ether');
+
+            await saleContract.methods.buyTokens(qtd).send({
+                from: account,
+                value: totalWei
+            })
+            .on('transactionHash', hash => {
+                alert("Transação enviada! Hash: " + hash);
+            })
+            .on('receipt', receipt => {
+                alert("Compra concluída!");
+            })
+            .on('error', err => {
+                alert("Erro: " + err.message);
+            });
+        }
+    </script>
+</body>
+</html>
