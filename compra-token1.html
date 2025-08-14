@@ -3,7 +3,26 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DApp de Comprafunction fmtEth(wei) {
+  <title>DApp de Comprafunconst el = id => document.getElementById(id);
+
+// Verificar se está na rede correta
+async function checkNetwork() {
+  if (!provider) return false;
+  try {
+    const net = await provider.getNetwork();
+    // Verificar se é uma rede conhecida (Ethereum, BSC, Polygon, etc.)
+    const knownNetworks = [1, 56, 137, 97, 80001]; // Mainnet e testnets
+    if (!knownNetworks.includes(net.chainId)) {
+      console.warn(`Rede desconhecida: ${net.chainId}`);
+    }
+    return true;
+  } catch (error) {
+    console.error('Erro ao verificar rede:', error);
+    return false;
+  }
+}
+
+function fmtEth(wei) {on fmtEth(wei) {
   try { return ethers.utils.formatEther(wei); } catch { return "—"; }
 }
 function fmtUnits(v, d) {
@@ -185,13 +204,21 @@ function fmtUnits(v, d) {
 
 async function connect() {
   if (!window.ethereum) { alert("MetaMask não encontrada"); return; }
-  provider = new ethers.providers.Web3Provider(window.ethereum);
-  await provider.send("eth_requestAccounts", []);
-  signer = provider.getSigner();
-  const addr = await signer.getAddress();
-  const net = await provider.getNetwork();
-  el('account').textContent = addr;
-  el('chain').textContent = `${net.name} (0x${net.chainId.toString(16)})`;
+  
+  try {
+    provider = new ethers.providers.Web3Provider(window.ethereum);
+    await provider.send("eth_requestAccounts", []);
+    signer = provider.getSigner();
+    const addr = await signer.getAddress();
+    const net = await provider.getNetwork();
+    el('account').textContent = addr;
+    el('chain').textContent = `${net.name} (0x${net.chainId.toString(16)})`;
+    
+    console.log(`Conectado à rede: ${net.name} (${net.chainId})`);
+  } catch (error) {
+    console.error('Erro ao conectar:', error);
+    alert('Erro ao conectar com MetaMask. Verifique se está desbloqueada.');
+  }
 }
 
 async function switchToBSCtestnet(){
@@ -227,23 +254,41 @@ function parseAbiFromTextarea(){
 
 async function loadSale(){
   if (!signer) await connect();
+  if (!(await checkNetwork())) {
+    alert('Problema com a conexão de rede. Tente novamente.');
+    return;
+  }
+  
   saleAddress = el('saleAddress').value.trim();
   if (!saleAddress) { alert('Informe o endereço do contrato de venda'); return; }
-  saleAbi = parseAbiFromTextarea();
-  sale = new ethers.Contract(saleAddress, saleAbi, signer);
-  el('tokenSelect').innerHTML = '';
-  pricePerTokenWei = null;
-  commissionPct = null;
+  
   try {
-    // tenta obter comissão
-    if (sale.interface.getFunction('commissionPercent')){
-      commissionPct = await sale.commissionPercent();
+    saleAbi = parseAbiFromTextarea();
+    sale = new ethers.Contract(saleAddress, saleAbi, signer);
+    el('tokenSelect').innerHTML = '';
+    pricePerTokenWei = null;
+    commissionPct = null;
+    
+    try {
+      // tenta obter comissão
+      if (sale.interface.getFunction('commissionPercent')){
+        commissionPct = await sale.commissionPercent();
+      }
+    } catch(e) {
+      console.log('Função commissionPercent não disponível:', e.message);
     }
-  } catch {}
-  if (commissionPct !== null) {
-    el('commission').innerHTML = `<span class="ok">${commissionPct}%</span>`;
-  } else {
-    el('commission').textContent = '—';
+    
+    if (commissionPct !== null) {
+      el('commission').innerHTML = `<span class="ok">${commissionPct}%</span>`;
+    } else {
+      el('commission').textContent = '—';
+    }
+    
+    console.log('Contrato carregado com sucesso');
+  } catch (error) {
+    console.error('Erro ao carregar contrato:', error);
+    alert('Erro ao conectar com o contrato. Verifique o endereço e a rede.');
+    sale = null;
   }
 }
 
@@ -254,12 +299,29 @@ async function detectTokens(){
     if (sale.interface.getFunction('getSupportedTokens')){
       tokens = await sale.getSupportedTokens();
     }
-  } catch(e){ console.warn('getSupportedTokens indisponível'); }
+  } catch(e){ 
+    console.warn('getSupportedTokens indisponível:', e.message); 
+  }
   if (!tokens || tokens.length === 0){
     // fallback: pedir manualmente
     const manual = prompt('getSupportedTokens não disponível. Informe o endereço do token:');
-    if (manual) tokens = [manual.trim()];
+    if (manual && ethers.utils.isAddress(manual)) {
+      tokens = [manual];
+    } else {
+      console.log('Nenhum token configurado');
+      return;
+    }
   }
+  
+  try {
+    for (const addr of tokens) {
+      await onTokenChanged(addr);
+    }
+  } catch (error) {
+    console.error('Erro ao detectar tokens:', error);
+    alert('Erro ao carregar informações dos tokens. Verifique a conexão com a rede.');
+  }
+  
   const sel = el('tokenSelect');
   sel.innerHTML = '';
   tokens.forEach(a => {
@@ -269,13 +331,15 @@ async function detectTokens(){
   if (tokens.length>0){ sel.selectedIndex = 0; onTokenChanged(); }
 }
 
-async function onTokenChanged(){
-  selectedToken = el('tokenSelect').value;
+async function onTokenChanged(tokenAddr = null){
+  selectedToken = tokenAddr || el('tokenSelect').value;
   if (!selectedToken) return;
-  const token = new ethers.Contract(selectedToken, ERC20_ABI, signer || provider);
-  try { tokenMeta.name = await token.name(); } catch { tokenMeta.name = '—'; }
-  try { tokenMeta.symbol = await token.symbol(); } catch { tokenMeta.symbol = '—'; }
-  try { tokenMeta.decimals = Number(await token.decimals()); } catch { tokenMeta.decimals = 18; }
+  
+  try {
+    const token = new ethers.Contract(selectedToken, ERC20_ABI, signer || provider);
+    try { tokenMeta.name = await token.name(); } catch { tokenMeta.name = '—'; }
+    try { tokenMeta.symbol = await token.symbol(); } catch { tokenMeta.symbol = '—'; }
+    try { tokenMeta.decimals = Number(await token.decimals()); } catch { tokenMeta.decimals = 18; }
   el('tName').textContent = tokenMeta.name;
   el('tSymbol').textContent = tokenMeta.symbol;
   el('tDecimals').textContent = tokenMeta.decimals;
@@ -299,6 +363,14 @@ async function onTokenChanged(){
       el('kycStatus').textContent = '—';
     }
   } catch { el('kycStatus').textContent = '—'; }
+  
+  } catch (error) {
+    console.error('Erro ao carregar token:', error);
+    tokenMeta.name = '—';
+    tokenMeta.symbol = '—'; 
+    tokenMeta.decimals = 18;
+  }
+  
   recalc();
 }
 
