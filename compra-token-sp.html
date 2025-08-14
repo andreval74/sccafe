@@ -1,33 +1,116 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
 <head>
-    <meta charset="utf-8">
-    <title>Compra de Tokens</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compra de Tokens Simples - SCCAFE</title>
     <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #1a1a1a;
+            color: white;
+        }
+        .container {
+            background: #2a2a2a;
+            padding: 30px;
+            border-radius: 10px;
+            border: 2px solid #ff8c00;
+        }
+        h2 {
+            color: #ff8c00;
+            text-align: center;
+        }
+        label {
+            display: block;
+            margin: 10px 0 5px 0;
+            color: #ff8c00;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #555;
+            border-radius: 5px;
+            background: #1a1a1a;
+            color: white;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            background: #ff8c00;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 5px 0;
+        }
+        button:hover {
+            background: #e67e00;
+        }
+        button:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+        .info {
+            background: #333;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .error {
+            color: #ff4444;
+            margin: 10px 0;
+        }
+        .success {
+            color: #44ff44;
+            margin: 10px 0;
+        }
+        .warning {
+            color: #ffaa44;
+            margin: 10px 0;
+        }
+    </style>
 </head>
 <body>
-    <h2>Compra de Tokens</h2>
+    <div class="container">
+        <h2>🪙 Compra de Tokens Simples</h2>
 
-    <label>Contrato de Venda (Sale):</label><br>
-    <input type="text" id="saleAddress" placeholder="0x..."><br><br>
+        <div class="info">
+            <strong>Status da Carteira:</strong> <span id="walletStatus">Não conectado</span><br>
+            <strong>Rede:</strong> <span id="networkStatus">—</span>
+        </div>
 
-    <label>Quantidade de Tokens:</label><br>
-    <input type="number" id="tokenAmount" min="1" step="1" value="1" oninput="calcularTotal()"><br><br>
+        <label>Endereço do Contrato de Venda:</label>
+        <input type="text" id="saleAddress" placeholder="0x..." value="">
 
-    <div>Preço unitário: <span id="precoToken">0</span> BNB</div>
-    <div>Total a pagar: <span id="totalBNB">0</span> BNB</div><br>
+        <label>Quantidade de Tokens:</label>
+        <input type="number" id="tokenAmount" min="1" step="1" value="10" oninput="calcularTotal()">
 
-    <button onclick="connectWallet()">Conectar MetaMask</button>
-    <button onclick="loadPrice()">Carregar Preço</button>
-    <button onclick="comprar()">Comprar Tokens</button>
+        <div class="info">
+            <strong>Preço unitário:</strong> <span id="precoToken">—</span> BNB<br>
+            <strong>Total a pagar:</strong> <span id="totalBNB">—</span> BNB
+        </div>
+
+        <button onclick="connectWallet()">Conectar MetaMask</button>
+        <button onclick="loadPrice()" disabled id="loadPriceBtn">Carregar Preço do Token</button>
+        <button onclick="comprar()" disabled id="buyBtn">Comprar Tokens</button>
+
+        <div id="messages"></div>
+    </div>
 
     <script>
         let web3;
         let account;
         let saleContract;
         let tokenPrice = 0;
+        let networkId;
 
-        // ABI mínima só para pegar preço e comprar
+        // ABI mínima para contratos de venda
         const saleAbi = [
             {
                 "constant": true,
@@ -42,54 +125,178 @@
                 "name": "buyTokens",
                 "outputs": [],
                 "type": "function"
+            },
+            {
+                "constant": false,
+                "inputs": [],
+                "name": "buy",
+                "outputs": [],
+                "type": "function"
             }
         ];
 
+        function showMessage(message, type = 'info') {
+            const messages = document.getElementById('messages');
+            const className = type === 'error' ? 'error' : 
+                             type === 'success' ? 'success' : 
+                             type === 'warning' ? 'warning' : 'info';
+            messages.innerHTML = `<div class="${className}">${message}</div>`;
+            
+            // Auto-clear after 10 seconds
+            setTimeout(() => {
+                messages.innerHTML = '';
+            }, 10000);
+        }
+
+        function updateUI() {
+            const connected = !!account;
+            const contractLoaded = !!saleContract && tokenPrice > 0;
+            
+            document.getElementById('loadPriceBtn').disabled = !connected;
+            document.getElementById('buyBtn').disabled = !connected || !contractLoaded;
+        }
+
         async function connectWallet() {
-            if (window.ethereum) {
+            try {
+                if (!window.ethereum) {
+                    showMessage("MetaMask não encontrada. Instale a extensão.", 'error');
+                    return;
+                }
+
+                showMessage("Conectando à MetaMask...", 'info');
+                
                 web3 = new Web3(window.ethereum);
                 const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
                 account = accounts[0];
-                alert("Carteira conectada: " + account);
-            } else {
-                alert("MetaMask não encontrada");
+                
+                // Obter informações da rede
+                networkId = await web3.eth.net.getId();
+                const networkName = getNetworkName(networkId);
+                
+                document.getElementById('walletStatus').textContent = `${account.substring(0, 8)}...${account.substring(36)}`;
+                document.getElementById('networkStatus').textContent = `${networkName} (${networkId})`;
+                
+                showMessage(`Carteira conectada: ${account.substring(0, 8)}...`, 'success');
+                updateUI();
+                
+            } catch (error) {
+                showMessage(`Erro ao conectar: ${error.message}`, 'error');
             }
         }
 
+        function getNetworkName(id) {
+            const networks = {
+                1: 'Ethereum Mainnet',
+                56: 'BSC Mainnet',
+                97: 'BSC Testnet',
+                137: 'Polygon Mainnet',
+                80001: 'Polygon Testnet'
+            };
+            return networks[id] || `Rede ${id}`;
+        }
+
         async function loadPrice() {
-            const address = document.getElementById('saleAddress').value;
-            saleContract = new web3.eth.Contract(saleAbi, address);
-            const priceWei = await saleContract.methods.tokenPrice().call();
-            tokenPrice = web3.utils.fromWei(priceWei, 'ether');
-            document.getElementById('precoToken').innerText = tokenPrice;
-            calcularTotal();
+            try {
+                const address = document.getElementById('saleAddress').value.trim();
+                
+                if (!address) {
+                    showMessage("Digite o endereço do contrato de venda!", 'warning');
+                    return;
+                }
+
+                if (!web3.utils.isAddress(address)) {
+                    showMessage("Endereço inválido!", 'error');
+                    return;
+                }
+
+                showMessage("Carregando informações do contrato...", 'info');
+                
+                saleContract = new web3.eth.Contract(saleAbi, address);
+                
+                // Tentar carregar o preço
+                try {
+                    const priceWei = await saleContract.methods.tokenPrice().call();
+                    tokenPrice = web3.utils.fromWei(priceWei, 'ether');
+                    
+                    document.getElementById('precoToken').textContent = parseFloat(tokenPrice).toFixed(6);
+                    calcularTotal();
+                    
+                    showMessage(`Preço carregado: ${parseFloat(tokenPrice).toFixed(6)} BNB por token`, 'success');
+                    updateUI();
+                    
+                } catch (priceError) {
+                    if (priceError.message.includes('missing trie node') || priceError.message.includes('Internal JSON-RPC error')) {
+                        showMessage("⚠️ Contrato não encontrado nesta rede. Verifique o endereço e a rede.", 'error');
+                    } else {
+                        showMessage(`Erro ao carregar preço: ${priceError.message}`, 'error');
+                    }
+                    saleContract = null;
+                    updateUI();
+                }
+                
+            } catch (error) {
+                showMessage(`Erro: ${error.message}`, 'error');
+                saleContract = null;
+                updateUI();
+            }
         }
 
         function calcularTotal() {
-            const qtd = parseFloat(document.getElementById('tokenAmount').value);
-            const total = qtd * parseFloat(tokenPrice);
-            document.getElementById('totalBNB').innerText = isNaN(total) ? 0 : total.toFixed(6);
+            const qtd = parseFloat(document.getElementById('tokenAmount').value) || 0;
+            const total = qtd * parseFloat(tokenPrice || 0);
+            document.getElementById('totalBNB').textContent = isNaN(total) ? '—' : total.toFixed(6);
         }
 
         async function comprar() {
-            const qtd = document.getElementById('tokenAmount').value;
-            const totalBNB = (qtd * tokenPrice).toString();
-            const totalWei = web3.utils.toWei(totalBNB, 'ether');
+            try {
+                if (!saleContract) {
+                    showMessage("Carregue o contrato primeiro!", 'warning');
+                    return;
+                }
 
-            await saleContract.methods.buyTokens(qtd).send({
-                from: account,
-                value: totalWei
-            })
-            .on('transactionHash', hash => {
-                alert("Transação enviada! Hash: " + hash);
-            })
-            .on('receipt', receipt => {
-                alert("Compra concluída!");
-            })
-            .on('error', err => {
-                alert("Erro: " + err.message);
-            });
+                const qtd = parseInt(document.getElementById('tokenAmount').value);
+                if (!qtd || qtd <= 0) {
+                    showMessage("Digite uma quantidade válida!", 'warning');
+                    return;
+                }
+
+                const totalBNB = (qtd * tokenPrice).toString();
+                const totalWei = web3.utils.toWei(totalBNB, 'ether');
+
+                showMessage(`Enviando transação para comprar ${qtd} tokens...`, 'info');
+
+                // Tentar método buyTokens primeiro, depois buy
+                let method;
+                try {
+                    method = saleContract.methods.buyTokens(qtd);
+                } catch (e) {
+                    method = saleContract.methods.buy();
+                }
+
+                await method.send({
+                    from: account,
+                    value: totalWei
+                })
+                .on('transactionHash', hash => {
+                    showMessage(`Transação enviada! Hash: ${hash}`, 'info');
+                })
+                .on('receipt', receipt => {
+                    showMessage("🎉 Compra concluída com sucesso!", 'success');
+                })
+                .on('error', err => {
+                    showMessage(`Erro na transação: ${err.message}`, 'error');
+                });
+
+            } catch (error) {
+                showMessage(`Erro ao comprar: ${error.message}`, 'error');
+            }
         }
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', function() {
+            updateUI();
+            showMessage("Conecte sua carteira para começar", 'info');
+        });
     </script>
 </body>
 </html>
