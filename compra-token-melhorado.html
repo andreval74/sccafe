@@ -310,3 +310,287 @@
     </script>
 </body>
 </html>
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compra de Tokens - SCCAFE</title>
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 400px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        input:focus {
+            border-color: #4CAF50;
+            outline: none;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .total {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .status {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+            display: none;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .info { background: #d1ecf1; color: #0c5460; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>🪙 Comprar Tokens</h2>
+        
+        <div class="form-group">
+            <label for="contractAddress">Endereço do Contrato:</label>
+            <input type="text" id="contractAddress" value="0x43d9389C0eb6d01Ed04d01244a63E634bc8889d4" placeholder="0x...">
+        </div>
+        
+        <div class="form-group">
+            <label for="quantidade">Quantidade de Tokens:</label>
+            <input type="number" id="quantidade" placeholder="100" min="1" step="1" oninput="calcularTotal()">
+        </div>
+        
+        <div class="form-group">
+            <label for="precoToken">Preço por Token (BNB):</label>
+            <input type="number" id="precoToken" value="0.001" step="0.000001" oninput="calcularTotal()">
+        </div>
+        
+        <div class="total">
+            Total: <span id="totalBNB">0</span> BNB
+        </div>
+        
+        <button onclick="conectarEComprar()">Conectar & Comprar</button>
+        
+        <div id="status" class="status"></div>
+    </div>
+
+    <script>
+        let web3;
+        let userAccount;
+        
+        // ABI mínima
+        const ABI = [
+            {
+                "inputs": [],
+                "name": "buyTokens",
+                "outputs": [],
+                "stateMutability": "payable",
+                "type": "function"
+            },
+            {
+                "inputs": [{"internalType": "uint256", "name": "amount", "type": "uint256"}],
+                "name": "buy",
+                "outputs": [],
+                "stateMutability": "payable",
+                "type": "function"
+            }
+        ];
+        
+        function mostrarStatus(mensagem, tipo) {
+            const status = document.getElementById('status');
+            status.textContent = mensagem;
+            status.className = `status ${tipo}`;
+            status.style.display = 'block';
+            
+            if (tipo === 'success') {
+                setTimeout(() => {
+                    status.style.display = 'none';
+                }, 5000);
+            }
+        }
+        
+        function calcularTotal() {
+            const quantidade = parseFloat(document.getElementById('quantidade').value) || 0;
+            const preco = parseFloat(document.getElementById('precoToken').value) || 0;
+            const total = quantidade * preco;
+            document.getElementById('totalBNB').textContent = total.toFixed(6);
+        }
+        
+        async function conectarEComprar() {
+            try {
+                const contractAddress = document.getElementById('contractAddress').value.trim();
+                const quantidade = parseFloat(document.getElementById('quantidade').value);
+                const precoToken = parseFloat(document.getElementById('precoToken').value);
+                const total = quantidade * precoToken;
+                
+                if (!contractAddress) {
+                    mostrarStatus('Digite o endereço do contrato!', 'error');
+                    return;
+                }
+                
+                if (!quantidade || quantidade <= 0) {
+                    mostrarStatus('Digite uma quantidade válida!', 'error');
+                    return;
+                }
+                
+                if (!precoToken || precoToken <= 0) {
+                    mostrarStatus('Digite um preço válido!', 'error');
+                    return;
+                }
+                
+                mostrarStatus('Conectando MetaMask...', 'info');
+                
+                if (typeof window.ethereum === 'undefined') {
+                    mostrarStatus('❌ MetaMask não encontrado!', 'error');
+                    return;
+                }
+                
+                // Conectar MetaMask
+                const accounts = await window.ethereum.request({
+                    method: 'eth_requestAccounts'
+                });
+                
+                userAccount = accounts[0];
+                web3 = new Web3(window.ethereum);
+                
+                mostrarStatus('Verificando rede...', 'info');
+                
+                // Verificar/trocar para BSC Testnet
+                const chainId = await web3.eth.getChainId();
+                if (chainId !== 97) {
+                    try {
+                        await window.ethereum.request({
+                            method: 'wallet_switchEthereumChain',
+                            params: [{ chainId: '0x61' }]
+                        });
+                    } catch (switchError) {
+                        if (switchError.code === 4902) {
+                            await window.ethereum.request({
+                                method: 'wallet_addEthereumChain',
+                                params: [{
+                                    chainId: '0x61',
+                                    chainName: 'BSC Testnet',
+                                    nativeCurrency: { name: 'BNB', symbol: 'BNB', decimals: 18 },
+                                    rpcUrls: ['https://data-seed-prebsc-1-s1.binance.org:8545/'],
+                                    blockExplorerUrls: ['https://testnet.bscscan.com']
+                                }]
+                            });
+                        }
+                    }
+                }
+                
+                mostrarStatus('Verificando saldo...', 'info');
+                
+                // Verificar saldo
+                const saldo = await web3.eth.getBalance(userAccount);
+                const saldoBNB = web3.utils.fromWei(saldo, 'ether');
+                
+                if (parseFloat(saldoBNB) < total) {
+                    mostrarStatus(`❌ Saldo insuficiente. Você tem ${parseFloat(saldoBNB).toFixed(4)} BNB`, 'error');
+                    return;
+                }
+                
+                mostrarStatus('Processando compra...', 'info');
+                
+                // Criar contrato
+                const contract = new web3.eth.Contract(ABI, contractAddress);
+                
+                let transactionHash;
+                
+                try {
+                    // Tentar método buyTokens()
+                    const tx = await contract.methods.buyTokens().send({
+                        from: userAccount,
+                        value: web3.utils.toWei(total.toString(), 'ether'),
+                        gas: 300000
+                    });
+                    transactionHash = tx.transactionHash;
+                } catch (error1) {
+                    try {
+                        // Tentar método buy(amount)
+                        const tx = await contract.methods.buy(quantidade).send({
+                            from: userAccount,
+                            value: web3.utils.toWei(total.toString(), 'ether'),
+                            gas: 300000
+                        });
+                        transactionHash = tx.transactionHash;
+                    } catch (error2) {
+                        // Transação direta
+                        const tx = await web3.eth.sendTransaction({
+                            from: userAccount,
+                            to: contractAddress,
+                            value: web3.utils.toWei(total.toString(), 'ether'),
+                            gas: 300000
+                        });
+                        transactionHash = tx.transactionHash;
+                    }
+                }
+                
+                mostrarStatus(`🎉 Compra realizada! TX: ${transactionHash.substring(0,10)}...`, 'success');
+                
+                // Limpar formulário
+                document.getElementById('quantidade').value = '';
+                calcularTotal();
+                
+            } catch (error) {
+                console.error('Erro:', error);
+                mostrarStatus(`❌ Erro: ${error.message}`, 'error');
+            }
+        }
+        
+        // Calcular total inicial
+        calcularTotal();
+    </script>
+</body>
+</html>
