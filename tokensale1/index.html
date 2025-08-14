@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SCCAFE Token Sale - Sistema Avançado</title>
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>🪙 SCCAFE Token Sale</h1>
+            <p>Sistema Profissional de Venda de Tokens</p>
+        </header>
+
+        <div class="wallet-section">
+            <button id="connectWallet" class="btn-primary">Conectar Carteira</button>
+            <div id="walletInfo" class="wallet-info hidden">
+                <span id="walletAddress"></span>
+                <span id="walletBalance"></span>
+            </div>
+        </div>
+
+        <div class="contract-section">
+            <div class="form-group">
+                <label for="contractAddress">Endereço do Contrato:</label>
+                <input type="text" id="contractAddress" value="0x43d9389C0eb6d01Ed04d01244a63E634bc8889d4" placeholder="0x...">
+                <button id="loadContract" class="btn-secondary">Carregar Contrato</button>
+            </div>
+        </div>
+
+        <div id="saleInterface" class="sale-interface hidden">
+            <div class="token-info">
+                <div class="info-card">
+                    <h3>Informações do Token</h3>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <label>Preço por Token:</label>
+                            <span id="tokenPrice">Carregando...</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Tokens Vendidos:</label>
+                            <span id="soldTokens">Carregando...</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Fundos Arrecadados:</label>
+                            <span id="totalFunds">Carregando...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="purchase-section">
+                <div class="form-group">
+                    <label for="tokenAmount">Quantidade de Tokens:</label>
+                    <input type="number" id="tokenAmount" placeholder="100" min="1" step="1">
+                </div>
+
+                <div class="calculation">
+                    <div class="calc-row">
+                        <span>Quantidade:</span>
+                        <span id="calcAmount">0</span>
+                    </div>
+                    <div class="calc-row">
+                        <span>Preço Unitário:</span>
+                        <span id="calcPrice">0 BNB</span>
+                    </div>
+                    <div class="calc-row total">
+                        <span>Total a Pagar:</span>
+                        <span id="calcTotal">0 BNB</span>
+                    </div>
+                </div>
+
+                <button id="buyTokens" class="btn-buy" disabled>Comprar Tokens</button>
+            </div>
+        </div>
+
+        <div id="messages" class="messages"></div>
+
+        <div class="actions">
+            <button id="addTokenToWallet" class="btn-secondary hidden">Adicionar Token à Carteira</button>
+            <button id="viewOnExplorer" class="btn-secondary hidden">Ver no BSCScan</button>
+        </div>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="contract-manager.js"></script>
+    <script src="wallet-manager.js"></script>
+    <script src="ui-manager.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
