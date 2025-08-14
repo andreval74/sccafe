@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comprar Token - SCCAFE</title>
+    
+    <!-- Favicons -->
+    <link rel="icon" type="image/png" sizes="16x16" href="imgs/sccafe-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="imgs/sccafe-32x32.png">
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <!-- SCCAFE Global CSS Unificado -->
+    <link href="styles/globals.css" rel="stylesheet">
+    
+    <!-- Meta tags SEO -->
+    <meta name="description" content="Participe da venda do nosso token. Compre diretamente pela nossa plataforma segura e conecte-se com a MetaMask.">
+    <meta name="author" content="SCCAFE Team">
+</head>
+<body>
+    <!-- Header -->
+    <header data-component="header"></header>
+
+    <!-- Token Sale Section -->
+    <section class="token-sale-section py-5">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-6 col-md-8">
+                    <div class="card bg-dark border-primary shadow-lg">
+                        <div class="card-header bg-dark border-primary text-center">
+                            <h2 class="fw-bold mb-1">Venda de Tokens</h2>
+                            <p class="text-muted mb-0">Compre seus tokens de forma rápida e segura</p>
+                        </div>
+                        <div class="card-body p-4 p-sm-5">
+                            
+                            <!-- Connection Button -->
+                            <div id="connectionArea" class="text-center">
+                                <p class="lead">Conecte sua carteira para começar.</p>
+                                <button id="connectButton" class="btn btn-primary btn-lg w-100">
+                                    <i class="bi bi-wallet2 me-2"></i>
+                                    Conectar com MetaMask
+                                </button>
+                            </div>
+
+                            <!-- Purchase Form (hidden by default) -->
+                            <div id="purchaseArea" class="d-none">
+                                <div class="mb-3">
+                                    <label for="walletAddress" class="form-label text-muted">Sua Carteira</label>
+                                    <input type="text" id="walletAddress" class="form-control" disabled>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="tokenAmount" class="form-label">Quantidade de Tokens</label>
+                                    <input type="number" class="form-control" id="tokenAmount" placeholder="Ex: 100" min="1">
+                                    <div class="form-text">Preço: <span id="tokenPrice">--</span> ETH por token.</div>
+                                </div>
+                                <div class="alert alert-info" role="alert">
+                                    <strong>Custo Total:</strong> <span id="totalCost">0.00</span> ETH
+                                </div>
+                                <button id="buyButton" class="btn btn-success btn-lg w-100">
+                                    <i class="bi bi-cart-check me-2"></i>
+                                    Comprar Agora
+                                </button>
+                            </div>
+
+                            <!-- Status Messages -->
+                            <div id="status" class="mt-4 text-center"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer data-component="footer"></footer>
+
+    <!-- Ethers.js from CDN -->
+    <script src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js"></script>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Template Loader -->
+    <script src="js/template-loader.js"></script>
+    
+    <!-- Custom JS for Token Sale -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- 1. CONFIGURAÇÕES DO SEU CONTRATO ---
+            // IMPORTANTE: Substitua pelos dados do seu contrato real.
+            const contractAddress = "SEU_ENDERECO_DE_CONTRATO_AQUI"; 
+            
+            // O ABI é a interface do seu contrato. Você só precisa das funções que vai chamar.
+            // Este é um exemplo para uma função `buyTokens(uint256 amount)` que é `payable`
+            // e uma função `tokenPrice()` que retorna o preço por token em Wei.
+            const contractABI = [
+                "function buyTokens(uint256 amount) public payable",
+                "function tokenPrice() public view returns (uint256)" 
+            ];
+
+            // --- 2. ELEMENTOS DO HTML ---
+            const connectButton = document.getElementById('connectButton');
+            const buyButton = document.getElementById('buyButton');
+            const connectionArea = document.getElementById('connectionArea');
+            const purchaseArea = document.getElementById('purchaseArea');
+            const tokenAmountInput = document.getElementById('tokenAmount');
+            const statusElement = document.getElementById('status');
+            const walletAddressElement = document.getElementById('walletAddress');
+            const tokenPriceElement = document.getElementById('tokenPrice');
+            const totalCostElement = document.getElementById('totalCost');
+
+            let provider;
+            let signer;
+            let contract;
+            let tokenPriceInWei;
+
+            // --- 3. FUNÇÕES AUXILIARES ---
+
+            // Formata o status com classes do Bootstrap
+            function showStatus(message, type = 'info') {
+                statusElement.innerHTML = `<div class="alert alert-${type}" role="alert">${message}</div>`;
+            }
+
+            // Atualiza o cálculo do custo total
+            function updateTotalCost() {
+                const amount = tokenAmountInput.value;
+                if (amount > 0 && tokenPriceInWei) {
+                    const totalCost = ethers.BigNumber.from(tokenPriceInWei).mul(amount);
+                    totalCostElement.innerText = ethers.utils.formatEther(totalCost);
+                } else {
+                    totalCostElement.innerText = "0.00";
+                }
+            }
+
+            // --- 4. LÓGICA DE CONEXÃO E INTERAÇÃO ---
+
+            connectButton.addEventListener('click', async () => {
+                showStatus("Conectando à MetaMask...", 'info');
+                if (typeof window.ethereum !== 'undefined') {
+                    try {
+                        // Solicita acesso à conta do usuário
+                        await window.ethereum.request({ method: 'eth_requestAccounts' });
+                        
+                        // Inicializa ethers
+                        provider = new ethers.providers.Web3Provider(window.ethereum);
+                        signer = provider.getSigner();
+                        contract = new ethers.Contract(contractAddress, contractABI, signer);
+
+                        // Pega o endereço da carteira
+                        const address = await signer.getAddress();
+                        walletAddressElement.value = address;
+
+                        // Pega o preço do token do contrato
+                        showStatus("Buscando informações do contrato...", 'info');
+                        tokenPriceInWei = await contract.tokenPrice();
+                        tokenPriceElement.innerText = ethers.utils.formatEther(tokenPriceInWei);
+
+                        // Atualiza a interface
+                        connectionArea.classList.add('d-none');
+                        purchaseArea.classList.remove('d-none');
+                        showStatus("Carteira conectada. Pronto para comprar!", 'success');
+                        
+                    } catch (error) {
+                        console.error("Erro ao conectar:", error);
+                        showStatus(`Falha ao conectar: ${error.message || 'Verifique o console.'}`, 'danger');
+                    }
+                } else {
+                    showStatus("MetaMask não detectada. Por favor, instale a extensão.", 'warning');
+                    connectButton.disabled = true;
+                }
+            });
+
+            tokenAmountInput.addEventListener('input', updateTotalCost);
+
+            buyButton.addEventListener('click', async () => {
+                const amountToBuy = tokenAmountInput.value;
+                if (!amountToBuy || amountToBuy <= 0) {
+                    showStatus("Por favor, insira uma quantidade válida.", 'warning');
+                    return;
+                }
+
+                showStatus("Preparando transação... Por favor, aprove na sua carteira.", 'info');
+                buyButton.disabled = true;
+                buyButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processando...';
+
+                try {
+                    // Calcula o custo total em Wei
+                    const totalCost = ethers.BigNumber.from(tokenPriceInWei).mul(amountToBuy);
+
+                    // Chama a função `buyTokens` do contrato, enviando o valor (ETH)
+                    const transaction = await contract.buyTokens(amountToBuy, { value: totalCost });
+
+                    showStatus("Aguardando confirmação da transação na blockchain...", 'info');
+                    
+                    // Espera a transação ser minerada
+                    await transaction.wait();
+
+                    showStatus(`Compra de ${amountToBuy} tokens realizada com sucesso!`, 'success');
+                    tokenAmountInput.value = "";
+                    updateTotalCost();
+
+                } catch (error) {
+                    console.error("Erro na compra:", error);
+                    showStatus(`Ocorreu um erro: ${error.message || 'Verifique o console para detalhes.'}`, 'danger');
+                } finally {
+                    buyButton.disabled = false; // Reabilita o botão
+                    buyButton.innerHTML = '<i class="bi bi-cart-check me-2"></i> Comprar Agora';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+
