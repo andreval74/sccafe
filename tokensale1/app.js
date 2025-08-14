@@ -48,14 +48,28 @@ class TokenSaleApp {
         this.uiManager.setLoading(this.uiManager.elements.connectWallet);
         this.uiManager.showMessage('Conectando carteira...', 'info');
 
-        const result = await this.walletManager.connect();
-        
-        if (result.success) {
-            const balance = await this.walletManager.getBalance();
-            this.uiManager.updateWalletInfo(result.account, balance);
-            this.uiManager.showMessage(CONFIG.MESSAGES.WALLET_CONNECTED, 'success');
-        } else {
-            this.uiManager.showMessage(result.error, 'error');
+        try {
+            const result = await this.walletManager.connect();
+            
+            if (result.success) {
+                // Tentar obter saldo com retry
+                let balance = '0';
+                try {
+                    balance = await this.walletManager.getBalance();
+                } catch (balanceError) {
+                    console.warn('Erro ao obter saldo, usando 0:', balanceError);
+                    this.uiManager.showMessage('⚠️ Conectado, mas erro ao obter saldo. Tente recarregar.', 'warning');
+                }
+                
+                this.uiManager.updateWalletInfo(result.account, balance);
+                this.uiManager.showMessage(CONFIG.MESSAGES.WALLET_CONNECTED, 'success');
+            } else {
+                this.uiManager.showMessage(result.error, 'error');
+            }
+        } catch (error) {
+            console.error('Erro na conexão da carteira:', error);
+            this.uiManager.showMessage('❌ Erro inesperado na conexão. Tente novamente.', 'error');
+        } finally {
             this.uiManager.setLoading(this.uiManager.elements.connectWallet, false);
         }
     }
