@@ -8,8 +8,8 @@
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            max-width: 700px;
-            margin: 30px auto;
+            max-width: 500px;
+            margin: 50px auto;
             padding: 20px;
             background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
             color: white;
@@ -21,36 +21,15 @@
             border-radius: 15px;
             border: 2px solid #ff8c00;
             box-shadow: 0 10px 30px rgba(255, 140, 0, 0.3);
-            backdrop-filter: blur(10px);
         }
         h2 {
             color: #ff8c00;
             text-align: center;
             margin-bottom: 30px;
             font-size: 2em;
-            text-shadow: 0 2px 4px rgba(255, 140, 0, 0.5);
         }
-        .status-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 25px;
-        }
-        .status-card {
-            background: #333;
-            padding: 15px;
-            border-radius: 8px;
-            border-left: 4px solid #ff8c00;
-        }
-        .status-label {
-            font-size: 0.9em;
-            color: #ccc;
-            margin-bottom: 5px;
-        }
-        .status-value {
-            font-weight: bold;
-            color: #ff8c00;
-            font-size: 1.1em;
+        .form-group {
+            margin-bottom: 20px;
         }
         label {
             display: block;
@@ -67,7 +46,6 @@
             color: white;
             box-sizing: border-box;
             font-size: 16px;
-            transition: border-color 0.3s ease;
         }
         input:focus {
             outline: none;
@@ -86,589 +64,249 @@
             cursor: pointer;
             margin: 8px 0;
             transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 1px;
         }
         button:hover:not(:disabled) {
             background: linear-gradient(45deg, #e67e00, #cc6600);
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(255, 140, 0, 0.4);
         }
         button:disabled {
             background: #666;
             cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
         }
-        .info-panel {
-            background: linear-gradient(135deg, #333 0%, #444 100%);
-            padding: 20px;
-            border-radius: 10px;
-            margin: 20px 0;
-            border: 1px solid #555;
-        }
-        .price-display {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin: 15px 0;
-        }
-        .price-item {
-            text-align: center;
+        .total {
+            background: #333;
             padding: 15px;
-            background: rgba(255, 140, 0, 0.1);
             border-radius: 8px;
-            border: 1px solid rgba(255, 140, 0, 0.3);
-        }
-        .price-label {
-            font-size: 0.9em;
-            color: #ccc;
-            margin-bottom: 5px;
-        }
-        .price-value {
-            font-size: 1.3em;
-            font-weight: bold;
-            color: #ff8c00;
+            margin: 20px 0;
+            text-align: center;
+            font-size: 1.2em;
+            border-left: 4px solid #ff8c00;
         }
         .message {
-            padding: 15px;
-            border-radius: 8px;
-            margin: 15px 0;
-            font-weight: 500;
-            animation: slideIn 0.3s ease;
-        }
-        .error { background: rgba(255, 68, 68, 0.2); border-left: 4px solid #ff4444; color: #ff6666; }
-        .success { background: rgba(68, 255, 68, 0.2); border-left: 4px solid #44ff44; color: #66ff66; }
-        .warning { background: rgba(255, 170, 68, 0.2); border-left: 4px solid #ffaa44; color: #ffcc66; }
-        .info { background: rgba(68, 170, 255, 0.2); border-left: 4px solid #44aaff; color: #66bbff; }
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #ff8c00;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-right: 10px;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .network-warning {
-            background: rgba(255, 170, 68, 0.3);
-            border: 2px solid #ffaa44;
-            padding: 15px;
+            padding: 12px;
             border-radius: 8px;
             margin: 15px 0;
             text-align: center;
         }
-        .rpc-status {
-            background: #2a2a2a;
-            padding: 10px;
-            border-radius: 5px;
-            margin: 10px 0;
-            font-size: 0.9em;
-        }
-        .rpc-active { border-left: 4px solid #44ff44; }
-        .rpc-failed { border-left: 4px solid #ff4444; }
+        .success { background: rgba(76, 175, 80, 0.2); border: 1px solid #4CAF50; }
+        .error { background: rgba(244, 67, 54, 0.2); border: 1px solid #f44336; }
+        .info { background: rgba(33, 150, 243, 0.2); border: 1px solid #2196F3; }
+        .warning { background: rgba(255, 193, 7, 0.2); border: 1px solid #FFC107; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h2>🪙 Compra de Tokens SCCAFE</h2>
-
-        <div class="status-grid">
-            <div class="status-card">
-                <div class="status-label">Status da Carteira</div>
-                <div class="status-value" id="walletStatus">Não conectado</div>
+        <h2>🪙 Comprar Tokens</h2>
+        
+        <div class="form-group">
+            <label for="contractAddress">Endereço do Contrato:</label>
+            <input type="text" id="contractAddress" value="0x43d9389C0eb6d01Ed04d01244a63E634bc8889d4" placeholder="0x...">
+        </div>
+        
+        <button onclick="carregarContrato()">Carregar Contrato</button>
+        
+        <div id="contractInfo" style="display: none;">
+            <div class="form-group">
+                <label for="quantidade">Quantidade de Tokens:</label>
+                <input type="number" id="quantidade" placeholder="100" min="1" step="1" oninput="calcularTotal()">
             </div>
-            <div class="status-card">
-                <div class="status-label">Rede Atual</div>
-                <div class="status-value" id="networkStatus">—</div>
+            
+            <div class="form-group">
+                <label for="precoToken">Preço por Token (BNB):</label>
+                <input type="text" id="precoToken" readonly>
             </div>
-        </div>
-
-        <div id="rpcStatus" class="rpc-status">
-            <strong>Provedor RPC:</strong> <span id="currentRpc">Não conectado</span>
-        </div>
-
-        <div id="networkWarning" class="network-warning" style="display: none;">
-            ⚠️ <strong>Atenção:</strong> Conecte-se à BSC Testnet (Chain ID: 97) para usar este contrato.
-        </div>
-
-        <label>📄 Endereço do Contrato de Venda:</label>
-        <input type="text" id="saleAddress" placeholder="0x43d9389C0eb6d01Ed04d01244a63E634bc8889d4" value="0x43d9389C0eb6d01Ed04d01244a63E634bc8889d4">
-
-        <label>🔢 Quantidade de Tokens:</label>
-        <input type="number" id="tokenAmount" min="1" step="1" value="10" oninput="calcularTotal()">
-
-        <div class="info-panel">
-            <div class="price-display">
-                <div class="price-item">
-                    <div class="price-label">Preço Unitário</div>
-                    <div class="price-value" id="precoToken">—</div>
-                </div>
-                <div class="price-item">
-                    <div class="price-label">Total a Pagar</div>
-                    <div class="price-value" id="totalBNB">—</div>
-                </div>
+            
+            <div class="total">
+                Total: <span id="totalBNB">0</span> BNB
             </div>
+            
+            <button onclick="conectarWallet()">Conectar MetaMask</button>
+            <button id="comprarBtn" onclick="comprarTokens()" disabled>Comprar Tokens</button>
         </div>
-
-        <button onclick="connectWallet()" id="connectBtn">🦊 Conectar MetaMask</button>
-        <button onclick="loadContractInfo()" disabled id="loadBtn">📊 Carregar Informações do Contrato</button>
-        <button onclick="comprarTokens()" disabled id="buyBtn">💰 Comprar Tokens</button>
-
+        
         <div id="messages"></div>
     </div>
 
     <script>
         let web3;
-        let account;
+        let userAccount;
         let saleContract;
         let tokenPrice = 0;
-        let networkId;
-        let contractInfo = null;
-        let currentRpcIndex = 0;
-
-        // Múltiplos provedores RPC para BSC Testnet (fallback)
-        const BSC_TESTNET_RPCS = [
-            'https://data-seed-prebsc-1-s1.binance.org:8545/',
-            'https://data-seed-prebsc-2-s1.binance.org:8545/',
-            'https://data-seed-prebsc-1-s2.binance.org:8545/',
-            'https://data-seed-prebsc-2-s2.binance.org:8545/',
-            'https://data-seed-prebsc-1-s3.binance.org:8545/',
-            'https://bsc-testnet.public.blastapi.io',
-            'https://bsc-testnet-rpc.publicnode.com'
-        ];
-
-        // ABI expandida para diferentes tipos de contratos de venda
+        
+        // ABI simplificada
         const SALE_ABI = [
-            // Funções de preço
-            {"constant": true, "inputs": [], "name": "tokenPrice", "outputs": [{"name": "", "type": "uint256"}], "type": "function"},
-            {"constant": true, "inputs": [], "name": "price", "outputs": [{"name": "", "type": "uint256"}], "type": "function"},
-            {"constant": true, "inputs": [], "name": "rate", "outputs": [{"name": "", "type": "uint256"}], "type": "function"},
-            
-            // Funções de compra
-            {"constant": false, "inputs": [{"name": "amount", "type": "uint256"}], "name": "buyTokens", "outputs": [], "type": "function"},
-            {"constant": false, "inputs": [], "name": "buy", "outputs": [], "type": "function"},
-            {"constant": false, "inputs": [{"name": "_amount", "type": "uint256"}], "name": "purchase", "outputs": [], "type": "function"},
-            
-            // Funções de informação
-            {"constant": true, "inputs": [], "name": "token", "outputs": [{"name": "", "type": "address"}], "type": "function"},
-            {"constant": true, "inputs": [], "name": "owner", "outputs": [{"name": "", "type": "address"}], "type": "function"},
-            {"constant": true, "inputs": [], "name": "totalSold", "outputs": [{"name": "", "type": "uint256"}], "type": "function"},
-            
-            // Eventos
-            {"anonymous": false, "inputs": [{"indexed": true, "name": "buyer", "type": "address"}, {"indexed": false, "name": "amount", "type": "uint256"}, {"indexed": false, "name": "cost", "type": "uint256"}], "name": "TokensPurchased", "type": "event"}
+            {
+                "inputs": [],
+                "name": "tokenPrice",
+                "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "buyTokens",
+                "outputs": [],
+                "stateMutability": "payable",
+                "type": "function"
+            },
+            {
+                "inputs": [{"internalType": "uint256", "name": "amount", "type": "uint256"}],
+                "name": "buy",
+                "outputs": [],
+                "stateMutability": "payable",
+                "type": "function"
+            }
         ];
-
-        // Função para criar Web3 com fallback RPC
-        async function createWeb3WithFallback() {
-            if (window.ethereum) {
-                // Usar MetaMask se disponível
-                web3 = new Web3(window.ethereum);
-                document.getElementById('currentRpc').textContent = 'MetaMask Provider';
-                return web3;
-            }
-            
-            // Tentar provedores RPC públicos
-            for (let i = 0; i < BSC_TESTNET_RPCS.length; i++) {
-                try {
-                    const rpcUrl = BSC_TESTNET_RPCS[i];
-                    const testWeb3 = new Web3(new Web3.providers.HttpProvider(rpcUrl));
-                    
-                    // Testar conectividade
-                    await testWeb3.eth.getBlockNumber();
-                    
-                    web3 = testWeb3;
-                    currentRpcIndex = i;
-                    document.getElementById('currentRpc').textContent = `RPC ${i + 1}: ${rpcUrl.split('/')[2]}`;
-                    document.getElementById('rpcStatus').className = 'rpc-status rpc-active';
-                    
-                    return web3;
-                } catch (error) {
-                    console.log(`RPC ${i + 1} falhou:`, error.message);
-                    continue;
-                }
-            }
-            
-            throw new Error('Todos os provedores RPC falharam');
-        }
-
-        // Função para retry com diferentes RPCs
-        async function retryWithFallback(operation, maxRetries = 3) {
-            let lastError;
-            
-            for (let attempt = 0; attempt < maxRetries; attempt++) {
-                try {
-                    return await operation();
-                } catch (error) {
-                    lastError = error;
-                    console.log(`Tentativa ${attempt + 1} falhou:`, error.message);
-                    
-                    if (error.message.includes('missing trie node') || 
-                        error.message.includes('Internal JSON-RPC error') ||
-                        error.message.includes('timeout')) {
-                        
-                        // Tentar próximo RPC se não estiver usando MetaMask
-                        if (!window.ethereum) {
-                            currentRpcIndex = (currentRpcIndex + 1) % BSC_TESTNET_RPCS.length;
-                            const newRpcUrl = BSC_TESTNET_RPCS[currentRpcIndex];
-                            web3 = new Web3(new Web3.providers.HttpProvider(newRpcUrl));
-                            document.getElementById('currentRpc').textContent = `RPC ${currentRpcIndex + 1}: ${newRpcUrl.split('/')[2]}`;
-                            
-                            showMessage(`Tentando RPC alternativo... (${attempt + 1}/${maxRetries})`, 'warning');
-                            await new Promise(resolve => setTimeout(resolve, 1000)); // Aguardar 1s
-                        } else {
-                            // Com MetaMask, apenas aguardar antes de tentar novamente
-                            await new Promise(resolve => setTimeout(resolve, 2000));
-                        }
-                    } else {
-                        // Para outros erros, não tentar novamente
-                        break;
-                    }
-                }
-            }
-            
-            throw lastError;
-        }
-
-        function showMessage(message, type = 'info', autoHide = true) {
+        
+        function showMessage(message, type = 'info') {
             const messages = document.getElementById('messages');
-            const className = type;
-            const icon = type === 'error' ? '❌' : type === 'success' ? '✅' : type === 'warning' ? '⚠️' : 'ℹ️';
+            messages.innerHTML = `<div class="message ${type}">${message}</div>`;
             
-            messages.innerHTML = `<div class="message ${className}">${icon} ${message}</div>`;
-            
-            if (autoHide) {
+            if (type === 'success') {
                 setTimeout(() => {
                     messages.innerHTML = '';
-                }, 8000);
+                }, 5000);
             }
         }
-
-        function showLoading(message) {
-            const messages = document.getElementById('messages');
-            messages.innerHTML = `<div class="message info"><span class="loading"></span>${message}</div>`;
-        }
-
-        function updateUI() {
-            const connected = !!account;
-            const contractLoaded = !!contractInfo && tokenPrice > 0;
-            const correctNetwork = networkId === 97; // BSC Testnet
-            
-            document.getElementById('connectBtn').textContent = connected ? '✅ Carteira Conectada' : '🦊 Conectar MetaMask';
-            document.getElementById('loadBtn').disabled = !connected || !correctNetwork;
-            document.getElementById('buyBtn').disabled = !connected || !contractLoaded || !correctNetwork;
-            
-            // Mostrar/ocultar aviso de rede
-            const warning = document.getElementById('networkWarning');
-            warning.style.display = connected && !correctNetwork ? 'block' : 'none';
-        }
-
-        async function connectWallet() {
+        
+        async function carregarContrato() {
             try {
-                if (!window.ethereum) {
-                    showMessage("MetaMask não encontrada! Instale a extensão do MetaMask.", 'error');
-                    return;
-                }
-
-                showLoading("Conectando à MetaMask...");
-                
-                web3 = new Web3(window.ethereum);
-                const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
-                account = accounts[0];
-                
-                networkId = await web3.eth.net.getId();
-                const networkName = getNetworkName(networkId);
-                
-                document.getElementById('walletStatus').textContent = `${account.substring(0, 6)}...${account.substring(38)}`;
-                document.getElementById('networkStatus').textContent = networkName;
-                document.getElementById('currentRpc').textContent = 'MetaMask Provider';
-                document.getElementById('rpcStatus').className = 'rpc-status rpc-active';
-                
-                if (networkId === 97) {
-                    showMessage(`Carteira conectada com sucesso! Rede: ${networkName}`, 'success');
-                } else {
-                    showMessage(`Carteira conectada, mas você está na rede ${networkName}. Mude para BSC Testnet.`, 'warning');
-                }
-                
-                updateUI();
-                
-            } catch (error) {
-                console.error('Erro ao conectar:', error);
-                showMessage(`Erro ao conectar: ${error.message}`, 'error');
-            }
-        }
-
-        function getNetworkName(id) {
-            const networks = {
-                1: 'Ethereum Mainnet',
-                56: 'BSC Mainnet',
-                97: 'BSC Testnet',
-                137: 'Polygon Mainnet',
-                80001: 'Polygon Testnet',
-                43114: 'Avalanche Mainnet',
-                43113: 'Avalanche Testnet'
-            };
-            return networks[id] || `Rede Desconhecida (${id})`;
-        }
-
-        async function loadContractInfo() {
-            if (!web3 || !account) {
-                showMessage("Conecte sua carteira primeiro!", 'warning');
-                return;
-            }
-
-            if (networkId !== 97) {
-                showMessage("Conecte-se à BSC Testnet (Chain ID: 97) primeiro!", 'warning');
-                return;
-            }
-
-            try {
-                const address = document.getElementById('saleAddress').value.trim();
+                const address = document.getElementById('contractAddress').value.trim();
                 
                 if (!address) {
-                    showMessage("Digite o endereço do contrato!", 'warning');
+                    showMessage('Digite o endereço do contrato!', 'error');
                     return;
                 }
-
-                if (!web3.utils.isAddress(address)) {
-                    showMessage("Endereço de contrato inválido!", 'error');
-                    return;
+                
+                showMessage('Carregando contrato...', 'info');
+                
+                // Usar MetaMask se disponível, senão usar RPC público
+                if (typeof window.ethereum !== 'undefined') {
+                    web3 = new Web3(window.ethereum);
+                } else {
+                    web3 = new Web3('https://data-seed-prebsc-1-s1.binance.org:8545/');
                 }
-
-                showLoading("Verificando contrato na blockchain...");
                 
-                // Verificar se existe código no endereço com retry
-                const code = await retryWithFallback(async () => {
-                    return await web3.eth.getCode(address);
-                });
-                
+                // Verificar se é um contrato válido
+                const code = await web3.eth.getCode(address);
                 if (code === '0x' || code === '0x0') {
-                    showMessage("❌ Nenhum contrato encontrado neste endereço!", 'error');
+                    showMessage('❌ Nenhum contrato encontrado neste endereço!', 'error');
                     return;
                 }
-
-                showLoading("Carregando informações do contrato...");
                 
                 saleContract = new web3.eth.Contract(SALE_ABI, address);
-                contractInfo = { address };
                 
-                // Tentar diferentes métodos para obter o preço com retry
-                let priceWei = null;
-                const priceMethods = ['tokenPrice', 'price', 'rate'];
-                
-                for (const method of priceMethods) {
-                    try {
-                        showLoading(`Tentando método ${method}() com retry...`);
-                        
-                        priceWei = await retryWithFallback(async () => {
-                            return await saleContract.methods[method]().call();
-                        });
-                        
-                        contractInfo.priceMethod = method;
-                        break;
-                    } catch (e) {
-                        console.log(`Método ${method} não disponível:`, e.message);
-                    }
-                }
-                
-                if (!priceWei) {
-                    showMessage("❌ Não foi possível obter o preço do token após múltiplas tentativas. Verifique se o contrato está correto.", 'error');
-                    saleContract = null;
-                    contractInfo = null;
-                    updateUI();
-                    return;
-                }
-                
-                tokenPrice = web3.utils.fromWei(priceWei.toString(), 'ether');
-                contractInfo.price = tokenPrice;
-                
-                // Tentar obter informações adicionais com retry
+                // Tentar obter o preço
                 try {
-                    const tokenAddress = await retryWithFallback(async () => {
-                        return await saleContract.methods.token().call();
-                    });
-                    contractInfo.tokenAddress = tokenAddress;
-                } catch (e) {
-                    console.log('Token address não disponível');
+                    const priceWei = await saleContract.methods.tokenPrice().call();
+                    tokenPrice = web3.utils.fromWei(priceWei.toString(), 'ether');
+                    
+                    document.getElementById('precoToken').value = `${parseFloat(tokenPrice).toFixed(8)} BNB`;
+                    document.getElementById('contractInfo').style.display = 'block';
+                    
+                    showMessage(`✅ Contrato carregado! Preço: ${parseFloat(tokenPrice).toFixed(8)} BNB por token`, 'success');
+                    
+                } catch (priceError) {
+                    showMessage('❌ Erro ao obter preço do token. Verifique se o contrato tem a função tokenPrice().', 'error');
                 }
-                
-                try {
-                    const owner = await retryWithFallback(async () => {
-                        return await saleContract.methods.owner().call();
-                    });
-                    contractInfo.owner = owner;
-                } catch (e) {
-                    console.log('Owner não disponível');
-                }
-                
-                document.getElementById('precoToken').textContent = `${parseFloat(tokenPrice).toFixed(8)} BNB`;
-                calcularTotal();
-                
-                showMessage(`✅ Contrato carregado com sucesso! Preço: ${parseFloat(tokenPrice).toFixed(8)} BNB por token (método: ${contractInfo.priceMethod})`, 'success');
-                updateUI();
                 
             } catch (error) {
-                console.error('Erro ao carregar contrato:', error);
-                document.getElementById('rpcStatus').className = 'rpc-status rpc-failed';
-                
-                if (error.message.includes('Internal JSON-RPC error') || error.message.includes('missing trie node')) {
-                    showMessage("❌ Erro persistente de conectividade. Todos os provedores RPC falharam. Tente novamente mais tarde.", 'error');
-                } else if (error.message.includes('execution reverted')) {
-                    showMessage("❌ Contrato rejeitou a chamada. Verifique se o endereço está correto e se o contrato tem as funções necessárias.", 'error');
-                } else if (error.message.includes('Todos os provedores RPC falharam')) {
-                    showMessage("❌ Falha em todos os provedores RPC. Verifique sua conexão com a internet.", 'error');
-                } else {
-                    showMessage(`❌ Erro: ${error.message}`, 'error');
-                }
-                
-                saleContract = null;
-                contractInfo = null;
-                updateUI();
+                console.error('Erro:', error);
+                showMessage(`❌ Erro ao carregar contrato: ${error.message}`, 'error');
             }
         }
-
+        
         function calcularTotal() {
-            const qtd = parseFloat(document.getElementById('tokenAmount').value) || 0;
-            const total = qtd * parseFloat(tokenPrice || 0);
-            document.getElementById('totalBNB').textContent = isNaN(total) ? '—' : `${total.toFixed(8)} BNB`;
+            const quantidade = parseFloat(document.getElementById('quantidade').value) || 0;
+            const total = quantidade * tokenPrice;
+            document.getElementById('totalBNB').textContent = total.toFixed(6);
         }
-
-        async function comprarTokens() {
+        
+        async function conectarWallet() {
             try {
-                if (!saleContract || !contractInfo) {
-                    showMessage("Carregue as informações do contrato primeiro!", 'warning');
+                if (typeof window.ethereum === 'undefined') {
+                    showMessage('❌ MetaMask não encontrado!', 'error');
                     return;
                 }
-
-                const qtd = parseInt(document.getElementById('tokenAmount').value);
-                if (!qtd || qtd <= 0) {
-                    showMessage("Digite uma quantidade válida de tokens!", 'warning');
-                    return;
-                }
-
-                const totalBNB = (qtd * tokenPrice);
-                const totalWei = web3.utils.toWei(totalBNB.toString(), 'ether');
-
-                showLoading(`Preparando compra de ${qtd} tokens por ${totalBNB.toFixed(8)} BNB...`);
-
-                // Verificar saldo com retry
-                const balance = await retryWithFallback(async () => {
-                    return await web3.eth.getBalance(account);
+                
+                const accounts = await window.ethereum.request({
+                    method: 'eth_requestAccounts'
                 });
                 
-                const balanceBNB = parseFloat(web3.utils.fromWei(balance, 'ether'));
+                userAccount = accounts[0];
+                web3 = new Web3(window.ethereum);
                 
-                if (balanceBNB < totalBNB) {
-                    showMessage(`❌ Saldo insuficiente! Você tem ${balanceBNB.toFixed(6)} BNB, mas precisa de ${totalBNB.toFixed(8)} BNB`, 'error');
-                    return;
-                }
-
-                // Tentar diferentes métodos de compra
-                let method;
-                const buyMethods = [
-                    { name: 'buyTokens', params: [qtd] },
-                    { name: 'purchase', params: [qtd] },
-                    { name: 'buy', params: [] }
-                ];
-                
-                let methodFound = false;
-                for (const buyMethod of buyMethods) {
+                // Verificar rede (BSC Testnet = 97)
+                const chainId = await web3.eth.getChainId();
+                if (chainId !== 97) {
                     try {
-                        method = saleContract.methods[buyMethod.name](...buyMethod.params);
-                        methodFound = true;
-                        showLoading(`Usando método ${buyMethod.name}()...`);
-                        break;
-                    } catch (e) {
-                        console.log(`Método ${buyMethod.name} não disponível`);
+                        await window.ethereum.request({
+                            method: 'wallet_switchEthereumChain',
+                            params: [{ chainId: '0x61' }] // BSC Testnet
+                        });
+                    } catch (switchError) {
+                        if (switchError.code === 4902) {
+                            await window.ethereum.request({
+                                method: 'wallet_addEthereumChain',
+                                params: [{
+                                    chainId: '0x61',
+                                    chainName: 'BSC Testnet',
+                                    nativeCurrency: { name: 'BNB', symbol: 'BNB', decimals: 18 },
+                                    rpcUrls: ['https://data-seed-prebsc-1-s1.binance.org:8545/'],
+                                    blockExplorerUrls: ['https://testnet.bscscan.com']
+                                }]
+                            });
+                        }
                     }
                 }
                 
-                if (!methodFound) {
-                    showMessage("❌ Nenhum método de compra encontrado no contrato!", 'error');
+                document.getElementById('comprarBtn').disabled = false;
+                showMessage(`✅ Conectado: ${userAccount.substring(0,6)}...${userAccount.substring(38)}`, 'success');
+                
+            } catch (error) {
+                showMessage(`❌ Erro ao conectar: ${error.message}`, 'error');
+            }
+        }
+        
+        async function comprarTokens() {
+            try {
+                const quantidade = parseFloat(document.getElementById('quantidade').value);
+                const total = quantidade * tokenPrice;
+                
+                if (!quantidade || quantidade <= 0) {
+                    showMessage('Digite uma quantidade válida!', 'error');
                     return;
                 }
-
-                showLoading("Enviando transação... Confirme no MetaMask");
-
-                const transaction = await method.send({
-                    from: account,
-                    value: totalWei,
-                    gas: 300000 // Gas limit aumentado
-                });
-
-                showMessage(`🎉 Compra realizada com sucesso! Hash: ${transaction.transactionHash}`, 'success', false);
                 
-                // Limpar campos
-                document.getElementById('tokenAmount').value = '1';
+                showMessage('🔄 Processando compra...', 'info');
+                
+                // Verificar saldo
+                const saldo = await web3.eth.getBalance(userAccount);
+                const saldoBNB = web3.utils.fromWei(saldo, 'ether');
+                
+                if (parseFloat(saldoBNB) < total) {
+                    showMessage(`❌ Saldo insuficiente. Você tem ${parseFloat(saldoBNB).toFixed(4)} BNB`, 'error');
+                    return;
+                }
+                
+                // Fazer a compra
+                const tx = await saleContract.methods.buyTokens().send({
+                    from: userAccount,
+                    value: web3.utils.toWei(total.toString(), 'ether'),
+                    gas: 300000
+                });
+                
+                showMessage(`🎉 Compra realizada! TX: ${tx.transactionHash.substring(0,10)}...`, 'success');
+                
+                // Limpar formulário
+                document.getElementById('quantidade').value = '';
                 calcularTotal();
                 
             } catch (error) {
                 console.error('Erro na compra:', error);
-                
-                if (error.code === 4001) {
-                    showMessage("❌ Transação cancelada pelo usuário.", 'warning');
-                } else if (error.message.includes('insufficient funds')) {
-                    showMessage("❌ Saldo insuficiente para pagar as taxas de gas.", 'error');
-                } else if (error.message.includes('execution reverted')) {
-                    showMessage("❌ Transação rejeitada pelo contrato. Verifique os parâmetros.", 'error');
-                } else {
-                    showMessage(`❌ Erro na compra: ${error.message}`, 'error');
-                }
+                showMessage(`❌ Erro na compra: ${error.message}`, 'error');
             }
         }
-
-        // Detectar mudanças de conta/rede
-        if (window.ethereum) {
-            window.ethereum.on('accountsChanged', (accounts) => {
-                if (accounts.length === 0) {
-                    account = null;
-                    document.getElementById('walletStatus').textContent = 'Não conectado';
-                    showMessage("Carteira desconectada", 'warning');
-                } else {
-                    account = accounts[0];
-                    document.getElementById('walletStatus').textContent = `${account.substring(0, 6)}...${account.substring(38)}`;
-                    showMessage("Conta alterada", 'info');
-                }
-                updateUI();
-            });
-
-            window.ethereum.on('chainChanged', (chainId) => {
-                networkId = parseInt(chainId, 16);
-                const networkName = getNetworkName(networkId);
-                document.getElementById('networkStatus').textContent = networkName;
-                
-                if (networkId === 97) {
-                    showMessage(`Conectado à ${networkName}`, 'success');
-                } else {
-                    showMessage(`Rede alterada para ${networkName}. Conecte-se à BSC Testnet para usar este contrato.`, 'warning');
-                }
-                updateUI();
-            });
-        }
-
-        // Inicialização
-        document.addEventListener('DOMContentLoaded', function() {
-            updateUI();
-            showMessage("Conecte sua carteira à BSC Testnet para começar", 'info');
-            
-            // Tentar inicializar Web3 com fallback se MetaMask não estiver disponível
-            if (!window.ethereum) {
-                createWeb3WithFallback().catch(error => {
-                    console.error('Falha ao inicializar Web3:', error);
-                    document.getElementById('rpcStatus').className = 'rpc-status rpc-failed';
-                    document.getElementById('currentRpc').textContent = 'Falha na conexão';
-                });
-            }
-        });
     </script>
 </body>
 </html>
