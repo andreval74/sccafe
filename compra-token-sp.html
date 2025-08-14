@@ -196,6 +196,11 @@
         }
 
         async function loadPrice() {
+            if (!web3) {
+                showMessage("Conecte sua carteira antes de carregar o preço!", 'warning');
+                return;
+            }
+
             try {
                 const address = document.getElementById('saleAddress').value.trim();
                 
