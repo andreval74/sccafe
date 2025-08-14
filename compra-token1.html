@@ -3,8 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DApp de Compra de Tokens – Multi-Contrato</title>
-  <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.2/dist/ethers.min.js"></script>
+  <title>DApp de Comprafunction fmtEth(wei) {
+  try { return ethers.utils.formatEther(wei); } catch { return "—"; }
+}
+function fmtUnits(v, d) {
+  try { return ethers.utils.formatUnits(v, d); } catch { return "—"; }
+}kens – Multi-Contrato</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
   <style>
     :root { --bg:#0b1220; --card:#121a2b; --muted:#9aa3b2; --text:#e6edf7; --acc:#58a6ff; --bad:#ff6b6b; --good:#2ecc71; }
     *{box-sizing:border-box}
@@ -180,9 +185,9 @@ function fmtUnits(v, d) {
 
 async function connect() {
   if (!window.ethereum) { alert("MetaMask não encontrada"); return; }
-  provider = new ethers.BrowserProvider(window.ethereum);
+  provider = new ethers.providers.Web3Provider(window.ethereum);
   await provider.send("eth_requestAccounts", []);
-  signer = await provider.getSigner();
+  signer = provider.getSigner();
   const addr = await signer.getAddress();
   const net = await provider.getNetwork();
   el('account').textContent = addr;
@@ -311,7 +316,7 @@ function recalc(){
     el('cost').textContent = `${fmtBNB(costWei)} BNB`;
     if (commissionPct !== null){
       const commUnits = (units * BigInt(commissionPct)) / BigInt(100);
-      const commDisplay = Number(ethers.formatUnits(commUnits, tokenMeta.decimals));
+      const commDisplay = Number(ethers.utils.formatUnits(commUnits, tokenMeta.decimals));
       el('estCommission').textContent = `${commDisplay} ${tokenMeta.symbol}`;
     } else {
       el('estCommission').textContent = '—';
@@ -358,13 +363,13 @@ async function useMax(){
   const addr = await signer.getAddress();
   const bal = await provider.getBalance(addr);
   // reservar ~0.002 BNB para gas
-  const reserve = ethers.parseEther('0.002');
+  const reserve = ethers.utils.parseEther('0.002');
   const spendable = bal > reserve ? (bal - reserve) : 0n;
   if (!pricePerTokenWei || spendable === 0n){ alert('Saldo insuficiente ou preço indisponível'); return; }
   // amount = spendableBNB / price
   const decimals = BigInt(10) ** BigInt(tokenMeta.decimals);
   const units = (spendable * decimals) / pricePerTokenWei;
-  const human = Number(ethers.formatUnits(units, tokenMeta.decimals));
+  const human = Number(ethers.utils.formatUnits(units, tokenMeta.decimals));
   el('amount').value = human.toString();
   recalc();
 }
