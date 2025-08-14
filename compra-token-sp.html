@@ -156,13 +156,21 @@
             document.getElementById('buyBtn').disabled = !connected || !contractLoaded;
         }
 
+        // Adicionar após a função getNetworkName
+        function isValidNetwork(networkId) {
+            // Definir quais redes são suportadas
+            const supportedNetworks = [56, 97]; // BSC Mainnet e Testnet
+            return supportedNetworks.includes(networkId);
+        }
+        
+        // Modificar a função connectWallet para incluir validação
         async function connectWallet() {
             try {
                 if (!window.ethereum) {
                     showMessage("MetaMask não encontrada. Instale a extensão.", 'error');
                     return;
                 }
-
+        
                 showMessage("Conectando à MetaMask...", 'info');
                 
                 web3 = new Web3(window.ethereum);
@@ -172,6 +180,11 @@
                 // Obter informações da rede
                 networkId = await web3.eth.net.getId();
                 const networkName = getNetworkName(networkId);
+                
+                // Validar rede
+                if (!isValidNetwork(networkId)) {
+                    showMessage(`⚠️ Rede não suportada: ${networkName}. Conecte-se à BSC Mainnet (56) ou Testnet (97)`, 'warning');
+                }
                 
                 document.getElementById('walletStatus').textContent = `${account.substring(0, 8)}...${account.substring(36)}`;
                 document.getElementById('networkStatus').textContent = `${networkName} (${networkId})`;
@@ -218,9 +231,24 @@
                 
                 saleContract = new web3.eth.Contract(saleAbi, address);
                 
-                // Tentar carregar o preço
+                // Verificar se o contrato existe primeiro
+                const code = await web3.eth.getCode(address);
+                if (code === '0x') {
+                    showMessage("❌ Nenhum contrato encontrado neste endereço na rede atual!", 'error');
+                    saleContract = null;
+                    updateUI();
+                    return;
+                }
+                
+                // Tentar carregar o preço com timeout
                 try {
-                    const priceWei = await saleContract.methods.tokenPrice().call();
+                    const priceWei = await Promise.race([
+                        saleContract.methods.tokenPrice().call(),
+                        new Promise((_, reject) => 
+                            setTimeout(() => reject(new Error('Timeout: Operação demorou muito')), 10000)
+                        )
+                    ]);
+                    
                     tokenPrice = web3.utils.fromWei(priceWei, 'ether');
                     
                     document.getElementById('precoToken').textContent = parseFloat(tokenPrice).toFixed(6);
@@ -230,8 +258,14 @@
                     updateUI();
                     
                 } catch (priceError) {
-                    if (priceError.message.includes('missing trie node') || priceError.message.includes('Internal JSON-RPC error')) {
-                        showMessage("⚠️ Contrato não encontrado nesta rede. Verifique o endereço e a rede.", 'error');
+                    console.error('Erro detalhado:', priceError);
+                    
+                    if (priceError.message.includes('missing trie node') || 
+                        priceError.message.includes('Internal JSON-RPC error') ||
+                        priceError.message.includes('execution reverted')) {
+                        showMessage("⚠️ Erro de rede ou contrato incompatível. Verifique:\n• Se está na rede correta\n• Se o endereço está correto\n• Se o contrato tem a função tokenPrice()", 'error');
+                    } else if (priceError.message.includes('Timeout')) {
+                        showMessage("⏱️ Operação demorou muito. Tente novamente.", 'error');
                     } else {
                         showMessage(`Erro ao carregar preço: ${priceError.message}`, 'error');
                     }
@@ -240,6 +274,7 @@
                 }
                 
             } catch (error) {
+                console.error('Erro geral:', error);
                 showMessage(`Erro: ${error.message}`, 'error');
                 saleContract = null;
                 updateUI();
