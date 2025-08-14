@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DApp de Compra de Tokens – Multi-Contrato</title>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.2/dist/ethers.min.js"></script>
+  <style>
+    :root { --bg:#0b1220; --card:#121a2b; --muted:#9aa3b2; --text:#e6edf7; --acc:#58a6ff; --bad:#ff6b6b; --good:#2ecc71; }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif;background:linear-gradient(180deg,#0b1220,#0a0f1a);color:var(--text)}
+    .wrap{max-width:1100px;margin:28px auto;padding:0 16px}
+    h1{font-size:26px;margin:0 0 16px}
+    .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px}
+    .card{grid-column:span 12;background:var(--card);border:1px solid #1e2a44;border-radius:16px;padding:16px;box-shadow:0 8px 24px rgba(0,0,0,.35)}
+    @media(min-width:860px){.col-4{grid-column:span 4}.col-6{grid-column:span 6}.col-8{grid-column:span 8}.col-3{grid-column:span 3}.col-9{grid-column:span 9}}
+    label{font-size:12px;color:var(--muted);display:block;margin-bottom:6px}
+    input,select,textarea,button{width:100%;padding:12px;border-radius:12px;border:1px solid #243453;background:#0d1526;color:var(--text);outline:none}
+    input::placeholder{color:#5d6b82}
+    button{cursor:pointer;background:linear-gradient(180deg,#1f7ae0,#1259b2);border:none;font-weight:600}
+    button.ghost{background:#0d1526;border:1px solid #223357}
+    button.warn{background:linear-gradient(180deg,#e05858,#b21212)}
+    .row{display:flex;gap:8px;align-items:center}
+    .row > *{flex:1}
+    .muted{color:var(--muted);font-size:12px}
+    .pill{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;border:1px solid #27375a;background:#0d1628;font-size:12px}
+    .ok{color:var(--good)} .bad{color:var(--bad)}
+    .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+    .hr{height:1px;background:linear-gradient(90deg,transparent,#1e2a44,transparent);margin:14px 0}
+    .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .right{text-align:right}
+    .small{font-size:12px}
+    .notice{padding:12px;border-radius:12px;background:#0d1b36;border:1px dashed #274a8a}
+    .danger{background:#301519;border:1px dashed #87333c}
+    .success{background:#0f2a1d;border:1px dashed #2c8b5e}
+    .link{color:var(--acc);text-decoration:none}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Compra de Tokens – Multi-Contrato (MetaMask)</h1>
+    <p class="muted">Indique o contrato de venda (sale). Opcionalmente, informe a ABI se o seu contrato usar funções diferentes. Conecte a carteira, escolha o token, digite a quantidade e finalize a compra. Inclui verificação de KYC (se o token expuser <span class="mono">kycVerified(address)</span>).</p>
+
+    <div class="grid">
+      <!-- Conexão / Rede -->
+      <div class="card col-4">
+        <h3>1) Carteira</h3>
+        <div class="row">
+          <button id="btnConnect">Conectar MetaMask</button>
+          <button class="ghost" id="btnSwitch">Trocar p/ BSC Testnet</button>
+        </div>
+        <div style="margin-top:10px">
+          <div><span class="muted">Conta:</span> <span class="mono" id="account">—</span></div>
+          <div><span class="muted">Chain:</span> <span class="mono" id="chain">—</span></div>
+          <div class="hr"></div>
+          <div class="notice small">Se você ver erros de <span class="mono">rate limited</span>, troque o RPC da sua carteira para outro nó público.</div>
+        </div>
+      </div>
+
+      <!-- Config Sale -->
+      <div class="card col-8">
+        <h3>2) Contrato de Venda (Sale)</h3>
+        <label>Endereço do contrato de venda (multi-contratos)</label>
+        <input id="saleAddress" placeholder="0x... contrato de venda" />
+        <label style="margin-top:10px">ABI do Sale (opcional). Deixe em branco para usar a ABI padrão.</label>
+        <textarea id="saleAbi" rows="6" placeholder='[ opcional ] Cole aqui a ABI JSON do seu contrato de venda, se ele não seguir as funções padrão.'></textarea>
+        <div class="row" style="margin-top:10px">
+          <button id="btnLoadSale">Carregar Contrato</button>
+          <button id="btnDetect" class="ghost">Detectar Tokens do Sale</button>
+        </div>
+        <p class="muted small" style="margin-top:6px">Funções padrão esperadas: <span class="mono">getSupportedTokens() → address[]</span>, <span class="mono">pricePerToken(address) → uint256</span> (preço em wei por unidade mínima do token), <span class="mono">commissionPercent() → uint256</span> (opcional).</p>
+      </div>
+
+      <!-- Seleção de Token -->
+      <div class="card col-6">
+        <h3>3) Token</h3>
+        <label>Selecione o token suportado pelo Sale</label>
+        <select id="tokenSelect"></select>
+        <div class="grid-2" style="margin-top:10px">
+          <div>
+            <div class="muted">Nome</div>
+            <div id="tName">—</div>
+          </div>
+          <div>
+            <div class="muted">Símbolo</div>
+            <div id="tSymbol">—</div>
+          </div>
+        </div>
+        <div class="grid-2" style="margin-top:10px">
+          <div>
+            <div class="muted">Decimais</div>
+            <div id="tDecimals">—</div>
+          </div>
+          <div>
+            <div class="muted">Preço (por 1 token inteiro)</div>
+            <div id="tPrice">—</div>
+          </div>
+        </div>
+        <div class="hr"></div>
+        <div class="grid-2">
+          <div>
+            <div class="muted">KYC do comprador</div>
+            <div id="kycStatus" class="pill">—</div>
+          </div>
+          <div>
+            <div class="muted">Comissão (se exposta)</div>
+            <div id="commission" class="pill">—</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Calculadora & Compra -->
+      <div class="card col-6">
+        <h3>4) Calculadora e Compra</h3>
+        <label>Quantidade de tokens (unidade inteira)</label>
+        <input id="amount" type="number" min="0" step="any" placeholder="Ex.: 123.45" />
+        <div class="grid-2" style="margin-top:10px">
+          <div>
+            <div class="muted">Custo estimado (BNB)</div>
+            <div id="cost">—</div>
+          </div>
+          <div class="right">
+            <div class="muted">Comissão estimada (tokens)</div>
+            <div id="estCommission">—</div>
+          </div>
+        </div>
+        <div class="row" style="margin-top:12px">
+          <button id="btnBuy">Comprar pelo MetaMask</button>
+          <button id="btnMax" class="ghost">Usar saldo máximo de BNB</button>
+        </div>
+        <p class="muted small" style="margin-top:8px">O dApp tenta chamar automaticamente <span class="mono">buy(token, amount)</span> ou <span class="mono">buy()</span> (single-token). Se seu Sale usar outro nome/assinatura, informe a ABI acima.</p>
+        <div id="txBox" class="notice small" style="margin-top:8px;display:none"></div>
+      </div>
+
+      <!-- Alertas de KYC -->
+      <div class="card col-12 danger">
+        <strong>Atenção – Regra de KYC do seu Token:</strong>
+        <p class="small">Seu token exige <span class="mono">kycVerified(sender)</span> <u>e</u> <span class="mono">kycVerified(recipient)</span> para qualquer transferência. Isso significa que <u>compradores desconhecidos</u> não conseguirão receber tokens até que estejam aprovados. Soluções comuns:
+        <ul class="small">
+          <li>Adicionar uma exceção no token para permitir transferências <em>from</em> o contrato de venda sem KYC no destinatário; ou</li>
+          <li>Fazer o fluxo em 2 etapas: (1) coletar a compra e o endereço, (2) o owner do token aprova o KYC e (3) o Sale conclui a entrega (claim) após KYC.</li>
+        </ul>
+        </p>
+      </div>
+    </div>
+  </div>
+
+<script>
+const ERC20_ABI = [
+  {"type":"function","name":"name","inputs":[],"outputs":[{"type":"string"}],"stateMutability":"view"},
+  {"type":"function","name":"symbol","inputs":[],"outputs":[{"type":"string"}],"stateMutability":"view"},
+  {"type":"function","name":"decimals","inputs":[],"outputs":[{"type":"uint8"}],"stateMutability":"view"},
+  {"type":"function","name":"balanceOf","inputs":[{"name":"account","type":"address"}],"outputs":[{"type":"uint256"}],"stateMutability":"view"},
+  {"type":"function","name":"kycVerified","inputs":[{"name":"","type":"address"}],"outputs":[{"type":"bool"}],"stateMutability":"view"}
+];
+
+// ABI "padrão" para Sale multi-token. Ajuste se necessário via textarea.
+const DEFAULT_SALE_ABI = [
+  {"type":"function","name":"getSupportedTokens","inputs":[],"outputs":[{"type":"address[]"}],"stateMutability":"view"},
+  {"type":"function","name":"pricePerToken","inputs":[{"name":"token","type":"address"}],"outputs":[{"type":"uint256"}],"stateMutability":"view"},
+  {"type":"function","name":"commissionPercent","inputs":[],"outputs":[{"type":"uint256"}],"stateMutability":"view"},
+  {"type":"function","name":"buy","inputs":[{"name":"token","type":"address"},{"name":"tokenAmount","type":"uint256"}],"outputs":[],"stateMutability":"payable"},
+  {"type":"function","name":"buy","inputs":[],"outputs":[],"stateMutability":"payable"}
+];
+
+let provider, signer, sale, saleAbi, saleAddress;
+let selectedToken = null;
+let tokenMeta = {decimals: 18, symbol: "TOKEN", name: "Token"};
+let pricePerTokenWei = null; // preço por unidade mínima (1 * 10**decimals)
+let commissionPct = null;    // 5 = 5%
+
+const el = id => document.getElementById(id);
+
+function fmtBNB(wei) {
+  try { return ethers.formatEther(wei); } catch { return "—"; }
+}
+function fmtUnits(v, d) {
+  try { return ethers.formatUnits(v, d); } catch { return "—"; }
+}
+
+async function connect() {
+  if (!window.ethereum) { alert("MetaMask não encontrada"); return; }
+  provider = new ethers.BrowserProvider(window.ethereum);
+  await provider.send("eth_requestAccounts", []);
+  signer = await provider.getSigner();
+  const addr = await signer.getAddress();
+  const net = await provider.getNetwork();
+  el('account').textContent = addr;
+  el('chain').textContent = `${net.name} (0x${net.chainId.toString(16)})`;
+}
+
+async function switchToBSCtestnet(){
+  if (!window.ethereum) return;
+  try {
+    await window.ethereum.request({
+      method: 'wallet_switchEthereumChain',
+      params: [{ chainId: '0x61' }], // BSC Testnet = 97
+    });
+  } catch (switchError) {
+    if (switchError.code === 4902) {
+      await window.ethereum.request({
+        method: 'wallet_addEthereumChain',
+        params: [{
+          chainId: '0x61',
+          chainName: 'BSC Testnet',
+          nativeCurrency: { name: 'tBNB', symbol: 'tBNB', decimals: 18 },
+          rpcUrls: ['https://data-seed-prebsc-1-s1.bnbchain.org:8545/'],
+          blockExplorerUrls: ['https://testnet.bscscan.com']
+        }]
+      });
+    } else {
+      console.error(switchError);
+    }
+  }
+}
+
+function parseAbiFromTextarea(){
+  const raw = el('saleAbi').value.trim();
+  if (!raw) return DEFAULT_SALE_ABI;
+  try { return JSON.parse(raw); } catch(e){ alert('ABI inválida'); throw e; }
+}
+
+async function loadSale(){
+  if (!signer) await connect();
+  saleAddress = el('saleAddress').value.trim();
+  if (!saleAddress) { alert('Informe o endereço do contrato de venda'); return; }
+  saleAbi = parseAbiFromTextarea();
+  sale = new ethers.Contract(saleAddress, saleAbi, signer);
+  el('tokenSelect').innerHTML = '';
+  pricePerTokenWei = null;
+  commissionPct = null;
+  try {
+    // tenta obter comissão
+    if (sale.interface.getFunction('commissionPercent')){
+      commissionPct = await sale.commissionPercent();
+    }
+  } catch {}
+  if (commissionPct !== null) {
+    el('commission').innerHTML = `<span class="ok">${commissionPct}%</span>`;
+  } else {
+    el('commission').textContent = '—';
+  }
+}
+
+async function detectTokens(){
+  if (!sale) { alert('Carregue o contrato de venda primeiro'); return; }
+  let tokens = [];
+  try {
+    if (sale.interface.getFunction('getSupportedTokens')){
+      tokens = await sale.getSupportedTokens();
+    }
+  } catch(e){ console.warn('getSupportedTokens indisponível'); }
+  if (!tokens || tokens.length === 0){
+    // fallback: pedir manualmente
+    const manual = prompt('getSupportedTokens não disponível. Informe o endereço do token:');
+    if (manual) tokens = [manual.trim()];
+  }
+  const sel = el('tokenSelect');
+  sel.innerHTML = '';
+  tokens.forEach(a => {
+    const opt = document.createElement('option');
+    opt.value = a; opt.textContent = a; sel.appendChild(opt);
+  });
+  if (tokens.length>0){ sel.selectedIndex = 0; onTokenChanged(); }
+}
+
+async function onTokenChanged(){
+  selectedToken = el('tokenSelect').value;
+  if (!selectedToken) return;
+  const token = new ethers.Contract(selectedToken, ERC20_ABI, signer || provider);
+  try { tokenMeta.name = await token.name(); } catch { tokenMeta.name = '—'; }
+  try { tokenMeta.symbol = await token.symbol(); } catch { tokenMeta.symbol = '—'; }
+  try { tokenMeta.decimals = Number(await token.decimals()); } catch { tokenMeta.decimals = 18; }
+  el('tName').textContent = tokenMeta.name;
+  el('tSymbol').textContent = tokenMeta.symbol;
+  el('tDecimals').textContent = tokenMeta.decimals;
+  // preço
+  pricePerTokenWei = null;
+  try {
+    if (sale && sale.interface.getFunction('pricePerToken')){
+      const p = await sale.pricePerToken(selectedToken);
+      // assumimos que pricePerToken retorna o preço por 1 token inteiro (10**decimals unidades)
+      pricePerTokenWei = BigInt(p.toString());
+    }
+  } catch{}
+  el('tPrice').textContent = pricePerTokenWei ? `${fmtBNB(pricePerTokenWei)} BNB` : '—';
+  // KYC
+  try {
+    const addr = signer ? await signer.getAddress() : null;
+    if (addr && token.interface.getFunction('kycVerified')){
+      const ok = await token.kycVerified(addr);
+      el('kycStatus').innerHTML = ok ? '<span class="ok">Aprovado</span>' : '<span class="bad">Não aprovado</span>';
+    } else {
+      el('kycStatus').textContent = '—';
+    }
+  } catch { el('kycStatus').textContent = '—'; }
+  recalc();
+}
+
+function recalc(){
+  const amountStr = el('amount').value.trim();
+  if (!amountStr || !pricePerTokenWei){ el('cost').textContent = '—'; el('estCommission').textContent = '—'; return; }
+  const decimals = BigInt(10) ** BigInt(tokenMeta.decimals);
+  // valor em BNB = amount * price
+  try {
+    const [intPart, fracPart=''] = amountStr.split('.');
+    const frac = (fracPart + '0'.repeat(tokenMeta.decimals)).slice(0, tokenMeta.decimals);
+    const units = BigInt(intPart || '0') * decimals + BigInt(frac || '0');
+    // preço por 1 token inteiro (10**decimals unidades)
+    const costWei = (units * pricePerTokenWei) / decimals;
+    el('cost').textContent = `${fmtBNB(costWei)} BNB`;
+    if (commissionPct !== null){
+      const commUnits = (units * BigInt(commissionPct)) / BigInt(100);
+      const commDisplay = Number(ethers.formatUnits(commUnits, tokenMeta.decimals));
+      el('estCommission').textContent = `${commDisplay} ${tokenMeta.symbol}`;
+    } else {
+      el('estCommission').textContent = '—';
+    }
+    return costWei;
+  } catch(e){ el('cost').textContent = '—'; return null; }
+}
+
+async function buy(){
+  if (!sale || !selectedToken){ alert('Carregue o Sale e selecione um token'); return; }
+  const costWei = recalc();
+  if (!costWei){ alert('Informe quantidade válida e garanta que o preço está disponível'); return; }
+  const amountStr = el('amount').value.trim();
+  if (!amountStr) { alert('Informe a quantidade de tokens'); return; }
+  // converter amount (human) -> units (decimals)
+  const decimals = BigInt(10) ** BigInt(tokenMeta.decimals);
+  const [intPart, fracPart=''] = amountStr.split('.');
+  const frac = (fracPart + '0'.repeat(tokenMeta.decimals)).slice(0, tokenMeta.decimals);
+  const units = BigInt(intPart || '0') * decimals + BigInt(frac || '0');
+
+  let tx;
+  try {
+    if (sale.interface.getFunction('buy(address,uint256)')){
+      tx = await sale.buy(selectedToken, units, { value: costWei });
+    } else if (sale.interface.getFunction('buy()')) {
+      tx = await sale.buy({ value: costWei });
+    } else {
+      alert('A função buy não está na ABI. Informe a ABI correta do seu Sale.');
+      return;
+    }
+    el('txBox').style.display = 'block';
+    el('txBox').innerHTML = `Transação enviada. Hash: <a class="link" target="_blank" href="https://testnet.bscscan.com/tx/${tx.hash}">${tx.hash}</a>`;
+    const receipt = await tx.wait();
+    el('txBox').innerHTML = `Confirmada no bloco ${receipt.blockNumber}. Hash: <a class="link" target="_blank" href="https://testnet.bscscan.com/tx/${tx.hash}">${tx.hash}</a>`;
+  } catch(e){
+    console.error(e);
+    el('txBox').style.display = 'block';
+    el('txBox').innerHTML = `<span class="bad">Erro:</span> <span class="mono">${e.shortMessage || e.message}</span>`;
+  }
+}
+
+async function useMax(){
+  if (!signer) await connect();
+  const addr = await signer.getAddress();
+  const bal = await provider.getBalance(addr);
+  // reservar ~0.002 BNB para gas
+  const reserve = ethers.parseEther('0.002');
+  const spendable = bal > reserve ? (bal - reserve) : 0n;
+  if (!pricePerTokenWei || spendable === 0n){ alert('Saldo insuficiente ou preço indisponível'); return; }
+  // amount = spendableBNB / price
+  const decimals = BigInt(10) ** BigInt(tokenMeta.decimals);
+  const units = (spendable * decimals) / pricePerTokenWei;
+  const human = Number(ethers.formatUnits(units, tokenMeta.decimals));
+  el('amount').value = human.toString();
+  recalc();
+}
+
+el('btnConnect').onclick = connect;
+el('btnSwitch').onclick = switchToBSCtestnet;
+el('btnLoadSale').onclick = loadSale;
+el('btnDetect').onclick = detectTokens;
+el('tokenSelect').onchange = onTokenChanged;
+el('amount').oninput = recalc;
+el('btnBuy').onclick = buy;
+el('btnMax').onclick = useMax;
+</script>
+</body>
+</html>
