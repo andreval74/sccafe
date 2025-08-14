@@ -3,31 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DApp de Comprafunconst el = id => document.getElementById(id);
-
-// Verificar se está na rede correta
-async function checkNetwork() {
-  if (!provider) return false;
-  try {
-    const net = await provider.getNetwork();
-    // Verificar se é uma rede conhecida (Ethereum, BSC, Polygon, etc.)
-    const knownNetworks = [1, 56, 137, 97, 80001]; // Mainnet e testnets
-    if (!knownNetworks.includes(net.chainId)) {
-      console.warn(`Rede desconhecida: ${net.chainId}`);
-    }
-    return true;
-  } catch (error) {
-    console.error('Erro ao verificar rede:', error);
-    return false;
-  }
-}
-
-function fmtEth(wei) {on fmtEth(wei) {
-  try { return ethers.utils.formatEther(wei); } catch { return "—"; }
-}
-function fmtUnits(v, d) {
-  try { return ethers.utils.formatUnits(v, d); } catch { return "—"; }
-}kens – Multi-Contrato</title>
+  <title>DApp de Compra de Tokens – Multi-Contrato</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
   <style>
     :root { --bg:#0b1220; --card:#121a2b; --muted:#9aa3b2; --text:#e6edf7; --acc:#58a6ff; --bad:#ff6b6b; --good:#2ecc71; }
@@ -195,11 +171,28 @@ let commissionPct = null;    // 5 = 5%
 
 const el = id => document.getElementById(id);
 
+// Verificar se está na rede correta
+async function checkNetwork() {
+  if (!provider) return false;
+  try {
+    const net = await provider.getNetwork();
+    // Verificar se é uma rede conhecida (Ethereum, BSC, Polygon, etc.)
+    const knownNetworks = [1, 56, 137, 97, 80001]; // Mainnet e testnets
+    if (!knownNetworks.includes(net.chainId)) {
+      console.warn(`Rede desconhecida: ${net.chainId}`);
+    }
+    return true;
+  } catch (error) {
+    console.error('Erro ao verificar rede:', error);
+    return false;
+  }
+}
+
 function fmtBNB(wei) {
-  try { return ethers.formatEther(wei); } catch { return "—"; }
+  try { return ethers.utils.formatEther(wei); } catch { return "—"; }
 }
 function fmtUnits(v, d) {
-  try { return ethers.formatUnits(v, d); } catch { return "—"; }
+  try { return ethers.utils.formatUnits(v, d); } catch { return "—"; }
 }
 
 async function connect() {
