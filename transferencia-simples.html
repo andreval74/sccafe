@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transferência Simples de Tokens - SCCAFE</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <!-- SCCAFE CSS -->
+    <link href="css/token.css" rel="stylesheet">
+    
+    <style>
+        .terminal {
+            background: #000;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            padding: 15px;
+            border-radius: 8px;
+            height: 300px;
+            overflow-y: auto;
+            border: 1px solid #333;
+        }
+        .log-success { color: #00ff00; }
+        .log-error { color: #ff4444; }
+        .log-warning { color: #ffaa00; }
+        .log-info { color: #00aaff; }
+        .token-info {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top border-bottom border-secondary">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="index.html">
+                <img src="imgs/sccafe-32x32.png" alt="SCCAFE" width="32" height="32" class="me-2">
+                <span class="fw-bold text-primary">SCCAFE</span>
+            </a>
+            <span class="navbar-text text-primary">
+                <i class="bi bi-arrow-left-right me-1"></i>Transferência de Tokens
+            </span>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="token-creator-container">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-10">
+                    <div class="creator-card">
+                        <!-- Header -->
+                        <div class="creator-header text-center mb-4">
+                            <h1 class="mb-2">🔄 Transferência Simples de Tokens</h1>
+                            <p class="mb-0">Envie qualquer token ERC-20/BEP-20 facilmente</p>
+                        </div>
+
+                        <!-- Connection Status -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="card bg-dark border-secondary">
+                                    <div class="card-body">
+                                        <h6 class="card-title"><i class="bi bi-wallet me-2"></i>Carteira</h6>
+                                        <p class="card-text" id="walletStatus">Não conectado</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card bg-dark border-secondary">
+                                    <div class="card-body">
+                                        <h6 class="card-title"><i class="bi bi-globe me-2"></i>Rede</h6>
+                                        <p class="card-text" id="networkStatus">—</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Token Info -->
+                        <div class="token-info" id="tokenInfo" style="display: none;">
+                            <h6><i class="bi bi-info-circle me-2"></i>Informações do Token</h6>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <small class="text-muted">Nome:</small><br>
+                                    <span id="tokenName">—</span>
+                                </div>
+                                <div class="col-md-4">
+                                    <small class="text-muted">Símbolo:</small><br>
+                                    <span id="tokenSymbol">—</span>
+                                </div>
+                                <div class="col-md-4">
+                                    <small class="text-muted">Seu Saldo:</small><br>
+                                    <span id="tokenBalance">—</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form -->
+                        <form id="transferForm">
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <label for="tokenAddress" class="form-label">
+                                        <i class="bi bi-coin me-1"></i>Endereço do Token
+                                    </label>
+                                    <input type="text" class="form-control" id="tokenAddress" 
+                                           placeholder="0x..." value="0x41Ec4Ea7fEe799295E6F53Dc94D8F8Af7e4c8667">
+                                    <div class="form-text">Cole o endereço do contrato do token que deseja transferir</div>
+                                </div>
+                                
+                                <div class="col-12">
+                                    <label for="recipientAddress" class="form-label">
+                                        <i class="bi bi-person me-1"></i>Endereço do Destinatário
+                                    </label>
+                                    <input type="text" class="form-control" id="recipientAddress" 
+                                           placeholder="0x...">
+                                    <div class="form-text">Carteira que receberá os tokens</div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label for="tokenAmount" class="form-label">
+                                        <i class="bi bi-123 me-1"></i>Quantidade
+                                    </label>
+                                    <input type="number" class="form-control" id="tokenAmount" 
+                                           placeholder="10" step="0.000001" min="0">
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label for="tokenUnit" class="form-label">
+                                        <i class="bi bi-tag me-1"></i>Unidade
+                                    </label>
+                                    <input type="text" class="form-control" id="tokenUnit" 
+                                           placeholder="TOKEN" readonly>
+                                </div>
+                            </div>
+                        </form>
+
+                        <!-- Buttons -->
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="button" class="btn btn-primary btn-lg" id="connectWallet">
+                                <i class="bi bi-wallet me-2"></i>Conectar MetaMask
+                            </button>
+                            <button type="button" class="btn btn-info btn-lg" id="loadToken" disabled>
+                                <i class="bi bi-search me-2"></i>Carregar Informações do Token
+                            </button>
+                            <button type="button" class="btn btn-success btn-lg" id="executeTransfer" disabled>
+                                <i class="bi bi-send me-2"></i>Executar Transferência
+                            </button>
+                        </div>
+
+                        <!-- Terminal -->
+                        <div class="mt-4">
+                            <h6><i class="bi bi-terminal me-2"></i>Log de Transações</h6>
+                            <div class="terminal" id="terminal"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Ethers.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+    
+    <script>
+        let provider, signer, userAddress;
+        let tokenContract = null;
+        let tokenMeta = { name: '', symbol: '', decimals: 18, balance: '0' };
+        
+        // ABI mínimo para ERC-20
+        const ERC20_ABI = [
+            "function name() view returns (string)",
+            "function symbol() view returns (string)",
+            "function decimals() view returns (uint8)",
+            "function balanceOf(address owner) view returns (uint256)",
+            "function transfer(address to, uint256 amount) external returns (bool)"
+        ];
+
+        function log(message, type = 'info') {
+            const terminal = document.getElementById('terminal');
+            const time = new Date().toLocaleTimeString();
+            const className = type === 'error' ? 'log-error' : 
+                             type === 'warning' ? 'log-warning' : 
+                             type === 'success' ? 'log-success' : 'log-info';
+            terminal.innerHTML += `<div class="${className}">[${time}] ${message}</div>`;
+            terminal.scrollTop = terminal.scrollHeight;
+        }
+
+        function updateUI() {
+            const connected = !!userAddress;
+            document.getElementById('loadToken').disabled = !connected;
+            document.getElementById('executeTransfer').disabled = !connected || !tokenContract;
+        }
+
+        // Conectar carteira
+        document.getElementById('connectWallet').onclick = async () => {
+            try {
+                if (!window.ethereum) {
+                    alert("⚠️ Instale a MetaMask para prosseguir.");
+                    return;
+                }
+
+                log('🔗 Conectando à MetaMask...');
+                provider = new ethers.providers.Web3Provider(window.ethereum);
+                await provider.send("eth_requestAccounts", []);
+                signer = provider.getSigner();
+                userAddress = await signer.getAddress();
+                
+                const network = await provider.getNetwork();
+                
+                document.getElementById('walletStatus').textContent = `${userAddress.substring(0, 8)}...${userAddress.substring(36)}`;
+                document.getElementById('networkStatus').textContent = `${network.name} (${network.chainId})`;
+                
+                log(`✅ Carteira conectada: ${userAddress}`, 'success');
+                log(`🌐 Rede: ${network.name} (Chain ID: ${network.chainId})`, 'info');
+                
+                document.getElementById('connectWallet').innerHTML = '<i class="bi bi-check-circle me-2"></i>Carteira Conectada';
+                document.getElementById('connectWallet').disabled = true;
+                
+                updateUI();
+                
+            } catch (error) {
+                log(`❌ Erro ao conectar: ${error.message}`, 'error');
+            }
+        };
+
+        // Carregar informações do token
+        document.getElementById('loadToken').onclick = async () => {
+            try {
+                const tokenAddress = document.getElementById('tokenAddress').value.trim();
+                
+                if (!tokenAddress) {
+                    alert('⚠️ Digite o endereço do token!');
+                    return;
+                }
+
+                if (!ethers.utils.isAddress(tokenAddress)) {
+                    alert('❌ Endereço inválido!');
+                    return;
+                }
+
+                log(`🔍 Carregando informações do token ${tokenAddress.substring(0, 8)}...`);
+                
+                tokenContract = new ethers.Contract(tokenAddress, ERC20_ABI, signer);
+                
+                // Carregar metadados
+                try {
+                    tokenMeta.name = await tokenContract.name();
+                } catch (e) {
+                    log(`⚠️ Não foi possível carregar o nome do token`, 'warning');
+                    tokenMeta.name = 'Token Desconhecido';
+                }
+                
+                try {
+                    tokenMeta.symbol = await tokenContract.symbol();
+                } catch (e) {
+                    log(`⚠️ Não foi possível carregar o símbolo do token`, 'warning');
+                    tokenMeta.symbol = 'UNKN';
+                }
+                
+                try {
+                    tokenMeta.decimals = await tokenContract.decimals();
+                } catch (e) {
+                    log(`⚠️ Não foi possível carregar os decimais, usando 18`, 'warning');
+                    tokenMeta.decimals = 18;
+                }
+                
+                // Carregar saldo
+                try {
+                    const balanceWei = await tokenContract.balanceOf(userAddress);
+                    tokenMeta.balance = ethers.utils.formatUnits(balanceWei, tokenMeta.decimals);
+                } catch (e) {
+                    log(`⚠️ Não foi possível carregar seu saldo`, 'warning');
+                    tokenMeta.balance = '0';
+                }
+                
+                // Atualizar interface
+                document.getElementById('tokenName').textContent = tokenMeta.name;
+                document.getElementById('tokenSymbol').textContent = tokenMeta.symbol;
+                document.getElementById('tokenBalance').textContent = `${tokenMeta.balance} ${tokenMeta.symbol}`;
+                document.getElementById('tokenUnit').value = tokenMeta.symbol;
+                document.getElementById('tokenInfo').style.display = 'block';
+                
+                log(`✅ Token carregado: ${tokenMeta.name} (${tokenMeta.symbol})`, 'success');
+                log(`💰 Seu saldo: ${tokenMeta.balance} ${tokenMeta.symbol}`, 'info');
+                
+                updateUI();
+                
+            } catch (error) {
+                log(`❌ Erro ao carregar token: ${error.message}`, 'error');
+                tokenContract = null;
+                updateUI();
+            }
+        };
+
+        // Executar transferência
+        document.getElementById('executeTransfer').onclick = async () => {
+            try {
+                const recipientAddress = document.getElementById('recipientAddress').value.trim();
+                const amount = parseFloat(document.getElementById('tokenAmount').value);
+                
+                if (!recipientAddress) {
+                    alert('⚠️ Digite o endereço do destinatário!');
+                    return;
+                }
+
+                if (!ethers.utils.isAddress(recipientAddress)) {
+                    alert('❌ Endereço do destinatário inválido!');
+                    return;
+                }
+
+                if (!amount || amount <= 0) {
+                    alert('⚠️ Digite uma quantidade válida!');
+                    return;
+                }
+
+                if (amount > parseFloat(tokenMeta.balance)) {
+                    alert(`❌ Saldo insuficiente! Você tem ${tokenMeta.balance} ${tokenMeta.symbol}`);
+                    return;
+                }
+
+                log(`🚀 Iniciando transferência de ${amount} ${tokenMeta.symbol}...`);
+                log(`📤 Para: ${recipientAddress}`);
+                
+                // Converter para Wei
+                const amountWei = ethers.utils.parseUnits(amount.toString(), tokenMeta.decimals);
+                
+                log(`⏳ Enviando transação...`);
+                const tx = await tokenContract.transfer(recipientAddress, amountWei);
+                
+                log(`📋 Hash da transação: ${tx.hash}`, 'info');
+                log(`⏳ Aguardando confirmação...`);
+                
+                const receipt = await tx.wait();
+                
+                if (receipt.status === 1) {
+                    log(`🎉 SUCESSO! Transferência confirmada!`, 'success');
+                    log(`⛽ Gas usado: ${receipt.gasUsed.toString()}`, 'info');
+                    
+                    // Atualizar saldo
+                    setTimeout(async () => {
+                        try {
+                            const newBalanceWei = await tokenContract.balanceOf(userAddress);
+                            tokenMeta.balance = ethers.utils.formatUnits(newBalanceWei, tokenMeta.decimals);
+                            document.getElementById('tokenBalance').textContent = `${tokenMeta.balance} ${tokenMeta.symbol}`;
+                            log(`💰 Novo saldo: ${tokenMeta.balance} ${tokenMeta.symbol}`, 'success');
+                        } catch (e) {
+                            log(`⚠️ Erro ao atualizar saldo: ${e.message}`, 'warning');
+                        }
+                    }, 2000);
+                    
+                    // Limpar formulário
+                    document.getElementById('recipientAddress').value = '';
+                    document.getElementById('tokenAmount').value = '';
+                    
+                } else {
+                    throw new Error('Transação falhou na blockchain');
+                }
+
+            } catch (error) {
+                log(`❌ Erro na transferência: ${error.message}`, 'error');
+                if (error.reason) {
+                    log(`❌ Motivo: ${error.reason}`, 'error');
+                }
+            }
+        };
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', function() {
+            log('🚀 Sistema de transferência inicializado');
+            log('💡 Conecte sua carteira para começar');
+            updateUI();
+        });
+    </script>
+</body>
+</html>
