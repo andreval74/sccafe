@@ -3,12 +3,13 @@ const CONFIG = {
     // Rede BSC Testnet
     CHAIN_ID: 97,
     CHAIN_NAME: 'BSC Testnet',
-    // RPCs alternativos mais confiáveis
+    // RPCs mais confiáveis e atualizados
     RPC_URLS: [
         'https://bsc-testnet.publicnode.com',
-        'https://data-seed-prebsc-1-s1.binance.org:8545',
-        'https://data-seed-prebsc-2-s1.binance.org:8545',
-        'https://bsc-testnet-rpc.publicnode.com'
+        'https://bsc-testnet-rpc.publicnode.com',
+        'https://endpoints.omniatech.io/v1/bsc/testnet/public',
+        'https://bsc-testnet.blockpi.network/v1/rpc/public',
+        'https://data-seed-prebsc-2-s1.binance.org:8545'
     ],
     RPC_URL: 'https://bsc-testnet.publicnode.com', // RPC principal mais estável
     EXPLORER_URL: 'https://testnet.bscscan.com',
@@ -27,8 +28,8 @@ const CONFIG = {
     
     // Configurações de transação
     GAS_LIMIT: 300000,
-    MAX_RETRIES: 3, // Número máximo de tentativas
-    RETRY_DELAY: 1000, // Delay entre tentativas (ms)
+    MAX_RETRIES: 3,
+    RETRY_DELAY: 2000, // Aumentado para 2 segundos
     
     // Mensagens
     MESSAGES: {
