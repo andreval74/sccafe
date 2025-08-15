@@ -368,8 +368,9 @@ async function verifyContract() {
         showTokenInfo();
         
         addContractMessage('🎉 Contrato verificado com sucesso!', 'success');
-        
-    } catch (error) {
+    }     
+    
+    catch (error) {
         console.error('❌ Erro ao verificar contrato:', error);
         
         // Se for erro de RPC, oferece alternativa
