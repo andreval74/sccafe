@@ -8,21 +8,74 @@
 <body>
 <h2>Compra Direta de TKN</h2>
 
+<div style="border: 1px solid #ccc; padding: 10px; margin: 10px 0; background-color: #f9f9f9;">
+    <h4>💰 Informações do Token</h4>
+    <p><strong>Preço por token:</strong> <span id="tokenPriceDisplay">0.003 BNB</span></p>
+    <p><strong>Endereço do contrato:</strong> <span id="contractDisplay">0x5265F80e30e019344a218Dd89b67cBE164511c65</span></p>
+</div>
+
 <button id="checkContract">Verificar Contrato</button>
+<br><br>
 <label>Quantidade de Tokens:</label>
-<input type="number" id="tokenAmount" placeholder="Quantidade de tokens" min="1">
+<input type="number" id="tokenAmount" placeholder="Quantidade de tokens" min="1" oninput="calculateTotal()">
+<br><br>
+
+<div id="calculationDisplay" style="border: 1px solid #ddd; padding: 10px; margin: 10px 0; background-color: #f0f8ff; display: none;">
+    <h4>🧮 Cálculo da Compra</h4>
+    <p><strong>Quantidade de tokens:</strong> <span id="calcTokens">0</span></p>
+    <p><strong>Preço unitário:</strong> <span id="calcPrice">0.003 BNB</span></p>
+    <p><strong>Total a pagar:</strong> <span id="calcTotal">0 BNB</span></p>
+</div>
+
 <button id="buyButton">Comprar</button>
 
 <p id="status"></p>
 <ul id="errorList" style="color:red;"></ul>
 
+<div id="transactionDetails" style="border: 1px solid #28a745; padding: 10px; margin: 10px 0; background-color: #d4edda; display: none;">
+    <h4>📊 Detalhes da Transação</h4>
+    <p><strong>Hash da transação:</strong> <span id="txHash"></span></p>
+    <p><strong>Valor enviado:</strong> <span id="txValue"></span> BNB</p>
+    <p><strong>Gas usado:</strong> <span id="txGas"></span></p>
+    <p><strong>Taxa de gas:</strong> <span id="txGasPrice"></span> BNB</p>
+    <p><strong>Total pago (incluindo gas):</strong> <span id="txTotalCost"></span> BNB</p>
+    <hr>
+    <p><strong>🎯 Destino dos valores:</strong></p>
+    <p>• <strong>Para o contrato (compra tokens):</strong> <span id="txToContract"></span> BNB</p>
+    <p>• <strong>Taxa de rede (gas):</strong> <span id="txNetworkFee"></span> BNB</p>
+    <p>• <strong>Tokens recebidos (estimativa):</strong> <span id="txTokensReceived"></span> TKN</p>
+</div>
+
 <script>
 const contractAddress = "0x5265F80e30e019344a218Dd89b67cBE164511c65"; // Endereço do TKN na testnet
 const tokenDecimals = 18; // Decimais do token
 const tokenPrice = ethers.utils.parseEther("0.003"); // Preço inicial em tBNB por token
+const tokenPriceFormatted = "0.003"; // Para exibição
 
 let provider;
 let signer;
+
+// Função para calcular total em tempo real
+function calculateTotal() {
+    const amount = document.getElementById("tokenAmount").value;
+    const calcDiv = document.getElementById("calculationDisplay");
+    
+    if (amount && amount > 0) {
+        const total = parseFloat(amount) * parseFloat(tokenPriceFormatted);
+        
+        document.getElementById("calcTokens").textContent = amount;
+        document.getElementById("calcPrice").textContent = tokenPriceFormatted + " BNB";
+        document.getElementById("calcTotal").textContent = total.toFixed(6) + " BNB";
+        
+        calcDiv.style.display = "block";
+    } else {
+        calcDiv.style.display = "none";
+    }
+}
+
+// Atualizar displays iniciais
+document.getElementById("tokenPriceDisplay").textContent = tokenPriceFormatted + " BNB";
+document.getElementById("contractDisplay").textContent = contractAddress;
 
 async function connectWallet() {
     if (window.ethereum) {
@@ -73,7 +126,7 @@ async function buyTokens() {
     try {
         amountBNB = tokenPrice.mul(ethers.BigNumber.from(amountInput));
         amountWei = amountBNB;
-        addError(`💰 Valor a pagar: ${ethers.utils.formatEther(amountWei)} BNB`);
+        addError(`💰 Valor calculado: ${ethers.utils.formatEther(amountWei)} BNB para ${amountInput} tokens`);
     } catch (err) {
         addError("Erro ao calcular valor em BNB: " + err.message);
         return;
@@ -82,7 +135,11 @@ async function buyTokens() {
     try {
         document.getElementById("status").innerText = "Enviando transação...";
         
-        // Transação simplificada
+        // Obter saldo antes da transação
+        const balanceBefore = await signer.getBalance();
+        addError(`💳 Saldo antes: ${ethers.utils.formatEther(balanceBefore)} BNB`);
+        
+        // Transação
         const tx = await signer.sendTransaction({
             to: contractAddress,
             value: amountWei,
@@ -90,8 +147,30 @@ async function buyTokens() {
         });
         
         document.getElementById("status").innerText = "Transação enviada. Aguarde confirmação...";
-        await tx.wait();
-        document.getElementById("status").innerText = `✅ Compra concluída! Você comprou ${amountInput} tokens. Tx: ${tx.hash}`;
+        const receipt = await tx.wait();
+        
+        // Obter saldo após a transação
+        const balanceAfter = await signer.getBalance();
+        const totalSpent = balanceBefore.sub(balanceAfter);
+        const gasFee = receipt.gasUsed.mul(receipt.effectiveGasPrice);
+        
+        // Mostrar detalhes da transação
+        document.getElementById("txHash").textContent = tx.hash;
+        document.getElementById("txValue").textContent = ethers.utils.formatEther(amountWei);
+        document.getElementById("txGas").textContent = receipt.gasUsed.toString();
+        document.getElementById("txGasPrice").textContent = ethers.utils.formatEther(gasFee);
+        document.getElementById("txTotalCost").textContent = ethers.utils.formatEther(totalSpent);
+        document.getElementById("txToContract").textContent = ethers.utils.formatEther(amountWei);
+        document.getElementById("txNetworkFee").textContent = ethers.utils.formatEther(gasFee);
+        document.getElementById("txTokensReceived").textContent = amountInput;
+        
+        // Mostrar div de detalhes
+        document.getElementById("transactionDetails").style.display = "block";
+        
+        document.getElementById("status").innerText = `✅ Compra concluída! Hash: ${tx.hash}`;
+        addError(`💳 Saldo após: ${ethers.utils.formatEther(balanceAfter)} BNB`);
+        addError(`💸 Total gasto: ${ethers.utils.formatEther(totalSpent)} BNB`);
+        
     } catch (err) {
         addError("❌ Erro na transação: " + err.message);
         if (err.reason) {
