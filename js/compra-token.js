@@ -627,36 +627,80 @@ async function executePurchase() {
         console.log(`📍 Contrato: ${currentContract.address}`);
         console.log(`👤 Comprador: ${walletAddress}`);
         
-        // DIAGNÓSTICO ANTES DA COMPRA
+        // DIAGNÓSTICO ANTES DA COMPRA (usando RPC público)
+        addPurchaseMessage('🔍 Verificando condições da compra...', 'info');
         try {
-            const contractBalance = await web3Provider.getBalance(currentContract.address);
-            const userBalance = await web3Provider.getBalance(walletAddress);
+            // Usa RPC público para diagnóstico (não MetaMask que está falhando)
+            const publicProvider = await initializeProviderWithFallback();
+            
+            const contractBalance = await publicProvider.getBalance(currentContract.address);
+            const userBalance = await publicProvider.getBalance(walletAddress);
             
             console.log(`💰 Saldo do contrato: ${ethers.utils.formatEther(contractBalance)} BNB`);
             console.log(`💰 Saldo do usuário: ${ethers.utils.formatEther(userBalance)} BNB`);
             
+            // Verifica se usuário tem saldo suficiente
+            const totalCostWei = ethers.utils.parseEther(totalValue);
+            if (userBalance.lt(totalCostWei)) {
+                throw new Error(`Saldo insuficiente. Você tem ${ethers.utils.formatEther(userBalance)} BNB, mas precisa de ${totalValue} BNB`);
+            }
+            
             // Verifica se o contrato tem tokens suficientes
             if (tokenInfo.totalSupply) {
                 const contractTokenBalance = await currentContract.balanceOf(currentContract.address);
-                console.log(`🪙 Tokens no contrato: ${ethers.utils.formatUnits(contractTokenBalance, tokenInfo.decimals)} ${tokenInfo.symbol}`);
+                const contractTokens = parseFloat(ethers.utils.formatUnits(contractTokenBalance, tokenInfo.decimals));
+                
+                console.log(`🪙 Tokens no contrato: ${contractTokens} ${tokenInfo.symbol}`);
+                
+                if (contractTokens < quantity) {
+                    throw new Error(`Contrato não tem tokens suficientes. Disponível: ${contractTokens}, solicitado: ${quantity}`);
+                }
             }
+            
+            addPurchaseMessage('✅ Verificações iniciais aprovadas', 'success');
+            
         } catch (diagError) {
             console.warn('⚠️ Erro no diagnóstico:', diagError.message);
+            addPurchaseMessage(`⚠️ Aviso: ${diagError.message}`, 'warning');
+            
+            // Se o erro é crítico, para por aqui
+            if (diagError.message.includes('Saldo insuficiente') || diagError.message.includes('não tem tokens suficientes')) {
+                addPurchaseMessage('❌ Compra cancelada devido a verificação falhada', 'error');
+                return;
+            }
         }
         
-        // SIMULAÇÃO DA TRANSAÇÃO (call estático)
-        addPurchaseMessage('🧪 Simulando transação antes de executar...', 'info');
+        // SIMULAÇÃO DA TRANSAÇÃO (usando MetaMask)
+        addPurchaseMessage('🧪 Simulando transação...', 'info');
         try {
-            await contractWithSigner.callStatic[buyFunctionName]({
+            // Cria provider MetaMask apenas para simulação
+            const metamaskProvider = new ethers.providers.Web3Provider(window.ethereum);
+            const metamaskSigner = metamaskProvider.getSigner();
+            const contractForSim = new ethers.Contract(currentContract.address, CONFIG.tokenABI, metamaskSigner);
+            
+            // Simulação estática
+            await contractForSim.callStatic[buyFunctionName]({
                 value: valueInWei,
                 from: walletAddress
             });
+            
             console.log('✅ Simulação bem-sucedida - transação deve funcionar');
             addPurchaseMessage('✅ Simulação bem-sucedida', 'success');
+            
         } catch (simError) {
             console.warn('⚠️ Simulação falhou:', simError.message);
-            addPurchaseMessage(`⚠️ Simulação falhou: ${simError.message}`, 'warning');
-            addPurchaseMessage('🚀 Tentando executar mesmo assim...', 'info');
+            
+            // Análise do erro de simulação
+            if (simError.message.includes('missing trie node')) {
+                addPurchaseMessage('⚠️ Problema de sincronização da rede - tentando mesmo assim', 'warning');
+            } else if (simError.message.includes('revert')) {
+                addPurchaseMessage('❌ Contrato rejeitou a simulação - verifique os parâmetros', 'error');
+                return;
+            } else {
+                addPurchaseMessage(`⚠️ Simulação falhou: ${simError.message}`, 'warning');
+            }
+            
+            addPurchaseMessage('🚀 Prosseguindo com a transação real...', 'info');
         }
         
         // Executa a transação
@@ -939,33 +983,62 @@ function initializeWalletConnection() {
 
 /**
  * Inicializa provider com fallback para resolver problemas de RPC
+ * ESTRATÉGIA: Usa APENAS RPC público para leitura, MetaMask apenas para transações
  */
 async function initializeProviderWithFallback() {
+    console.log('🔄 Inicializando provider com estratégia RPC-primeiro');
+    
+    // NUNCA usa MetaMask para operações de leitura
+    // Detecta chain ID da MetaMask para usar RPC correspondente
+    let chainId = 97; // BSC Testnet padrão
+    
     try {
-        // Primeiro tenta com MetaMask
-        const web3Provider = new ethers.providers.Web3Provider(window.ethereum);
-        
-        // Testa conectividade
-        await web3Provider.getNetwork();
-        console.log('✅ Provider MetaMask funcionando');
-        return web3Provider;
-        
+        const currentChainId = await window.ethereum.request({ method: 'eth_chainId' });
+        chainId = parseInt(currentChainId, 16);
+        console.log(`🌐 Chain ID detectado: ${chainId}`);
     } catch (error) {
-        console.warn('⚠️ Provider MetaMask com problemas, tentando fallback...');
-        
-        // Detecta chain ID atual
-        const chainId = await window.ethereum.request({ method: 'eth_chainId' });
-        const chainIdDecimal = parseInt(chainId, 16);
-        
-        // Usa RPC público baseado na rede
-        const fallbackRpc = getFallbackRpcUrl(chainIdDecimal);
-        if (fallbackRpc) {
-            console.log(`🔄 Usando RPC fallback: ${fallbackRpc}`);
-            return new ethers.providers.JsonRpcProvider(fallbackRpc);
-        }
-        
-        throw error;
+        console.warn('⚠️ Não foi possível detectar chain ID, usando BSC Testnet');
     }
+    
+    // RPC endpoints por rede
+    const rpcEndpoints = {
+        97: [  // BSC Testnet
+            'https://data-seed-prebsc-1-s1.binance.org:8545',
+            'https://bsc-testnet.binance.org',
+            'https://data-seed-prebsc-2-s1.binance.org:8545',
+            'https://bsc-testnet-rpc.publicnode.com'
+        ],
+        56: [  // BSC Mainnet
+            'https://bsc-dataseed.binance.org',
+            'https://bsc-dataseed1.defibit.io',
+            'https://bsc-dataseed1.ninicoin.io'
+        ]
+    };
+    
+    const endpoints = rpcEndpoints[chainId] || rpcEndpoints[97];
+    
+    for (let i = 0; i < endpoints.length; i++) {
+        const rpcUrl = endpoints[i];
+        try {
+            console.log(`🔍 Testando RPC ${i + 1}/${endpoints.length}: ${rpcUrl}`);
+            
+            const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
+            
+            // Teste rápido de conectividade (3s timeout)
+            const network = await Promise.race([
+                provider.getNetwork(),
+                new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 3000))
+            ]);
+            
+            console.log(`✅ RPC funcionando: ${rpcUrl} - Rede: ${network.name} (${network.chainId})`);
+            return provider;
+            
+        } catch (error) {
+            console.warn(`❌ RPC ${i + 1} falhou: ${rpcUrl} - ${error.message}`);
+        }
+    }
+    
+    throw new Error('❌ Todos os RPC endpoints falharam - verifique sua conexão com a internet');
 }
 
 /**
