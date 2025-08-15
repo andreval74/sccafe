@@ -444,36 +444,250 @@ async function verifyERC20Functions() {
 }
 
 /**
+ * Última tentativa: Descoberta de funções via tentativa de assinatura
+ */
+async function tryCommonFunctionSignatures() {
+    console.log('🔍 ÚLTIMA TENTATIVA: Testando assinaturas de função comuns...');
+    
+    // Lista de assinaturas de função conhecidas para compra de tokens
+    const commonSignatures = [
+        // Funções de compra padrão
+        { name: 'buy', sig: '0xa6f2ae3a' }, // buy()
+        { name: 'buyTokens', sig: '0xd0febe4c' }, // buyTokens()
+        { name: 'purchase', sig: '0xefef39a1' }, // purchase()
+        { name: 'buyWithBNB', sig: '0x8b1b5093' }, // buyWithBNB()
+        
+        // Funções de mint
+        { name: 'mint', sig: '0xa0712d68' }, // mint(uint256)
+        { name: 'mint', sig: '0x40c10f19' }, // mint(address,uint256)
+        
+        // Funções de swap
+        { name: 'swap', sig: '0xd004f0f7' }, // swap()
+        { name: 'swapBNBForTokens', sig: '0x7ff36ab5' }, // swapBNBForTokens()
+        
+        // Fallback payable
+        { name: 'receive', sig: '0x' }, // receive() payable
+        { name: 'fallback', sig: '0x' } // fallback() payable
+    ];
+    
+    for (const func of commonSignatures) {
+        try {
+            console.log(`🧪 Testando assinatura ${func.name} (${func.sig})...`);
+            
+            // Tenta uma chamada de baixo nível
+            const testValue = ethers.utils.parseEther('0.001');
+            const callData = func.sig === '0x' ? '0x' : func.sig; // Para receive/fallback
+            
+            await currentProvider.call({
+                to: CONFIG.contractAddress,
+                value: testValue.toHexString(),
+                data: callData
+            });
+            
+            console.log(`✅ SUCESSO! Função ${func.name} responde!`);
+            buyFunctionName = func.name;
+            updateCompatibilityStatus('buyStatus', '✅ Detectada por assinatura', 'success');
+            addContractMessage(`✅ Função "${func.name}" detectada por assinatura`, 'success');
+            return true;
+            
+        } catch (error) {
+            if (!error.message.includes('revert')) {
+                console.log(`❌ ${func.name}: ${error.message}`);
+            } else {
+                console.log(`🤔 ${func.name}: Revert (pode funcionar com parâmetros corretos)`);
+            }
+        }
+    }
+    
+    return false;
+}
+
+/**
+ * Investigação adicional: consulta ABI via Etherscan para contrato não-padrão
+ */
+async function investigateContractViaEtherscan(contractAddress) {
+    try {
+        console.log('🔍 Investigando contrato via Etherscan API...');
+        
+        // Tenta pegar ABI completo do Etherscan
+        const apiKey = 'YourApiKeyToken'; // Vamos tentar sem API key primeiro
+        const etherscanUrl = `https://api.bscscan.com/api?module=contract&action=getabi&address=${contractAddress}`;
+        
+        console.log('🌐 URL da consulta:', etherscanUrl);
+        
+        const response = await fetch(etherscanUrl);
+        const data = await response.json();
+        
+        if (data.status === '1' && data.result) {
+            const abi = JSON.parse(data.result);
+            console.log('📋 ABI completo obtido do Etherscan:');
+            
+            // Filtra apenas funções
+            const functions = abi.filter(item => item.type === 'function');
+            const payableFunctions = functions.filter(func => func.stateMutability === 'payable');
+            
+            console.log(`📊 Estatísticas do contrato:`);
+            console.log(`   📌 Total de funções: ${functions.length}`);
+            console.log(`   💰 Funções payable: ${payableFunctions.length}`);
+            
+            if (payableFunctions.length > 0) {
+                console.log('💰 Funções PAYABLE encontradas (possíveis compras):');
+                payableFunctions.forEach(func => {
+                    const inputs = func.inputs.map(i => `${i.type} ${i.name}`).join(', ');
+                    console.log(`   🎯 ${func.name}(${inputs})`);
+                });
+                
+                // Testa a primeira função payable
+                const firstPayable = payableFunctions[0];
+                console.log(`🧪 Testando primeira função payable: ${firstPayable.name}()`);
+                
+                try {
+                    // Monta parâmetros básicos baseado nos inputs esperados
+                    const testParams = firstPayable.inputs.map(input => {
+                        switch(input.type) {
+                            case 'uint256': return '1000';
+                            case 'address': return walletAddress || '0x0000000000000000000000000000000000000000';
+                            case 'bool': return true;
+                            default: return '0';
+                        }
+                    });
+                    
+                    // Se a função é payable, adiciona value
+                    const callOptions = { value: ethers.utils.parseEther('0.001') };
+                    
+                    await currentContract.estimateGas[firstPayable.name](...testParams, callOptions);
+                    
+                    console.log(`✅ SUCESSO! Função ${firstPayable.name}() funciona!`);
+                    buyFunctionName = firstPayable.name;
+                    updateCompatibilityStatus('buyStatus', '✅ Detectada via Etherscan', 'success');
+                    addContractMessage(`✅ Função de compra "${firstPayable.name}" encontrada via Etherscan`, 'success');
+                    return true;
+                    
+                } catch (testError) {
+                    console.log(`❌ Função ${firstPayable.name}() rejeitou teste:`, testError.message);
+                }
+            }
+        }
+        
+    } catch (error) {
+        console.log('❌ Erro na investigação via Etherscan:', error.message);
+    }
+    
+    return false;
+}
+
+/**
  * Verifica funções de compra disponíveis
  */
 async function verifyBuyFunctions() {
-    const buyFunctions = ['buy', 'buyTokens', 'purchase'];
+    const buyFunctions = [
+        'buy', 'buyTokens', 'purchase', 
+        'buyWithBNB', 'mint', 'swap',
+        'exchange', 'buyToken'
+    ];
     
-    addContractMessage('🔍 Verificando funções de compra...', 'info');
+    addContractMessage('🔍 Verificando funções de compra disponíveis...', 'info');
     
     for (const funcName of buyFunctions) {
         try {
             console.log(`🔍 Testando função: ${funcName}()`);
             
-            // Verifica se a função existe no ABI
-            const func = currentContract[funcName];
-            if (func && typeof func === 'function') {
-                console.log(`✅ Função ${funcName}() encontrada no contrato`);
+            // **NOVA ESTRATÉGIA: usar estimateGas que funciona melhor com payable functions**
+            const testValue = ethers.utils.parseEther('0.001'); // Valor pequeno para teste
+            
+            // Prepara parâmetros baseado no tipo da função
+            let gasEstimateParams;
+            switch(funcName) {
+                case 'mint':
+                    // Para mint, testa com address e amount
+                    gasEstimateParams = [walletAddress, '1000'];
+                    break;
+                case 'swap':
+                    // Para swap, testa troca básica
+                    gasEstimateParams = ['0x0000000000000000000000000000000000000000', '1000'];
+                    break;
+                default:
+                    // Para funções de compra normais, usa value
+                    gasEstimateParams = [{ value: testValue }];
+            }
+            
+            // Tenta estimar gas - se funcionar, a função existe e é válida
+            await currentContract.estimateGas[funcName](...gasEstimateParams);
+            
+            // Se chegou aqui, a função existe e aceita os parâmetros
+            console.log(`✅ Função ${funcName}() encontrada e funcional`);
+            buyFunctionName = funcName;
+            updateCompatibilityStatus('buyStatus', '✅ Disponível', 'success');
+            addContractMessage(`✅ Função de compra "${funcName}" detectada e funcional`, 'success');
+            return;
+            
+        } catch (error) {
+            if (error.message.includes('is not a function')) {
+                console.log(`❌ Função ${funcName}() não existe no contrato`);
+            } else if (error.code === 'UNPREDICTABLE_GAS_LIMIT' || error.message.includes('revert')) {
+                // Função existe mas tem lógica que impede execução - ainda é válida
+                console.log(`✅ Função ${funcName}() existe (rejeitou parâmetros de teste)`);
                 buyFunctionName = funcName;
                 updateCompatibilityStatus('buyStatus', '✅ Disponível', 'success');
                 addContractMessage(`✅ Função de compra "${funcName}" detectada`, 'success');
                 return;
+            } else {
+                console.log(`❌ Função ${funcName}() erro: ${error.message}`);
             }
-        } catch (error) {
-            console.log(`❌ Função ${funcName}() não disponível: ${error.message}`);
         }
     }
     
-    // Se não encontrou nenhuma, usa 'buy' como padrão
-    console.log('⚠️ Nenhuma função específica detectada, usando "buy" como padrão');
-    buyFunctionName = 'buy';
-    updateCompatibilityStatus('buyStatus', '⚠️ Função padrão', 'warning');
-    addContractMessage('⚠️ Usando função padrão "buy()" - será testada na compra', 'warning');
+    // Se não encontrou nenhuma função válida
+    console.log('❌ Nenhuma função de compra válida encontrada no contrato');
+    
+    // **INVESTIGAÇÃO ADICIONAL: Listar todas as funções disponíveis no contrato**
+    console.log('🔍 INVESTIGANDO - Funções disponíveis no contrato:');
+    try {
+        const contractInterface = currentContract.interface;
+        const allFunctions = Object.keys(contractInterface.functions);
+        
+        console.log('📋 Todas as funções do contrato:');
+        allFunctions.forEach(func => {
+            const fragment = contractInterface.functions[func];
+            const isPayable = fragment.payable;
+            const inputs = fragment.inputs.map(i => `${i.type} ${i.name}`).join(', ');
+            console.log(`   📌 ${func}(${inputs}) ${isPayable ? '[PAYABLE]' : ''}`);
+        });
+        
+        // Procura por funções que possam ser de compra baseado no nome
+        const possibleBuyFunctions = allFunctions.filter(func => 
+            func.toLowerCase().includes('buy') || 
+            func.toLowerCase().includes('purchase') ||
+            func.toLowerCase().includes('mint') ||
+            func.toLowerCase().includes('swap') ||
+            func.toLowerCase().includes('exchange')
+        );
+        
+        if (possibleBuyFunctions.length > 0) {
+            console.log('🎯 Funções suspeitas de compra encontradas:');
+            possibleBuyFunctions.forEach(func => console.log(`   💡 ${func}`));
+            addContractMessage(`⚠️ Contrato tem funções suspeitas: ${possibleBuyFunctions.join(', ')}`, 'warning');
+        }
+        
+    } catch (e) {
+        console.log('❌ Erro ao listar funções do contrato:', e.message);
+    }
+    
+    // **ÚLTIMA TENTATIVA: Investigar via Etherscan**
+    console.log('🔍 Tentando investigação via Etherscan...');
+    let found = await investigateContractViaEtherscan(CONFIG.contractAddress);
+    
+    // **TENTATIVA FINAL: Teste de assinaturas**
+    if (!found) {
+        console.log('🔍 Tentando descoberta por assinaturas...');
+        found = await tryCommonFunctionSignatures();
+    }
+    
+    if (!found) {
+        buyFunctionName = null;
+        updateCompatibilityStatus('buyStatus', '❌ Não disponível', 'error');
+        addContractMessage('❌ Este contrato não suporta compra direta de tokens', 'error');
+    }
 }
 
 /**
@@ -592,8 +806,7 @@ function enablePurchaseSection() {
         console.log('✅ Campo quantidade habilitado');
     }
     
-    // SEMPRE habilita o botão se há função de compra detectada
-    // OU se quisermos permitir tentativa mesmo sem detecção
+    // HABILITA o botão APENAS se encontrou uma função de compra válida
     if (purchaseBtn) {
         if (buyFunctionName) {
             purchaseBtn.disabled = false;
@@ -601,31 +814,16 @@ function enablePurchaseSection() {
             purchaseBtn.style.cursor = 'pointer';
             console.log(`✅ Botão habilitado - Função: ${buyFunctionName}()`);
         } else {
-            // Força habilitação para teste, usando 'buy' como padrão
-            buyFunctionName = 'buy';
-            purchaseBtn.disabled = false;
-            purchaseBtn.style.opacity = '1';
-            purchaseBtn.style.cursor = 'pointer';
-            console.log('✅ Botão habilitado - Usando função padrão: buy()');
+            purchaseBtn.disabled = true;
+            purchaseBtn.style.opacity = '0.6';
+            purchaseBtn.style.cursor = 'not-allowed';
+            console.log('❌ Botão desabilitado - Nenhuma função de compra válida encontrada');
         }
     } else {
         console.error('❌ Botão de compra não encontrado no DOM!');
     }
     
     console.log('🛒 Seção de compra habilitada - Preço fixo do contrato');
-    
-    // FORÇA habilitação após um pequeno delay para garantir que o DOM está pronto
-    setTimeout(() => {
-        const btn = document.getElementById('execute-purchase-btn');
-        if (btn && btn.disabled) {
-            console.log('🔧 Forçando habilitação do botão após delay...');
-            btn.disabled = false;
-            btn.style.opacity = '1';
-            btn.style.cursor = 'pointer';
-            btn.style.backgroundColor = '#0d6efd';
-            console.log('✅ Botão forçadamente habilitado');
-        }
-    }, 500);
 }
 
 /**
