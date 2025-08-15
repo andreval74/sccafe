@@ -22,7 +22,7 @@ const tokenPrice = ethers.utils.parseEther("0.003"); // Preço inicial em tBNB p
 
 // ABI mínimo necessário para a função receive() (compra direta)
 const contractABI = [
-    "receive() external payable"
+    "receive() payable"
 ];
 
 let provider;
