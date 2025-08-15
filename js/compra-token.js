@@ -98,10 +98,39 @@ let buyFunctionName = null;
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🛒 Sistema de Compra Dinâmica iniciado');
     
+    // 🔒 GARANTIA: Seção de compra inicia OCULTA até validação completa
+    ensurePurchaseSectionHidden();
+    
     initializeWalletConnection();
     setupEventListeners();
     checkInitialWalletState();
 });
+
+/**
+ * Garante que a seção de compra inicie oculta
+ */
+function ensurePurchaseSectionHidden() {
+    const section = document.getElementById('purchase-section');
+    const purchaseBtn = document.getElementById('execute-purchase-btn');
+    const quantityInput = document.getElementById('token-quantity');
+    
+    if (section) {
+        section.style.display = 'none';
+        console.log('🔒 Seção de compra garantidamente OCULTA no início');
+    }
+    
+    if (purchaseBtn) {
+        purchaseBtn.disabled = true;
+        purchaseBtn.style.opacity = '0.5';
+        purchaseBtn.style.cursor = 'not-allowed';
+    }
+    
+    if (quantityInput) {
+        quantityInput.disabled = true;
+    }
+    
+    console.log('🔒 Estado inicial: Seção de compra BLOQUEADA até validação do contrato');
+}
 
 /**
  * Verifica estado inicial da wallet (sem tentar conectar)
@@ -514,6 +543,11 @@ async function testActualPayableFunctions() {
                 buyFunctionName = funcName;
                 updateCompatibilityStatus('buyStatus', '✅ Validada 100%', 'success');
                 addContractMessage(`✅ Função "${funcName}" totalmente validada`, 'success');
+                
+                // 🎯 AGORA SIM: Habilita seção de compra apenas quando função válida é encontrada
+                console.log('🎉 Função de compra válida encontrada - Habilitando seção de compra');
+                enablePurchaseSection();
+                
                 return true;
                 
             } catch (error) {
@@ -709,6 +743,10 @@ async function verifyBuyFunctions() {
         buyFunctionName = null;
         updateCompatibilityStatus('buyStatus', '❌ Não disponível', 'error');
         addContractMessage('❌ Este contrato não suporta compra direta de tokens', 'error');
+        
+        // 🚨 IMPORTANTE: Garantir que a seção de compra permaneça OCULTA
+        hidePurchaseSection();
+        console.log('🔒 Seção de compra mantida OCULTA - Contrato incompatível');
     }
 }
 
@@ -759,7 +797,10 @@ async function loadTokenInfo() {
         }
         
         updateTokenInfoUI();
-        enablePurchaseSection();
+        
+        // ⚠️ NÃO habilita seção de compra automaticamente
+        // A seção só será habilitada SE uma função de compra válida for encontrada
+        console.log('ℹ️ Informações do token carregadas - Aguardando validação de funções de compra');
         
     } catch (error) {
         throw new Error(`Erro ao carregar informações do token: ${error.message}`);
@@ -801,23 +842,33 @@ function updateTokenInfoUI() {
 // ==================== GERENCIAMENTO DE COMPRA ====================
 
 /**
- * Habilita seção de compra
+ * Habilita seção de compra - APENAS quando função válida é confirmada
  */
 function enablePurchaseSection() {
+    // 🛡️ PROTEÇÃO: Só executa se realmente há uma função de compra válida
+    if (!buyFunctionName) {
+        console.log('❌ enablePurchaseSection() chamada sem função de compra válida - IGNORANDO');
+        return;
+    }
+    
     const section = document.getElementById('purchase-section');
     const priceInput = document.getElementById('token-price');
     const quantityInput = document.getElementById('token-quantity');
     const purchaseBtn = document.getElementById('execute-purchase-btn');
     
-    console.log('🔧 Habilitando seção de compra...');
+    console.log('🎉 HABILITANDO SEÇÃO DE COMPRA - Função validada:', buyFunctionName);
     console.log('📍 Seção encontrada:', section ? 'SIM' : 'NÃO');
     console.log('📍 Campo quantidade encontrado:', quantityInput ? 'SIM' : 'NÃO');
     console.log('📍 Botão compra encontrado:', purchaseBtn ? 'SIM' : 'NÃO');
-    console.log('📍 Função de compra:', buyFunctionName);
     
     if (section) {
         section.style.display = 'block';
-        console.log('✅ Seção de compra exibida');
+        // Adiciona uma animação de slide para mostrar que a seção foi liberada
+        section.classList.add('animate__animated', 'animate__slideInUp');
+        console.log('✅ Seção de compra LIBERADA e exibida');
+        
+        // Adiciona uma mensagem visual de sucesso
+        addContractMessage('🎉 Seção de compra liberada - Contrato suporta compras!', 'success');
     }
     
     // Campo de preço permanece READ-ONLY (já configurado em updateTokenInfoUI)
@@ -828,24 +879,43 @@ function enablePurchaseSection() {
         console.log('✅ Campo quantidade habilitado');
     }
     
-    // HABILITA o botão APENAS se encontrou uma função de compra válida
+    // HABILITA o botão com função validada
     if (purchaseBtn) {
-        if (buyFunctionName) {
-            purchaseBtn.disabled = false;
-            purchaseBtn.style.opacity = '1';
-            purchaseBtn.style.cursor = 'pointer';
-            console.log(`✅ Botão habilitado - Função: ${buyFunctionName}()`);
-        } else {
-            purchaseBtn.disabled = true;
-            purchaseBtn.style.opacity = '0.6';
-            purchaseBtn.style.cursor = 'not-allowed';
-            console.log('❌ Botão desabilitado - Nenhuma função de compra válida encontrada');
-        }
+        purchaseBtn.disabled = false;
+        purchaseBtn.style.opacity = '1';
+        purchaseBtn.style.cursor = 'pointer';
+        purchaseBtn.style.backgroundColor = '#28a745'; // Verde para indicar liberado
+        console.log(`✅ Botão LIBERADO - Função confirmada: ${buyFunctionName}()`);
     } else {
         console.error('❌ Botão de compra não encontrado no DOM!');
     }
     
-    console.log('🛒 Seção de compra habilitada - Preço fixo do contrato');
+    console.log('🛒 Seção de compra TOTALMENTE habilitada - Contrato validado para compras');
+}
+
+/**
+ * Mantém seção de compra oculta quando contrato não suporta compras
+ */
+function hidePurchaseSection() {
+    const section = document.getElementById('purchase-section');
+    const purchaseBtn = document.getElementById('execute-purchase-btn');
+    
+    if (section) {
+        section.style.display = 'none';
+        console.log('🔒 Seção de compra mantida OCULTA');
+    }
+    
+    if (purchaseBtn) {
+        purchaseBtn.disabled = true;
+        purchaseBtn.style.opacity = '0.3';
+        purchaseBtn.style.cursor = 'not-allowed';
+        purchaseBtn.style.backgroundColor = '#dc3545'; // Vermelho para indicar indisponível
+        console.log('🔒 Botão de compra desabilitado');
+    }
+    
+    // Adiciona uma mensagem explicativa para o usuário
+    addContractMessage('🔒 Seção de compra não disponível - Este contrato não suporta compra direta', 'warning');
+    console.log('🔒 Seção de compra permanece oculta - Contrato incompatível');
 }
 
 /**
