@@ -320,12 +320,13 @@ async function verifyContract() {
         
         addContractMessage('🔍 Verificando contrato na blockchain...', 'info');
         
-        // Inicializa provider
-        currentProvider = new ethers.providers.Web3Provider(window.ethereum);
+        // Inicializa provider com fallback para resolver problemas de RPC
+        currentProvider = await initializeProviderWithFallback();
         currentSigner = currentProvider.getSigner();
         
         // Verifica se o endereço tem código (é um contrato)
-        const code = await currentProvider.getCode(contractAddress);
+        addContractMessage('🔍 Verificando se é um smart contract...', 'info');
+        const code = await getCodeWithRetry(contractAddress);
         if (code === '0x') {
             throw new Error('Endereço não é um smart contract válido');
         }
@@ -349,10 +350,24 @@ async function verifyContract() {
         
     } catch (error) {
         console.error('❌ Erro ao verificar contrato:', error);
-        addContractMessage(`❌ Erro: ${error.message}`, 'error');
+        
+        // Se for erro de RPC, oferece alternativa
+        if (error.message?.includes('JSON-RPC') || error.code === -32603) {
+            addContractMessage('⚠️ Problema de conectividade detectado', 'warning');
+            addContractMessage('🔄 Tentando com provider alternativo...', 'info');
+            
+            try {
+                await retryWithFallbackProvider(contractAddress);
+            } catch (fallbackError) {
+                addContractMessage(`❌ Erro mesmo com provider alternativo: ${fallbackError.message}`, 'error');
+            }
+        } else {
+            addContractMessage(`❌ Erro: ${error.message}`, 'error');
+        }
     } finally {
         updateVerifyButton(false);
     }
+}
 }
 
 /**
@@ -765,6 +780,184 @@ function initializeWalletConnection() {
     }
 }
 
+// ==================== SISTEMA DE FALLBACK RPC ====================
+
+/**
+ * Inicializa provider com fallback para resolver problemas de RPC
+ */
+async function initializeProviderWithFallback() {
+    try {
+        // Primeiro tenta com MetaMask
+        const web3Provider = new ethers.providers.Web3Provider(window.ethereum);
+        
+        // Testa conectividade
+        await web3Provider.getNetwork();
+        console.log('✅ Provider MetaMask funcionando');
+        return web3Provider;
+        
+    } catch (error) {
+        console.warn('⚠️ Provider MetaMask com problemas, tentando fallback...');
+        
+        // Detecta chain ID atual
+        const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+        const chainIdDecimal = parseInt(chainId, 16);
+        
+        // Usa RPC público baseado na rede
+        const fallbackRpc = getFallbackRpcUrl(chainIdDecimal);
+        if (fallbackRpc) {
+            console.log(`🔄 Usando RPC fallback: ${fallbackRpc}`);
+            return new ethers.providers.JsonRpcProvider(fallbackRpc);
+        }
+        
+        throw error;
+    }
+}
+
+/**
+ * Obtém URL de RPC fallback baseado na rede
+ */
+function getFallbackRpcUrl(chainId) {
+    const rpcUrls = {
+        97: [
+            'https://data-seed-prebsc-1-s1.binance.org:8545/',
+            'https://data-seed-prebsc-2-s1.binance.org:8545/',
+            'https://bsc-testnet.publicnode.com'
+        ],  // BSC Testnet
+        56: [
+            'https://bsc-dataseed.binance.org/',
+            'https://bsc-mainnet.public.blastapi.io',
+            'https://bsc.publicnode.com'
+        ],  // BSC Mainnet
+        1: [
+            'https://cloudflare-eth.com/',
+            'https://ethereum.publicnode.com',
+            'https://rpc.ankr.com/eth'
+        ],  // Ethereum Mainnet
+        137: [
+            'https://polygon-rpc.com/',
+            'https://polygon.publicnode.com',
+            'https://rpc.ankr.com/polygon'
+        ]   // Polygon Mainnet
+    };
+    
+    const urls = rpcUrls[chainId];
+    return urls ? urls[0] : null; // Retorna primeiro RPC disponível
+}
+
+/**
+ * Tenta obter código do contrato com retry
+ */
+async function getCodeWithRetry(contractAddress, maxRetries = 3) {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+            const code = await currentProvider.getCode(contractAddress);
+            return code;
+        } catch (error) {
+            console.warn(`⚠️ Tentativa ${attempt}/${maxRetries} falhou:`, error.message);
+            
+            if (attempt === maxRetries) {
+                throw error;
+            }
+            
+            // Aguarda antes de tentar novamente
+            await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+        }
+    }
+}
+
+/**
+ * Retry com provider alternativo - tenta múltiplos RPCs
+ */
+async function retryWithFallbackProvider(contractAddress) {
+    // Detecta chain ID
+    const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+    const chainIdDecimal = parseInt(chainId, 16);
+    
+    // Obtém lista de RPCs
+    const rpcUrls = getFallbackRpcUrls(chainIdDecimal);
+    if (!rpcUrls || rpcUrls.length === 0) {
+        throw new Error('Nenhum RPC alternativo disponível para esta rede');
+    }
+    
+    // Tenta cada RPC até encontrar um que funcione
+    for (let i = 0; i < rpcUrls.length; i++) {
+        try {
+            const rpcUrl = rpcUrls[i];
+            addContractMessage(`🔄 Tentando RPC ${i + 1}/${rpcUrls.length}: ${rpcUrl}`, 'info');
+            
+            // Cria novo provider
+            const fallbackProvider = new ethers.providers.JsonRpcProvider(rpcUrl);
+            
+            // Testa conectividade
+            await fallbackProvider.getNetwork();
+            
+            // Testa com novo provider
+            const code = await fallbackProvider.getCode(contractAddress);
+            if (code === '0x') {
+                throw new Error('Endereço não é um smart contract válido');
+            }
+            
+            addContractMessage('✅ Smart contract detectado via RPC alternativo', 'success');
+            
+            // Atualiza provider global
+            currentProvider = fallbackProvider;
+            currentSigner = null; // Sem signer no RPC público
+            
+            // Continua verificação
+            currentContract = new ethers.Contract(contractAddress, CONFIG.tokenABI, currentProvider);
+            await verifyERC20Functions();
+            await verifyBuyFunctions();
+            await loadTokenInfo();
+            showTokenInfo();
+            
+            addContractMessage('🎉 Contrato verificado com RPC alternativo!', 'success');
+            addContractMessage('⚠️ Para transações, reconecte com MetaMask', 'warning');
+            return; // Sucesso, sai da função
+            
+        } catch (error) {
+            console.warn(`❌ RPC ${rpcUrls[i]} falhou:`, error.message);
+            if (i === rpcUrls.length - 1) {
+                // Último RPC também falhou
+                throw new Error(`Todos os RPCs falharam. Último erro: ${error.message}`);
+            }
+        }
+    }
+}
+
+/**
+ * Retorna lista completa de RPCs para fallback
+ */
+function getFallbackRpcUrls(chainId) {
+    const rpcUrls = {
+        97: [
+            'https://data-seed-prebsc-1-s1.binance.org:8545/',
+            'https://data-seed-prebsc-2-s1.binance.org:8545/',
+            'https://bsc-testnet.publicnode.com',
+            'https://endpoints.omniatech.io/v1/bsc/testnet/public'
+        ],  // BSC Testnet
+        56: [
+            'https://bsc-dataseed.binance.org/',
+            'https://bsc-mainnet.public.blastapi.io',
+            'https://bsc.publicnode.com',
+            'https://endpoints.omniatech.io/v1/bsc/mainnet/public'
+        ],  // BSC Mainnet
+        1: [
+            'https://cloudflare-eth.com/',
+            'https://ethereum.publicnode.com',
+            'https://rpc.ankr.com/eth',
+            'https://endpoints.omniatech.io/v1/eth/mainnet/public'
+        ],  // Ethereum Mainnet
+        137: [
+            'https://polygon-rpc.com/',
+            'https://polygon.publicnode.com',
+            'https://rpc.ankr.com/polygon',
+            'https://endpoints.omniatech.io/v1/matic/mainnet/public'
+        ]   // Polygon Mainnet
+    };
+    
+    return rpcUrls[chainId] || [];
+}
+
 // ==================== EXPORTS ====================
 
 // Tornar funções disponíveis globalmente para compatibilidade
@@ -776,7 +969,9 @@ window.DynamicTokenPurchase = {
     addContractMessage,
     addPurchaseMessage,
     clearContractMessages,
-    clearPurchaseMessages
+    clearPurchaseMessages,
+    initializeProviderWithFallback,
+    retryWithFallbackProvider
 };
 
 // CSS para animação de loading
