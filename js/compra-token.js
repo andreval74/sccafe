@@ -581,6 +581,12 @@ async function executePurchase() {
         return;
     }
     
+    // Verifica se MetaMask está conectado
+    if (!walletConnected || !walletAddress) {
+        alert('Por favor, conecte sua carteira MetaMask primeiro');
+        return;
+    }
+    
     const quantityInput = document.getElementById('token-quantity');
     const priceInput = document.getElementById('token-price');
     
@@ -604,9 +610,23 @@ async function executePurchase() {
         clearPurchaseMessages();
         addPurchaseMessage('🚀 Iniciando transação de compra...', 'info');
         
+        // IMPORTANTE: Sempre usar MetaMask para transações (não RPC público)
+        const web3Provider = new ethers.providers.Web3Provider(window.ethereum);
+        const signer = web3Provider.getSigner();
+        
+        // Cria contrato com signer do MetaMask
+        const contractWithSigner = new ethers.Contract(
+            currentContract.address, 
+            CONFIG.tokenABI, 
+            signer
+        );
+        
+        console.log(`💰 Executando compra: ${quantity} tokens por ${totalValue} BNB`);
+        console.log(`📝 Função: ${buyFunctionName}()`);
+        console.log(`💎 Valor: ${valueInWei.toString()} wei`);
+        
         // Executa a transação
-        const contract = currentContract.connect(currentSigner);
-        const tx = await contract[buyFunctionName]({
+        const tx = await contractWithSigner[buyFunctionName]({
             value: valueInWei,
             gasLimit: CONFIG.gasLimit
         });
@@ -624,7 +644,23 @@ async function executePurchase() {
         
     } catch (error) {
         console.error('❌ Erro na compra:', error);
-        addPurchaseMessage(`❌ Erro: ${error.message}`, 'error');
+        
+        // Mensagens de erro mais detalhadas
+        let errorMessage = 'Erro desconhecido';
+        
+        if (error.code === 'INSUFFICIENT_FUNDS') {
+            errorMessage = 'Saldo insuficiente na carteira';
+        } else if (error.code === 'USER_REJECTED') {
+            errorMessage = 'Transação cancelada pelo usuário';
+        } else if (error.code === 'CALL_EXCEPTION') {
+            errorMessage = 'Erro no contrato - verifique os parâmetros';
+        } else if (error.message.includes('revert')) {
+            errorMessage = 'Transação rejeitada pelo contrato';
+        } else {
+            errorMessage = error.message;
+        }
+        
+        addPurchaseMessage(`❌ Erro: ${errorMessage}`, 'error');
     }
 }
 
