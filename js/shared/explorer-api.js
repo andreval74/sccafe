@@ -3,7 +3,7 @@
 /**
  * Busca informações do contrato no explorer
  */
-export async function fetchContractFromExplorer(address, chainId) {
+async function fetchContractFromExplorer(address, chainId) {
     try {
         const explorerApi = getExplorerApiUrl(chainId);
         if (!explorerApi) throw new Error('Explorer API não suportada para esta rede');
@@ -52,7 +52,7 @@ function getExplorerApiUrl(chainId) {
 /**
  * Verifica se um contrato está verificado
  */
-export async function isContractVerified(address, chainId) {
+async function isContractVerified(address, chainId) {
     try {
         const explorerApi = getExplorerApiUrl(chainId);
         if (!explorerApi) return false;
@@ -71,7 +71,7 @@ export async function isContractVerified(address, chainId) {
 /**
  * Busca o código fonte do contrato
  */
-export async function fetchContractSource(address, chainId) {
+async function fetchContractSource(address, chainId) {
     try {
         const explorerApi = getExplorerApiUrl(chainId);
         if (!explorerApi) throw new Error('Explorer API não suportada para esta rede');
@@ -86,3 +86,14 @@ export async function fetchContractSource(address, chainId) {
         throw error;
     }
 }
+
+// ==================== EXPORTS GLOBAIS ====================
+
+// Torna as funções disponíveis globalmente
+window.ExplorerAPI = {
+    fetchContractFromExplorer,
+    isContractVerified,
+    fetchContractSource
+};
+
+console.log('🔍 [EXPLORER-API] Módulo carregado - Funções disponíveis globalmente');

@@ -158,11 +158,22 @@ const SolProcessor = {
 };
 
 // Funções exportadas para uso global
-export async function processarArquivoSol(input) {
+async function processarArquivoSol(input) {
     if (!input?.files?.length) return;
     await SolProcessor.processFile(input.files[0]);
 }
 
-export function limparArquivoSol() {
+function limparArquivoSol() {
     SolProcessor.limpar();
 }
+
+// ==================== EXPORTS GLOBAIS ====================
+
+// Torna as funções disponíveis globalmente
+window.SolProcessorGlobal = {
+    processarArquivoSol,
+    limparArquivoSol,
+    SolProcessor
+};
+
+console.log('📄 [SOL-PROCESSOR] Módulo carregado - Funções disponíveis globalmente');

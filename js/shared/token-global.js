@@ -3,7 +3,7 @@
 /**
  * Fallback RPCs por rede
  */
-export const rpcFallbacks = {
+const rpcFallbacks = {
     97: [
         "https://data-seed-prebsc-1-s1.binance.org:8545/",
         "https://data-seed-prebsc-2-s1.binance.org:8545/",
@@ -32,7 +32,7 @@ export const rpcFallbacks = {
 /**
  * Formata números grandes
  */
-export function formatarNumero(numero) {
+function formatarNumero(numero) {
     if (!numero) return '0';
     
     const num = parseFloat(numero.toString().replace(/,/g, ''));
@@ -53,7 +53,7 @@ export function formatarNumero(numero) {
 /**
  * Obtém dados do token usando Web3/Ethers
  */
-export async function fetchTokenData(tokenAddress, provider) {
+async function fetchTokenData(tokenAddress, provider) {
     try {
         const abi = [
             "function name() view returns (string)",
@@ -90,7 +90,7 @@ export async function fetchTokenData(tokenAddress, provider) {
 /**
  * Obtém nome da rede baseado no chainId
  */
-export function getNetworkName(chainId) {
+function getNetworkName(chainId) {
     const networks = {
         '0x1': 'Ethereum',
         '0x38': 'BSC',
@@ -105,7 +105,7 @@ export function getNetworkName(chainId) {
 /**
  * Obtém URL do explorer baseado no chainId
  */
-export function getExplorerUrl(chainId) {
+function getExplorerUrl(chainId) {
     const explorers = {
         '0x1': 'https://etherscan.io',
         '0x38': 'https://bscscan.com',
@@ -120,7 +120,7 @@ export function getExplorerUrl(chainId) {
 /**
  * Conexão com MetaMask
  */
-export async function connectMetaMask() {
+async function connectMetaMask() {
     if (!window.ethereum) {
         throw new Error('MetaMask não detectado! Por favor, instale a extensão.');
     }
@@ -148,3 +148,17 @@ export async function connectMetaMask() {
         throw error;
     }
 }
+
+// ==================== EXPORTS GLOBAIS ====================
+
+// Torna as funções disponíveis globalmente
+window.TokenGlobal = {
+    rpcFallbacks,
+    formatarNumero,
+    fetchTokenData,
+    getNetworkName,
+    getExplorerUrl,
+    connectMetaMask
+};
+
+console.log('🎯 [TOKEN-GLOBAL] Módulo carregado - Funções disponíveis globalmente');

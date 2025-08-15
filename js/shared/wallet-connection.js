@@ -107,7 +107,7 @@ function updateConnectionInterface(status = '') {
  * Inicializa o componente de conexão da carteira
  * Corrige o problema de speculation rule inserindo o HTML de forma segura
  */
-export async function setupWalletConnection() {
+async function setupWalletConnection() {
     try {
         console.log('🔗 Configurando conexão da carteira...');
         
@@ -286,7 +286,7 @@ async function handleConnection(event) {
  * Retorna o provider atual da carteira conectada
  * @returns {Object|null} Provider do MetaMask ou null se não conectado
  */
-export function getCurrentProvider() {
+function getCurrentProvider() {
     return currentProvider;
 }
 
@@ -382,3 +382,13 @@ function setupGlobalListeners() {
     
     console.log('✅ Listeners globais configurados (sem duplicação)');
 }
+
+// ==================== EXPORTS GLOBAIS ====================
+
+// Torna as funções disponíveis globalmente
+window.WalletConnection = {
+    setupWalletConnection,
+    getCurrentProvider
+};
+
+console.log('🔗 [WALLET-CONNECTION] Módulo carregado - Funções disponíveis globalmente');
