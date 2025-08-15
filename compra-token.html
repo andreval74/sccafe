@@ -20,14 +20,8 @@ const contractAddress = "0x5265F80e30e019344a218Dd89b67cBE164511c65"; // Endere�
 const tokenDecimals = 18; // Decimais do token
 const tokenPrice = ethers.utils.parseEther("0.003"); // Preço inicial em tBNB por token
 
-// ABI mínimo necessário para a função receive() (compra direta)
-const contractABI = [
-    "receive() external payable"
-];
-
 let provider;
 let signer;
-let contract;
 
 async function connectWallet() {
     if (window.ethereum) {
@@ -35,7 +29,6 @@ async function connectWallet() {
             provider = new ethers.providers.Web3Provider(window.ethereum);
             await provider.send("eth_requestAccounts", []);
             signer = provider.getSigner();
-            contract = new ethers.Contract(contractAddress, contractABI, signer);
             document.getElementById("status").innerText = "Carteira conectada: " + await signer.getAddress();
         } catch (err) {
             addError("Erro ao conectar carteira: " + err.message);
