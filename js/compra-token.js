@@ -162,6 +162,9 @@ function setupEventListeners() {
     const purchaseBtn = document.getElementById('execute-purchase-btn');
     if (purchaseBtn) {
         purchaseBtn.addEventListener('click', executePurchase);
+        console.log('✅ Event listener configurado para botão de compra');
+    } else {
+        console.error('❌ Botão de compra não encontrado ao configurar listeners');
     }
 }
 
@@ -446,25 +449,31 @@ async function verifyERC20Functions() {
 async function verifyBuyFunctions() {
     const buyFunctions = ['buy', 'buyTokens', 'purchase'];
     
+    addContractMessage('🔍 Verificando funções de compra...', 'info');
+    
     for (const funcName of buyFunctions) {
         try {
-            // Verifica se a função existe tentando fazer um call estático
+            console.log(`🔍 Testando função: ${funcName}()`);
+            
+            // Verifica se a função existe no ABI
             const func = currentContract[funcName];
-            if (func) {
+            if (func && typeof func === 'function') {
+                console.log(`✅ Função ${funcName}() encontrada no contrato`);
                 buyFunctionName = funcName;
                 updateCompatibilityStatus('buyStatus', '✅ Disponível', 'success');
                 addContractMessage(`✅ Função de compra "${funcName}" detectada`, 'success');
                 return;
             }
         } catch (error) {
-            // Função não existe, continua testando
+            console.log(`❌ Função ${funcName}() não disponível: ${error.message}`);
         }
     }
     
-    // Nenhuma função de compra encontrada
-    updateCompatibilityStatus('buyStatus', '❌ Não disponível', 'warning');
-    addContractMessage('⚠️ Função de compra direta não detectada', 'warning');
-    buyFunctionName = null;
+    // Se não encontrou nenhuma, usa 'buy' como padrão
+    console.log('⚠️ Nenhuma função específica detectada, usando "buy" como padrão');
+    buyFunctionName = 'buy';
+    updateCompatibilityStatus('buyStatus', '⚠️ Função padrão', 'warning');
+    addContractMessage('⚠️ Usando função padrão "buy()" - será testada na compra', 'warning');
 }
 
 /**
@@ -564,16 +573,80 @@ function enablePurchaseSection() {
     const quantityInput = document.getElementById('token-quantity');
     const purchaseBtn = document.getElementById('execute-purchase-btn');
     
-    if (section) section.style.display = 'block';
+    console.log('🔧 Habilitando seção de compra...');
+    console.log('📍 Seção encontrada:', section ? 'SIM' : 'NÃO');
+    console.log('📍 Campo quantidade encontrado:', quantityInput ? 'SIM' : 'NÃO');
+    console.log('📍 Botão compra encontrado:', purchaseBtn ? 'SIM' : 'NÃO');
+    console.log('📍 Função de compra:', buyFunctionName);
+    
+    if (section) {
+        section.style.display = 'block';
+        console.log('✅ Seção de compra exibida');
+    }
     
     // Campo de preço permanece READ-ONLY (já configurado em updateTokenInfoUI)
     // Não habilitamos edição do preço pois é detectado do contrato
     
-    if (quantityInput) quantityInput.disabled = false;
-    if (purchaseBtn && buyFunctionName) purchaseBtn.disabled = false;
+    if (quantityInput) {
+        quantityInput.disabled = false;
+        console.log('✅ Campo quantidade habilitado');
+    }
+    
+    // SEMPRE habilita o botão se há função de compra detectada
+    // OU se quisermos permitir tentativa mesmo sem detecção
+    if (purchaseBtn) {
+        if (buyFunctionName) {
+            purchaseBtn.disabled = false;
+            purchaseBtn.style.opacity = '1';
+            purchaseBtn.style.cursor = 'pointer';
+            console.log(`✅ Botão habilitado - Função: ${buyFunctionName}()`);
+        } else {
+            // Força habilitação para teste, usando 'buy' como padrão
+            buyFunctionName = 'buy';
+            purchaseBtn.disabled = false;
+            purchaseBtn.style.opacity = '1';
+            purchaseBtn.style.cursor = 'pointer';
+            console.log('✅ Botão habilitado - Usando função padrão: buy()');
+        }
+    } else {
+        console.error('❌ Botão de compra não encontrado no DOM!');
+    }
     
     console.log('🛒 Seção de compra habilitada - Preço fixo do contrato');
+    
+    // FORÇA habilitação após um pequeno delay para garantir que o DOM está pronto
+    setTimeout(() => {
+        const btn = document.getElementById('execute-purchase-btn');
+        if (btn && btn.disabled) {
+            console.log('🔧 Forçando habilitação do botão após delay...');
+            btn.disabled = false;
+            btn.style.opacity = '1';
+            btn.style.cursor = 'pointer';
+            btn.style.backgroundColor = '#0d6efd';
+            console.log('✅ Botão forçadamente habilitado');
+        }
+    }, 500);
 }
+
+/**
+ * Debug do estado do botão de compra - função global para console
+ */
+function debugPurchaseButton() {
+    const btn = document.getElementById('execute-purchase-btn');
+    console.log('🔧 DEBUG BOTÃO DE COMPRA:');
+    console.log('📍 Botão encontrado:', btn ? 'SIM' : 'NÃO');
+    if (btn) {
+        console.log('📍 Disabled:', btn.disabled);
+        console.log('📍 Style opacity:', btn.style.opacity);
+        console.log('📍 Style cursor:', btn.style.cursor);
+        console.log('📍 Classes:', btn.className);
+        console.log('📍 Texto:', btn.textContent.trim());
+    }
+    console.log('📍 buyFunctionName:', buyFunctionName);
+}
+
+// Torna disponível no console para debug
+window.debugPurchaseButton = debugPurchaseButton;
 
 /**
  * Calcula total da compra
