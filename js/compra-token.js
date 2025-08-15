@@ -36,10 +36,13 @@ const CONFIG = {
         "function decimals() view returns (uint8)",
         "function transfer(address to, uint256 amount) returns (bool)",
         
-        // Funções para verificar compra direta
+        // Funções para verificar compra direta (expandido)
         "function buy() payable",
+        "function buy(uint256 amount) payable",
         "function buyTokens() payable",
+        "function buyTokens(uint256 amount) payable",
         "function purchase() payable",
+        "function purchase(uint256 amount) payable",
         
         // Funções para detectar preço (expandido)
         "function tokenPrice() view returns (uint256)",
@@ -62,7 +65,13 @@ const CONFIG = {
         "function tokensAvailable() view returns (uint256)",
         "function isWhitelisted(address) view returns (bool)",
         "function purchaseLimit(address) view returns (uint256)",
-        "function hasPurchased(address) view returns (bool)"
+        "function hasPurchased(address) view returns (bool)",
+        
+        // Funções de cálculo específicas
+        "function calculateTokensForEth(uint256 ethAmount) view returns (uint256)",
+        "function calculateEthForTokens(uint256 tokenAmount) view returns (uint256)",
+        "function getTokensForEth(uint256 ethAmount) view returns (uint256)",
+        "function getEthForTokens(uint256 tokenAmount) view returns (uint256)"
     ],
     
     // Configurações de gas
@@ -687,25 +696,33 @@ async function executePurchase() {
             }
         }
         
-        // SIMULAÇÃO DA TRANSAÇÃO (usando MetaMask)
-        addPurchaseMessage('🧪 Simulando transação...', 'info');
+        // SIMULAÇÃO COM DIFERENTES VALORES PARA ENCONTRAR O PROBLEMA
+        addPurchaseMessage('🧪 Testando diferentes cenários...', 'info');
         try {
             // Cria provider MetaMask apenas para simulação
             const metamaskProvider = new ethers.providers.Web3Provider(window.ethereum);
             const metamaskSigner = metamaskProvider.getSigner();
             const contractForSim = new ethers.Contract(currentContract.address, CONFIG.tokenABI, metamaskSigner);
             
-            // Simulação estática
-            await contractForSim.callStatic[buyFunctionName]({
-                value: valueInWei,
-                from: walletAddress
-            });
-            
-            console.log('✅ Simulação bem-sucedida - transação deve funcionar');
-            addPurchaseMessage('✅ Simulação bem-sucedida', 'success');
+            // Teste 1: Simulação com valor exato
+            console.log('🧪 Teste 1: Simulação com valor exato');
+            try {
+                await contractForSim.callStatic[buyFunctionName]({
+                    value: valueInWei,
+                    from: walletAddress
+                });
+                console.log('✅ Simulação com valor exato: SUCESSO');
+                addPurchaseMessage('✅ Simulação bem-sucedida', 'success');
+            } catch (simError1) {
+                console.log('❌ Simulação com valor exato: FALHOU');
+                console.log('🔍 Razão:', simError1.reason || simError1.message);
+                
+                // Tenta extrair a razão específica do revert
+                await analyzeRevertReason(simError1, contractForSim, valueInWei);
+            }
             
         } catch (simError) {
-            console.warn('⚠️ Simulação falhou:', simError.message);
+            console.warn('⚠️ Erro na simulação geral:', simError.message);
             
             // Análise do erro de simulação
             if (simError.message.includes('missing trie node')) {
@@ -805,6 +822,30 @@ async function executePurchase() {
             // Tenta extrair razão do revert
             if (error.reason) {
                 errorMessage += `\nRazão: ${error.reason}`;
+                console.log(`🔍 Razão específica do revert: ${error.reason}`);
+            } else {
+                // Tenta extrair da mensagem
+                const revertMatch = error.message.match(/revert (.+)/i);
+                if (revertMatch) {
+                    errorMessage += `\nRazão: ${revertMatch[1]}`;
+                    console.log(`🔍 Razão extraída: ${revertMatch[1]}`);
+                }
+            }
+            
+            // Análise de reverts comuns
+            const errorMsg = error.message.toLowerCase();
+            if (errorMsg.includes('execution reverted')) {
+                errorMessage += '\n\n💡 O contrato executou mas rejeitou a transação.';
+                errorMessage += '\nIsso indica que alguma condição interna não foi atendida.';
+                
+                // Sugestões baseadas no gas baixo (21307)
+                if (error.receipt && error.receipt.gasUsed.toNumber() < 25000) {
+                    errorMessage += '\n\n🔍 Sugestões específicas (gas baixo):';
+                    errorMessage += '\n• Verifique se o contrato aceita pagamentos em BNB';
+                    errorMessage += '\n• Confirme se a quantidade está dentro dos limites';
+                    errorMessage += '\n• Verifique se sua conta está autorizada';
+                    errorMessage += '\n• Contrato pode estar pausado temporariamente';
+                }
             }
         } else {
             errorMessage = error.message;
@@ -914,6 +955,94 @@ async function performAdvancedContractDiagnostics(provider) {
     }
     
     console.log('✅ Diagnóstico avançado concluído - nenhum problema detectado');
+}
+
+/**
+ * Analisa a razão específica do revert para dar feedback preciso
+ */
+async function analyzeRevertReason(error, contract, valueInWei) {
+    console.log('🔍 Analisando razão do revert...');
+    
+    // Tenta extrair mensagem de revert
+    let revertReason = 'Desconhecida';
+    if (error.reason) {
+        revertReason = error.reason;
+    } else if (error.message.includes('revert')) {
+        const match = error.message.match(/revert (.+)/);
+        if (match) {
+            revertReason = match[1];
+        }
+    }
+    
+    console.log(`🚨 Razão do revert: ${revertReason}`);
+    
+    // Testes específicos baseados em padrões comuns
+    const testScenarios = [
+        {
+            name: 'Valor muito baixo',
+            test: async () => {
+                const minValue = ethers.utils.parseEther('0.001'); // 0.001 BNB
+                return await contract.callStatic[buyFunctionName]({ value: minValue, from: walletAddress });
+            }
+        },
+        {
+            name: 'Valor dobrado',
+            test: async () => {
+                const doubleValue = valueInWei.mul(2);
+                return await contract.callStatic[buyFunctionName]({ value: doubleValue, from: walletAddress });
+            }
+        },
+        {
+            name: 'Valor exato do preço',
+            test: async () => {
+                const exactPrice = ethers.utils.parseEther(tokenInfo.price);
+                return await contract.callStatic[buyFunctionName]({ value: exactPrice, from: walletAddress });
+            }
+        },
+        {
+            name: 'Sem valor (0 BNB)',
+            test: async () => {
+                return await contract.callStatic[buyFunctionName]({ value: 0, from: walletAddress });
+            }
+        }
+    ];
+    
+    for (const scenario of testScenarios) {
+        try {
+            console.log(`🧪 Testando: ${scenario.name}`);
+            await scenario.test();
+            console.log(`✅ ${scenario.name}: FUNCIONOU!`);
+            addPurchaseMessage(`💡 Descoberta: ${scenario.name} funciona - ajuste necessário`, 'warning');
+            return;
+        } catch (testError) {
+            console.log(`❌ ${scenario.name}: ${testError.reason || 'Falhou'}`);
+        }
+    }
+    
+    // Análise de padrões comuns de revert
+    const commonReverts = {
+        'insufficient funds': 'Saldo insuficiente no contrato ou usuário',
+        'not enough tokens': 'Contrato sem tokens suficientes',
+        'paused': 'Contrato está pausado',
+        'not whitelisted': 'Endereço não está na whitelist',
+        'sale not active': 'Venda não está ativa',
+        'minimum purchase': 'Valor abaixo do mínimo',
+        'maximum purchase': 'Valor acima do máximo',
+        'already purchased': 'Usuário já comprou antes',
+        'wrong price': 'Preço incorreto',
+        'invalid amount': 'Quantidade inválida'
+    };
+    
+    for (const [pattern, explanation] of Object.entries(commonReverts)) {
+        if (revertReason.toLowerCase().includes(pattern)) {
+            console.log(`💡 Padrão identificado: ${explanation}`);
+            addPurchaseMessage(`❌ Erro identificado: ${explanation}`, 'error');
+            return;
+        }
+    }
+    
+    // Se não conseguiu identificar, mostra a razão bruta
+    addPurchaseMessage(`❌ Contrato rejeitou: ${revertReason}`, 'error');
 }
 
 // ==================== FUNÇÕES AUXILIARES ====================
