@@ -90,7 +90,6 @@ async function checkInitialWalletState() {
                 walletConnected = true;
                 await detectNetwork();
                 updateWalletUI();
-                enableContractSection();
             }
         } catch (error) {
             console.log('Wallet não conectada previamente');
@@ -165,7 +164,6 @@ async function connectWallet() {
             // Atualiza UI
             await detectNetwork();
             updateWalletUI();
-            enableContractSection();
             
             console.log('✅ Wallet conectada:', walletAddress);
         }
@@ -203,6 +201,9 @@ function updateWalletUI() {
         if (networkSection) {
             networkSection.style.display = 'block';
         }
+        
+        // Habilita seção de contrato apenas após conexão
+        enableContractSection();
     }
 }
 
@@ -260,17 +261,37 @@ function getNetworkInfo(chainId) {
  * Habilita seção de contrato após conexão
  */
 function enableContractSection() {
+    // Mostra a seção de contrato
+    const contractSection = document.getElementById('contract-section');
+    if (contractSection) {
+        contractSection.style.display = 'block';
+        
+        // Adiciona animação de slide down
+        contractSection.style.opacity = '0';
+        contractSection.style.transform = 'translateY(-20px)';
+        
+        setTimeout(() => {
+            contractSection.style.transition = 'all 0.3s ease-in-out';
+            contractSection.style.opacity = '1';
+            contractSection.style.transform = 'translateY(0)';
+        }, 100);
+    }
+    
+    // Habilita campos
     const contractInput = document.getElementById('contract-address');
     const verifyBtn = document.getElementById('verify-contract-btn');
     
     if (contractInput) {
         contractInput.disabled = false;
         contractInput.placeholder = "0x1234567890123456789012345678901234567890";
+        contractInput.classList.add('border-success');
     }
     
     if (verifyBtn) {
         verifyBtn.disabled = false;
     }
+    
+    console.log('✅ Seção de contrato habilitada após conexão');
 }
 
 /**
@@ -367,7 +388,6 @@ async function verifyContract() {
     } finally {
         updateVerifyButton(false);
     }
-}
 }
 
 /**
@@ -764,7 +784,6 @@ function initializeWalletConnection() {
                 walletAddress = accounts[0];
                 walletConnected = true;
                 updateWalletUI();
-                enableContractSection();
             } else {
                 walletConnected = false;
                 walletAddress = '';
