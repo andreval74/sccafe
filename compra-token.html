@@ -17,7 +17,7 @@
 <script>
 const contractAddress = "0x5265F80e30e019344a218Dd89b67cBE164511c65"; // Endereço do TKN na testnet
 const tokenDecimals = 18; // Decimais do token
-const tokenPrice = ethers.parseEther("0.003"); // Preço inicial em tBNB por token
+const tokenPrice = ethers.utils.parseEther("0.003"); // Preço inicial em tBNB por token
 
 // ABI mínimo necessário para a função receive() (compra direta)
 const contractABI = [
@@ -48,7 +48,7 @@ async function buyTokens() {
     }
 
     const amountBNB = tokenPrice * amountInput; // total a pagar
-    const amountWei = ethers.parseEther(amountBNB.toString());
+    const amountWei = ethers.utils.parseEther(amountBNB.toString());
 
     try {
         const tx = await signer.sendTransaction({
