@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Compra Direta TKN</title>
+<script src="https://cdn.jsdelivr.net/npm/ethers@6.9.0/dist/ethers.min.js"></script>
+</head>
+<body>
+<h2>Compra Direta de TKN</h2>
+
+<label>Quantidade de Tokens:</label>
+<input type="number" id="tokenAmount" placeholder="Quantidade de tokens" min="1">
+<button id="buyButton">Comprar</button>
+
+<p id="status"></p>
+
+<script>
+const contractAddress = "0x5265F80e30e019344a218Dd89b67cBE164511c65"; // Endereço do TKN na testnet
+const tokenDecimals = 18; // Decimais do token
+const tokenPrice = ethers.parseEther("0.003"); // Preço inicial em tBNB por token
+
+// ABI mínimo necessário para a função receive() (compra direta)
+const contractABI = [
+    "receive() external payable"
+];
+
+let provider;
+let signer;
+let contract;
+
+async function connectWallet() {
+    if (window.ethereum) {
+        provider = new ethers.BrowserProvider(window.ethereum);
+        await provider.send("eth_requestAccounts", []);
+        signer = await provider.getSigner();
+        contract = new ethers.Contract(contractAddress, contractABI, signer);
+        document.getElementById("status").innerText = "Carteira conectada: " + await signer.getAddress();
+    } else {
+        alert("Instale a Metamask ou outro provedor Web3!");
+    }
+}
+
+async function buyTokens() {
+    const amountInput = document.getElementById("tokenAmount").value;
+    if (!amountInput || amountInput <= 0) {
+        alert("Informe a quantidade de tokens.");
+        return;
+    }
+
+    const amountBNB = tokenPrice * amountInput; // total a pagar
+    const amountWei = ethers.parseEther(amountBNB.toString());
+
+    try {
+        const tx = await signer.sendTransaction({
+            to: contractAddress,
+            value: amountWei
+        });
+        document.getElementById("status").innerText = "Transação enviada. Aguarde confirmação...";
+        await tx.wait();
+        document.getElementById("status").innerText = `Compra concluída! Você comprou ${amountInput} tokens. Tx: ${tx.hash}`;
+    } catch (err) {
+        console.error(err);
+        document.getElementById("status").innerText = "Erro na transação: " + err.message;
+    }
+}
+
+// Eventos do botão
+document.getElementById("buyButton").addEventListener("click", async () => {
+    if (!signer) await connectWallet();
+    await buyTokens();
+});
+</script>
+</body>
+</html>
