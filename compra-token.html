@@ -13,6 +13,7 @@
 <button id="buyButton">Comprar</button>
 
 <p id="status"></p>
+<ul id="errorList" style="color:red;"></ul>
 
 <script>
 const contractAddress = "0x5265F80e30e019344a218Dd89b67cBE164511c65"; // Endereço do TKN na testnet
@@ -30,25 +31,37 @@ let contract;
 
 async function connectWallet() {
     if (window.ethereum) {
-        provider = new ethers.BrowserProvider(window.ethereum);
-        await provider.send("eth_requestAccounts", []);
-        signer = await provider.getSigner();
-        contract = new ethers.Contract(contractAddress, contractABI, signer);
-        document.getElementById("status").innerText = "Carteira conectada: " + await signer.getAddress();
+        try {
+            provider = new ethers.providers.Web3Provider(window.ethereum);
+            await provider.send("eth_requestAccounts", []);
+            signer = provider.getSigner();
+            contract = new ethers.Contract(contractAddress, contractABI, signer);
+            document.getElementById("status").innerText = "Carteira conectada: " + await signer.getAddress();
+        } catch (err) {
+            addError("Erro ao conectar carteira: " + err.message);
+            throw err;
+        }
     } else {
         alert("Instale a Metamask ou outro provedor Web3!");
     }
 }
 
 async function buyTokens() {
+    clearErrors();
     const amountInput = document.getElementById("tokenAmount").value;
     if (!amountInput || amountInput <= 0) {
-        alert("Informe a quantidade de tokens.");
+        addError("Informe a quantidade de tokens.");
         return;
     }
 
-    const amountBNB = tokenPrice * amountInput; // total a pagar
-    const amountWei = ethers.utils.parseEther(amountBNB.toString());
+    let amountBNB, amountWei;
+    try {
+        amountBNB = tokenPrice * amountInput; // total a pagar
+        amountWei = ethers.utils.parseEther(amountBNB.toString());
+    } catch (err) {
+        addError("Erro ao calcular valor em BNB: " + err.message);
+        return;
+    }
 
     try {
         const tx = await signer.sendTransaction({
@@ -59,15 +72,30 @@ async function buyTokens() {
         await tx.wait();
         document.getElementById("status").innerText = `Compra concluída! Você comprou ${amountInput} tokens. Tx: ${tx.hash}`;
     } catch (err) {
-        console.error(err);
-        document.getElementById("status").innerText = "Erro na transação: " + err.message;
+        addError("Erro na transação: " + err.message);
     }
+}
+
+// Funções para manipular lista de erros
+function addError(msg) {
+    const ul = document.getElementById("errorList");
+    const li = document.createElement("li");
+    li.textContent = msg;
+    ul.appendChild(li);
+}
+function clearErrors() {
+    document.getElementById("errorList").innerHTML = "";
 }
 
 // Eventos do botão
 document.getElementById("buyButton").addEventListener("click", async () => {
-    if (!signer) await connectWallet();
-    await buyTokens();
+    clearErrors();
+    try {
+        if (!signer) await connectWallet();
+        await buyTokens();
+    } catch (err) {
+        addError("Erro inesperado: " + err.message);
+    }
 });
 </script>
 </body>
