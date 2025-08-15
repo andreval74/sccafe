@@ -8,6 +8,7 @@
 <body>
 <h2>Compra Direta de TKN</h2>
 
+<button id="checkContract">Verificar Contrato</button>
 <label>Quantidade de Tokens:</label>
 <input type="number" id="tokenAmount" placeholder="Quantidade de tokens" min="1">
 <button id="buyButton">Comprar</button>
@@ -47,6 +48,11 @@ async function buyTokens() {
         return;
     }
 
+    if (!signer) {
+        addError("Carteira não conectada.");
+        return;
+    }
+
     let amountBNB, amountWei;
     try {
         amountBNB = tokenPrice.mul(ethers.BigNumber.from(amountInput)); // total a pagar
@@ -56,16 +62,91 @@ async function buyTokens() {
         return;
     }
 
+    // Verificar saldo antes de enviar
     try {
+        const balance = await signer.getBalance();
+        
+        if (balance.lt(amountWei)) {
+            addError("Saldo insuficiente para a transação.");
+            return;
+        }
+    } catch (err) {
+        addError("Erro ao verificar saldo: " + err.message);
+        return;
+    }
+
+    // Verificar rede
+    try {
+        const network = await provider.getNetwork();
+        
+        if (network.chainId !== 97) { // BSC Testnet
+            addError("Por favor, conecte-se à BSC Testnet (chainId: 97)");
+            return;
+        }
+    } catch (err) {
+        addError("Erro ao verificar rede: " + err.message);
+        return;
+    }
+
+    try {
+        document.getElementById("status").innerText = "Enviando transação...";
+        
         const tx = await signer.sendTransaction({
             to: contractAddress,
             value: amountWei
         });
+        
         document.getElementById("status").innerText = "Transação enviada. Aguarde confirmação...";
         await tx.wait();
         document.getElementById("status").innerText = `Compra concluída! Você comprou ${amountInput} tokens. Tx: ${tx.hash}`;
     } catch (err) {
         addError("Erro na transação: " + err.message);
+        if (err.reason) {
+            addError("Motivo: " + err.reason);
+        }
+    }
+}
+
+async function checkContract() {
+    clearErrors();
+    
+    if (!provider) {
+        try {
+            provider = new ethers.providers.Web3Provider(window.ethereum);
+        } catch (err) {
+            addError("Erro ao conectar com o provider: " + err.message);
+            return;
+        }
+    }
+    
+    try {
+        // Verificar se existe código no endereço
+        const code = await provider.getCode(contractAddress);
+        
+        if (code === '0x') {
+            addError("❌ PROBLEMA: Não existe contrato neste endereço!");
+            addError("O endereço pode estar incorreto ou o contrato não foi deployed.");
+        } else {
+            addError("✅ Contrato encontrado no endereço.");
+            
+            // Verificar se tem saldo (pode receber BNB)
+            const balance = await provider.getBalance(contractAddress);
+            addError(`Saldo do contrato: ${ethers.utils.formatEther(balance)} BNB`);
+            
+            // Tentar estimar gas para uma transação pequena
+            try {
+                const testGas = await provider.estimateGas({
+                    to: contractAddress,
+                    value: ethers.utils.parseEther("0.001") // 0.001 BNB de teste
+                });
+                addError("✅ Contrato aceita transações BNB.");
+            } catch (gasErr) {
+                addError("❌ PROBLEMA: Contrato rejeita transações BNB.");
+                addError("Motivo: " + gasErr.message);
+            }
+        }
+    } catch (err) {
+        addError("Erro ao verificar contrato: " + err.message);
     }
 }
 
@@ -80,7 +161,8 @@ function clearErrors() {
     document.getElementById("errorList").innerHTML = "";
 }
 
-// Eventos do botão
+// Eventos dos botões
+document.getElementById("checkContract").addEventListener("click", checkContract);
 document.getElementById("buyButton").addEventListener("click", async () => {
     clearErrors();
     try {
