@@ -125,7 +125,7 @@
                 <div class="col-md-8">
                   <label for="tokenAmount" class="form-label text-white">Quantidade de Tokens</label>
                   <input type="number" id="tokenAmount" class="form-control bg-dark text-white border-secondary" 
-                         placeholder="Ex: 100" min="1" oninput="calculateTotal()">
+                         placeholder="Ex: 100" min="1">
                 </div>
                 <div class="col-md-4 d-flex align-items-end">
                   <button id="buyButton" class="btn btn-success w-100 btn-lg fw-bold">
@@ -204,9 +204,22 @@
 <!-- Footer -->
 <footer data-component="footer"></footer>
 
-<script>
-const contractAddress = "0x5265F80e30e019344a218Dd89b67cBE164511c65"; // Endereço do TKN na testnet
-const tokenDecimals = 18; // Decimais do token
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- SCCAFE Shared Modules (carregados antes do módulo específico) -->
+<script src="js/shared/metamask-connector.js"></script>
+<script src="js/shared/common-utils.js"></script>
+<script src="js/shared/token-global.js"></script>
+
+<!-- Template Loader -->
+<script src="js/template-loader.js"></script>
+
+<!-- Módulo de Compra de Tokens -->
+<script src="js/compra-token.js"></script>
+
+</body>
+</html>
 const tokenPrice = ethers.utils.parseEther("0.003"); // Preço inicial em tBNB por token
 const tokenPriceFormatted = "0.003"; // Para exibição
 
@@ -627,14 +640,14 @@ async function connectWallet() {
             // Verificar rede
             const network = await provider.getNetwork();
             if (network.chainId !== 97) {
-                addError("⚠️ Você está na rede " + network.name + " (chainId: " + network.chainId + ")");
-                addError("Por favor, mude para BSC Testnet (chainId: 97)");
+                addConnectionError("⚠️ Você está na rede " + network.name + " (chainId: " + network.chainId + ")");
+                addConnectionError("Por favor, mude para BSC Testnet (chainId: 97)");
             } else {
-                addError("✅ Conectado à BSC Testnet");
+                addConnectionError("✅ Conectado à BSC Testnet");
             }
             
         } catch (err) {
-            addError("Erro ao conectar carteira: " + err.message);
+            addConnectionError("Erro ao conectar carteira: " + err.message);
             throw err;
         }
     } else {
@@ -643,15 +656,14 @@ async function connectWallet() {
 }
 
 async function buyTokens() {
-    clearErrors();
     const amountInput = document.getElementById("tokenAmount").value;
     if (!amountInput || amountInput <= 0) {
-        addError("Informe a quantidade de tokens.");
+        addPurchaseError("Informe a quantidade de tokens.");
         return;
     }
 
     if (!signer) {
-        addError("Carteira não conectada.");
+        addPurchaseError("Carteira não conectada.");
         return;
     }
 
@@ -660,7 +672,7 @@ async function buyTokens() {
     if (availableText !== "Carregando..." && availableText !== "N/A") {
         const available = parseFloat(availableText);
         if (parseFloat(amountInput) > available) {
-            addError(`❌ Tokens insuficientes! Disponível: ${available.toLocaleString()}, Solicitado: ${amountInput}`);
+            addPurchaseError(`❌ Tokens insuficientes! Disponível: ${available.toLocaleString()}, Solicitado: ${amountInput}`);
             return;
         }
     }
@@ -669,15 +681,15 @@ async function buyTokens() {
     try {
         amountBNB = tokenPrice.mul(ethers.BigNumber.from(amountInput));
         amountWei = amountBNB;
-        addError(`💰 Valor calculado: ${ethers.utils.formatEther(amountWei)} BNB para ${amountInput} tokens`);
+        addPurchaseError(`💰 Valor calculado: ${ethers.utils.formatEther(amountWei)} BNB para ${amountInput} tokens`);
     } catch (err) {
-        addError("Erro ao calcular valor em BNB: " + err.message);
+        addPurchaseError("Erro ao calcular valor em BNB: " + err.message);
         return;
     }
 
     try {
         document.getElementById("status").innerText = "Enviando transação...";
-        addError("📤 Preparando transação...");
+        addPurchaseError("📤 Preparando transação...");
         
         // Transação direta sem verificações que causam erro RPC
         const tx = await signer.sendTransaction({
@@ -687,7 +699,7 @@ async function buyTokens() {
         });
         
         document.getElementById("status").innerText = "Transação enviada. Aguarde confirmação...";
-        addError("⏳ Transação enviada, aguardando confirmação...");
+        addPurchaseError("⏳ Transação enviada, aguardando confirmação...");
         
         const receipt = await tx.wait();
         
@@ -711,61 +723,60 @@ async function buyTokens() {
         document.getElementById("transactionDetails").style.display = "block";
         
         document.getElementById("status").innerText = `✅ Compra concluída! Hash: ${tx.hash}`;
-        addError(`✅ Transação confirmada no bloco ${receipt.blockNumber}`);
-        addError(`🎉 Você comprou ${amountInput} tokens!`);
+        addPurchaseError(`✅ Transação confirmada no bloco ${receipt.blockNumber}`);
+        addPurchaseError(`🎉 Você comprou ${amountInput} tokens!`);
         
         // Atualizar saldo do contrato após a transação
         setTimeout(() => {
-            addError("🔄 Atualizando informações do contrato...");
+            addPurchaseError("🔄 Atualizando informações do contrato...");
             checkContract();
         }, 3000);
         
     } catch (err) {
-        addError("❌ Erro na transação: " + err.message);
+        addPurchaseError("❌ Erro na transação: " + err.message);
         if (err.reason) {
-            addError("Motivo: " + err.reason);
+            addPurchaseError("Motivo: " + err.reason);
         }
         if (err.code) {
-            addError("Código do erro: " + err.code);
+            addPurchaseError("Código do erro: " + err.code);
         }
         
         // Dicas de solução
         if (err.message.includes("insufficient funds")) {
-            addError("💡 Dica: Você não tem BNB suficiente para a transação + taxas de gas.");
+            addPurchaseError("💡 Dica: Você não tem BNB suficiente para a transação + taxas de gas.");
         }
         if (err.message.includes("execution reverted")) {
-            addError("💡 Dica: O contrato rejeitou a transação. Verifique se há tokens disponíveis.");
+            addPurchaseError("💡 Dica: O contrato rejeitou a transação. Verifique se há tokens disponíveis.");
         }
     }
 }
 
 async function checkContract() {
-    clearErrors();
     
     // Tentar com um provider público da BSC Testnet
     const publicProvider = new ethers.providers.JsonRpcProvider("https://data-seed-prebsc-1-s1.binance.org:8545/");
     
     try {
-        addError("🔍 Verificando contrato...");
+        addContractError("🔍 Verificando contrato...");
         
         // Verificar se existe código no endereço
         const code = await publicProvider.getCode(contractAddress);
         
         if (code === '0x') {
-            addError("❌ PROBLEMA: Não existe contrato neste endereço!");
-            addError("O endereço pode estar incorreto ou o contrato não foi deployed na BSC Testnet.");
+            addContractError("❌ PROBLEMA: Não existe contrato neste endereço!");
+            addContractError("O endereço pode estar incorreto ou o contrato não foi deployed na BSC Testnet.");
             return;
         } else {
-            addError("✅ Contrato encontrado no endereço.");
+            addContractError("✅ Contrato encontrado no endereço.");
         }
         
         // Verificar saldo do contrato em BNB
         const balance = await publicProvider.getBalance(contractAddress);
-        addError(`💰 Saldo BNB do contrato: ${ethers.utils.formatEther(balance)} BNB`);
+        addContractError(`💰 Saldo BNB do contrato: ${ethers.utils.formatEther(balance)} BNB`);
         
         // Verificar conectividade da rede
         const blockNumber = await publicProvider.getBlockNumber();
-        addError(`📡 Bloco atual BSC Testnet: ${blockNumber}`);
+        addContractError(`📡 Bloco atual BSC Testnet: ${blockNumber}`);
         
         // Tentar acessar as funções do token ERC-20
         try {
@@ -783,20 +794,20 @@ async function checkContract() {
             document.getElementById("totalSupply").textContent = ethers.utils.formatUnits(totalSupply, tokenDecimals);
             document.getElementById("tokenBalance").textContent = ethers.utils.formatUnits(contractTokenBalance, tokenDecimals);
             
-            addError(`✅ Token: ${name} (${symbol})`);
-            addError(`📊 Total Supply: ${ethers.utils.formatUnits(totalSupply, tokenDecimals)} ${symbol}`);
-            addError(`🪙 Tokens disponíveis no contrato: ${ethers.utils.formatUnits(contractTokenBalance, tokenDecimals)} ${symbol}`);
+            addContractError(`✅ Token: ${name} (${symbol})`);
+            addContractError(`📊 Total Supply: ${ethers.utils.formatUnits(totalSupply, tokenDecimals)} ${symbol}`);
+            addContractError(`🪙 Tokens disponíveis no contrato: ${ethers.utils.formatUnits(contractTokenBalance, tokenDecimals)} ${symbol}`);
             
             // Verificar se tem tokens suficientes para venda
             if (contractTokenBalance.gt(0)) {
-                addError("✅ Contrato tem tokens disponíveis para venda.");
+                addContractError("✅ Contrato tem tokens disponíveis para venda.");
             } else {
-                addError("⚠️ ATENÇÃO: Contrato não tem tokens para venda!");
+                addContractError("⚠️ ATENÇÃO: Contrato não tem tokens para venda!");
             }
             
         } catch (tokenErr) {
-            addError("⚠️ Não foi possível acessar funções ERC-20: " + tokenErr.message);
-            addError("O contrato pode não ser um token ERC-20 padrão.");
+            addContractError("⚠️ Não foi possível acessar funções ERC-20: " + tokenErr.message);
+            addContractError("O contrato pode não ser um token ERC-20 padrão.");
             
             // Resetar displays
             document.getElementById("tokenName").textContent = "N/A";
@@ -806,90 +817,66 @@ async function checkContract() {
         }
         
     } catch (err) {
-        addError("❌ Erro ao verificar contrato: " + err.message);
-        addError("💡 Pode ser um problema de conectividade com a BSC Testnet.");
+        addContractError("❌ Erro ao verificar contrato: " + err.message);
+        addContractError("💡 Pode ser um problema de conectividade com a BSC Testnet.");
     }
 }
 
 async function testConnection() {
-    clearErrors();
     
     try {
         if (!window.ethereum) {
-            addError("❌ MetaMask não instalado!");
+            addConnectionError("❌ MetaMask não instalado!");
             return;
         }
         
-        addError("🔍 Testando conectividade...");
+        addConnectionError("🔍 Testando conectividade...");
         
         // Teste básico - obter chainId
         const chainId = await window.ethereum.request({ method: 'eth_chainId' });
-        addError(`✅ MetaMask respondeu! ChainId: ${parseInt(chainId, 16)}`);
+        addConnectionError(`✅ MetaMask respondeu! ChainId: ${parseInt(chainId, 16)}`);
         
         // Verificar se é BSC Testnet
         if (parseInt(chainId, 16) === 97) {
-            addError("✅ Conectado à BSC Testnet (correto)");
+            addConnectionError("✅ Conectado à BSC Testnet (correto)");
         } else {
-            addError(`⚠️ Você está na rede ${parseInt(chainId, 16)}, mude para BSC Testnet (97)`);
+            addConnectionError(`⚠️ Você está na rede ${parseInt(chainId, 16)}, mude para BSC Testnet (97)`);
         }
         
         // Teste de contas
         const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
         if (accounts.length > 0) {
-            addError(`✅ Conta conectada: ${accounts[0]}`);
+            addConnectionError(`✅ Conta conectada: ${accounts[0]}`);
         }
         
-        addError("🎉 MetaMask está funcionando! Pode tentar comprar tokens.");
+        addConnectionError("🎉 MetaMask está funcionando! Pode tentar comprar tokens.");
         
     } catch (err) {
-        addError("❌ Erro de conectividade: " + err.message);
-        addError("💡 Possíveis soluções:");
-        addError("• Reinicie o MetaMask");
-        addError("• Mude para BSC Testnet manualmente");
-        addError("• Verifique sua conexão com internet");
+        addConnectionError("❌ Erro de conectividade: " + err.message);
+        addConnectionError("💡 Possíveis soluções:");
+        addConnectionError("• Reinicie o MetaMask");
+        addConnectionError("• Mude para BSC Testnet manualmente");
+        addConnectionError("• Verifique sua conexão com internet");
     }
-}
-
-// Funções para manipular lista de erros
-function addError(msg) {
-    const ul = document.getElementById("errorList");
-    const container = document.getElementById("errorContainer");
-    const li = document.createElement("li");
-    li.textContent = msg;
-    li.className = "text-white mb-1";
-    ul.appendChild(li);
-    container.style.display = "block";
-}
-
-function clearErrors() {
-    const ul = document.getElementById("errorList");
-    const container = document.getElementById("errorContainer");
-    ul.innerHTML = "";
-    container.style.display = "none";
 }
 
 // Eventos dos botões
 document.getElementById("checkContract").addEventListener("click", checkContract);
 document.getElementById("testConnection").addEventListener("click", testConnection);
 document.getElementById("buyButton").addEventListener("click", async () => {
-    clearErrors();
     try {
         if (!signer) await connectWallet();
         await buyTokens();
     } catch (err) {
-        addError("Erro inesperado: " + err.message);
+        addPurchaseError("Erro inesperado: " + err.message);
     }
 });
 </script>
 
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-});
 
 <!-- Template Loader -->
 <script src="js/template-loader.js"></script>
-
-<!-- Bootstrap JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
