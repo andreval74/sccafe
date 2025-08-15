@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Compra Direta TKN - SCCAFE</title>
+<title>Compra Dinâmica de Tokens - SCCAFE</title>
 
 <!-- Favicons -->
 <link rel="icon" type="image/png" sizes="16x16" href="imgs/sccafe-16x16.png">
@@ -35,9 +35,9 @@
             <div class="d-flex justify-content-between align-items-center">
               <div>
                 <h1 class="display-6 fw-bold text-white mb-2">
-                  <i class="bi bi-cart-plus text-primary me-2"></i>Compra Direta TKN
+                  <i class="bi bi-cart-plus text-primary me-2"></i>Compra Dinâmica de Tokens
                 </h1>
-                <p class="text-secondary mb-0">Adquira tokens TKN usando BNB na BSC Testnet</p>
+                <p class="text-secondary mb-0">Sistema dinâmico para compra de tokens ERC-20 via MetaMask</p>
               </div>
               <div class="d-none d-md-block">
                 <img src="imgs/sccafe.png" alt="SCCAFE" style="height: 60px;">
@@ -45,111 +45,179 @@
             </div>
           </div>
 
-          <!-- Seção 1: Teste de Conexão -->
+          <!-- Seção 1: Conexão da Carteira -->
           <div class="card bg-dark border-warning shadow mb-4">
             <div class="card-header bg-warning text-dark">
               <h5 class="card-title mb-0">
-                <i class="bi bi-wifi me-2"></i>1. Teste de Conexão MetaMask
+                <i class="bi bi-wallet2 me-2"></i>1. Conexão da Carteira
               </h5>
             </div>
             <div class="card-body">
-              <p class="text-secondary mb-3">Primeiro, vamos verificar se sua carteira está funcionando</p>
-              <div class="row g-3">
+              <p class="text-secondary mb-3">Conecte sua carteira Web3 para acessar a funcionalidade</p>
+              <div class="row g-3 align-items-end">
                 <div class="col-md-8">
-                  <p id="status" class="mb-2 text-white">Clique em "Testar Conexão" para verificar</p>
+                  <label for="wallet-status" class="form-label text-white">Status da Conexão</label>
+                  <input type="text" class="form-control bg-dark text-white border-secondary" id="wallet-status" 
+                         placeholder="Clique em 'Conectar' para iniciar" style="font-family: monospace;" readonly>
                 </div>
                 <div class="col-md-4">
-                  <button id="testConnection" class="btn btn-warning w-100 fw-bold">
-                    <i class="bi bi-wifi me-2"></i>TESTAR CONEXÃO
+                  <button id="connect-metamask-btn" type="button" class="btn btn-warning w-100 fw-bold">
+                    <i class="bi bi-wallet2 me-2"></i>CONECTAR
                   </button>
                 </div>
               </div>
-              <!-- Resultado do teste -->
-              <div id="connectionResult" class="mt-3" style="display: none;">
-                <div class="alert alert-info mb-0">
-                  <ul id="connectionErrors" class="mb-0"></ul>
+              <div class="row mt-3" id="network-info-section" style="display: none;">
+                <div class="col-12">
+                  <div class="alert alert-info mb-0">
+                    <i class="bi bi-wifi me-2"></i>
+                    <strong>Rede:</strong> <span id="current-network" class="fw-bold">-</span>
+                    <span class="ms-3">
+                      <i class="bi bi-link-45deg me-1"></i>
+                      <strong>Chain ID:</strong> <span id="chain-id-value" class="fw-bold">-</span>
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Seção 2: Verificação do Contrato -->
-          <div class="card bg-dark border-info shadow mb-4">
+          <!-- Seção 2: Endereço do Contrato -->
+          <div class="card bg-dark border-info shadow mb-4" id="contract-section">
             <div class="card-header bg-info text-dark">
               <h5 class="card-title mb-0">
-                <i class="bi bi-search me-2"></i>2. Verificação do Contrato
+                <i class="bi bi-file-earmark-code me-2"></i>2. Endereço do Contrato
               </h5>
             </div>
             <div class="card-body">
-              <p class="text-secondary mb-3">Verificar informações do token e disponibilidade</p>
-              <div class="row g-3 mb-3">
-                <div class="col-md-6">
-                  <small class="text-muted">Nome do Token</small>
-                  <p id="tokenName" class="fw-bold mb-2">Clique em verificar</p>
+              <p class="text-secondary mb-3">Informe o endereço do contrato do token que deseja negociar</p>
+              <div class="row g-3 align-items-end">
+                <div class="col-md-8">
+                  <label for="contract-address" class="form-label text-white">Endereço do Contrato</label>
+                  <input type="text" class="form-control bg-dark text-white border-secondary" id="contract-address" 
+                         placeholder="0x..." style="font-family: monospace;" disabled>
+                  <div class="form-text text-muted">Endereço do smart contract ERC-20</div>
                 </div>
-                <div class="col-md-6">
-                  <small class="text-muted">Símbolo</small>
-                  <p id="tokenSymbol" class="fw-bold mb-2">-</p>
-                </div>
-                <div class="col-md-6">
-                  <small class="text-muted">Preço por Token</small>
-                  <p id="tokenPriceDisplay" class="fw-bold text-primary mb-2">0.003 BNB</p>
-                </div>
-                <div class="col-md-6">
-                  <small class="text-muted">Disponível para Compra</small>
-                  <p id="tokenBalance" class="fw-bold text-success mb-2">-</p>
+                <div class="col-md-4">
+                  <button id="verify-contract-btn" type="button" class="btn btn-info w-100 fw-bold" disabled>
+                    <i class="bi bi-search me-2"></i>VERIFICAR
+                  </button>
                 </div>
               </div>
-              <button id="checkContract" class="btn btn-info fw-bold">
-                <i class="bi bi-search me-2"></i>VERIFICAR CONTRATO
-              </button>
               <!-- Resultado da verificação -->
               <div id="contractResult" class="mt-3" style="display: none;">
-                <div class="alert alert-success mb-0">
+                <div class="alert alert-info mb-0">
                   <ul id="contractErrors" class="mb-0"></ul>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Seção 3: Calculadora e Compra -->
-          <div class="card bg-dark border-success shadow mb-4">
+          <!-- Seção 3: Informações do Token -->
+          <div class="card bg-dark border-success shadow mb-4" id="token-info-section" style="display: none;">
             <div class="card-header bg-success text-dark">
               <h5 class="card-title mb-0">
-                <i class="bi bi-calculator me-2"></i>3. Calculadora e Compra
+                <i class="bi bi-info-circle me-2"></i>3. Informações do Token
               </h5>
             </div>
             <div class="card-body">
-              <p class="text-secondary mb-3">Digite a quantidade e realize a compra</p>
               <div class="row g-3 mb-3">
-                <div class="col-md-8">
-                  <label for="tokenAmount" class="form-label text-white">Quantidade de Tokens</label>
-                  <input type="number" id="tokenAmount" class="form-control bg-dark text-white border-secondary" 
-                         placeholder="Ex: 100" min="1">
+                <div class="col-md-6">
+                  <small class="text-muted">Nome do Token</small>
+                  <p id="tokenName" class="fw-bold mb-2">-</p>
                 </div>
-                <div class="col-md-4 d-flex align-items-end">
-                  <button id="buyButton" class="btn btn-success w-100 btn-lg fw-bold">
-                    <i class="bi bi-cart-check me-2"></i>COMPRAR
-                  </button>
+                <div class="col-md-6">
+                  <small class="text-muted">Símbolo</small>
+                  <p id="tokenSymbol" class="fw-bold mb-2">-</p>
+                </div>
+                <div class="col-md-6">
+                  <small class="text-muted">Decimais</small>
+                  <p id="tokenDecimals" class="fw-bold text-primary mb-2">-</p>
+                </div>
+                <div class="col-md-6">
+                  <small class="text-muted">Supply Total</small>
+                  <p id="tokenTotalSupply" class="fw-bold text-success mb-2">-</p>
+                </div>
+                <div class="col-md-6">
+                  <small class="text-muted">Saldo do Contrato</small>
+                  <p id="contractBalance" class="fw-bold text-info mb-2">-</p>
                 </div>
               </div>
               
-              <!-- Calculadora (aparece quando digita) -->
-              <div id="calculationDisplay" class="alert alert-primary" style="display: none;">
-                <h6 class="text-dark mb-2">💰 Cálculo da Compra</h6>
+              <!-- Verificação de Compatibilidade -->
+              <div class="alert alert-secondary border-0">
+                <h6 class="text-white mb-2">
+                  <i class="bi bi-shield-check me-2"></i>Verificação de Compatibilidade
+                </h6>
                 <div class="row g-2">
                   <div class="col-md-4">
-                    <small class="text-dark">Quantidade</small>
-                    <p id="calcTokens" class="fw-bold text-dark mb-1">0</p>
+                    <small class="text-muted">Tipo ERC-20</small>
+                    <p id="erc20Status" class="fw-bold mb-1 text-warning">Verificando...</p>
                   </div>
                   <div class="col-md-4">
-                    <small class="text-dark">Total a Pagar</small>
-                    <p id="calcTotal" class="fw-bold text-dark mb-1">0 BNB</p>
+                    <small class="text-muted">Função Transfer</small>
+                    <p id="transferStatus" class="fw-bold mb-1 text-warning">Verificando...</p>
                   </div>
                   <div class="col-md-4">
-                    <small class="text-dark">Status</small>
-                    <p id="availabilityStatus" class="fw-bold mb-1">-</p>
+                    <small class="text-muted">Compra Direta</small>
+                    <p id="buyStatus" class="fw-bold mb-1 text-warning">Verificando...</p>
                   </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Seção 4: Compra de Tokens -->
+          <div class="card bg-dark border-primary shadow mb-4" id="purchase-section" style="display: none;">
+            <div class="card-header bg-primary text-dark">
+              <h5 class="card-title mb-0">
+                <i class="bi bi-cart-plus me-2"></i>4. Compra de Tokens
+              </h5>
+            </div>
+            <div class="card-body">
+              <p class="text-secondary mb-3">Configure a quantidade de tokens para compra</p>
+              
+              <!-- Configuração de Preço -->
+              <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                  <label for="token-price" class="form-label text-white">Preço por Token (BNB)</label>
+                  <input type="number" class="form-control bg-dark text-white border-secondary" id="token-price" 
+                         placeholder="0.001" step="0.000001" disabled>
+                  <div class="form-text text-muted">Preço detectado automaticamente ou configure manualmente</div>
+                </div>
+                <div class="col-md-6">
+                  <label for="token-quantity" class="form-label text-white">Quantidade de Tokens</label>
+                  <input type="number" class="form-control bg-dark text-white border-secondary" id="token-quantity" 
+                         placeholder="100" min="1" disabled>
+                  <div class="form-text text-muted">Quantidade de tokens que deseja comprar</div>
+                </div>
+              </div>
+              
+              <!-- Cálculo Total -->
+              <div class="row g-3 mb-4">
+                <div class="col-md-8">
+                  <div class="card bg-secondary border-0">
+                    <div class="card-body p-3">
+                      <div class="row g-2 text-center">
+                        <div class="col-4">
+                          <small class="text-muted">Tokens</small>
+                          <p id="totalTokens" class="fw-bold text-white mb-0">0</p>
+                        </div>
+                        <div class="col-4">
+                          <small class="text-muted">Preço Total</small>
+                          <p id="totalPrice" class="fw-bold text-primary mb-0">0 BNB</p>
+                        </div>
+                        <div class="col-4">
+                          <small class="text-muted">+Gas Est.</small>
+                          <p id="gasEstimate" class="fw-bold text-warning mb-0">~0.002 BNB</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <button id="execute-purchase-btn" type="button" class="btn btn-primary w-100 fw-bold" disabled>
+                    <i class="bi bi-lightning me-2"></i>COMPRAR TOKENS
+                  </button>
                 </div>
               </div>
               
@@ -162,11 +230,11 @@
             </div>
           </div>
 
-          <!-- Seção 4: Detalhes da Transação -->
-          <div class="card bg-dark border-primary shadow mb-4" id="transactionDetails" style="display: none;">
-            <div class="card-header bg-primary text-dark">
+          <!-- Seção 5: Detalhes da Transação -->
+          <div class="card bg-dark border-success shadow mb-4" id="transactionDetails" style="display: none;">
+            <div class="card-header bg-success text-dark">
               <h5 class="card-title mb-0">
-                <i class="bi bi-receipt me-2"></i>4. Detalhes da Transação
+                <i class="bi bi-receipt me-2"></i>5. Detalhes da Transação
               </h5>
             </div>
             <div class="card-body">
