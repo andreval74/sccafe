@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Compra de Token</title>
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.7.6/dist/web3.min.js"></script>
+</head>
+<body>
+<h2>Comprar Token</h2>
+
+<button onclick="connectWallet()">Conectar Carteira</button>
+<p>Carteira: <span id="walletAddress">Não conectada</span></p>
+
+<input id="bnbAmount" type="text" placeholder="Quantidade em BNB">
+<button onclick="buy()">Comprar Token</button>
+
+<script>
+// ==== Troque aqui pelo endereço após o deploy ====
+const tokenSaleAddress = "0x0742C04f14995b988A2A26b170eCe9f05633a5DD";
+
+// ABI mínima: só estamos chamando buyTokens()
+const tokenSaleABI = [
+  {
+    "inputs": [],
+    "name": "buyTokens",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function"
+  }
+];
+
+let web3;
+let account;
+
+async function connectWallet() {
+    if (window.ethereum) {
+        try {
+            const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+            account = accounts[0];
+            document.getElementById("walletAddress").innerText = account;
+            web3 = new Web3(window.ethereum);
+            alert("Carteira conectada");
+        } catch (error) {
+            alert("Erro ao conectar: " + error);
+        }
+    } else {
+        alert("MetaMask não encontrada");
+    }
+}
+
+async function buy() {
+    const bnbValue = document.getElementById("bnbAmount").value;
+    if (!account) {
+        alert("Conecte a carteira primeiro");
+        return;
+    }
+    if (!bnbValue || isNaN(bnbValue)) {
+        alert("Digite um valor válido em BNB");
+        return;
+    }
+
+    const saleContract = new web3.eth.Contract(tokenSaleABI, tokenSaleAddress);
+
+    try {
+        await saleContract.methods.buyTokens().send({
+            from: account,
+            value: web3.utils.toWei(bnbValue, 'ether')
+        });
+        alert("Compra enviada com sucesso!");
+    } catch (err) {
+        console.error(err);
+        alert("Erro na compra: " + err.message);
+    }
+}
+</script>
+</body>
+</html>
