@@ -532,8 +532,8 @@ async function testActualPayableFunctions() {
                     }
                     console.log(`✅ CONFIRMADO! ${funcName}() passou também no callStatic!`);
                 } catch (staticError) {
-                    if (staticError.message.includes('revert')) {
-                        console.log(`⚠️ ${funcName}() reverte com parâmetros de teste (normal)`);
+                    if (staticError.message.includes('revert') || staticError.message.includes('execution reverted')) {
+                        console.log(`⚠️ ${funcName}() reverte com parâmetros de teste (NORMAL - função existe!)`);
                     } else {
                         console.log(`❌ ${funcName}() falhou no callStatic: ${staticError.message}`);
                         continue; // Pula esta função
@@ -551,7 +551,27 @@ async function testActualPayableFunctions() {
                 return true;
                 
             } catch (error) {
-                console.log(`❌ Função ${funcName}() falhou: ${error.message}`);
+                // **MUDANÇA CRÍTICA: Considerar REVERT como função VÁLIDA**
+                if (error.code === 'UNPREDICTABLE_GAS_LIMIT' || 
+                    error.message.includes('execution reverted') || 
+                    error.message.includes('revert')) {
+                    
+                    console.log(`✅ FUNÇÃO VÁLIDA! ${funcName}() existe e reverte (comportamento esperado)`);
+                    console.log(`📝 Motivo do revert: ${error.reason || error.message}`);
+                    
+                    // Função existe, apenas reverte com parâmetros de teste
+                    buyFunctionName = funcName;
+                    updateCompatibilityStatus('buyStatus', '✅ Validada (com revert)', 'success');
+                    addContractMessage(`✅ Função "${funcName}" detectada - reverte com parâmetros teste`, 'success');
+                    
+                    // 🎯 Habilita seção de compra 
+                    console.log('🎉 Função de compra com revert encontrada - Habilitando seção de compra');
+                    enablePurchaseSection();
+                    
+                    return true;
+                } else {
+                    console.log(`❌ Função ${funcName}() falhou: ${error.message}`);
+                }
             }
         }
         
@@ -686,9 +706,11 @@ async function verifyBuyFunctions() {
         } catch (error) {
             if (error.message.includes('is not a function')) {
                 console.log(`❌ Função ${funcName}() não existe no contrato`);
-            } else if (error.code === 'UNPREDICTABLE_GAS_LIMIT' || error.message.includes('revert')) {
-                // Função existe mas tem lógica que impede execução - ainda é válida
-                console.log(`✅ Função ${funcName}() existe (rejeitou parâmetros de teste)`);
+            } else if (error.code === 'UNPREDICTABLE_GAS_LIMIT' || 
+                       error.message.includes('revert') || 
+                       error.message.includes('execution reverted')) {
+                // **MUDANÇA: Função existe mas reverte com parâmetros de teste - ainda é válida**
+                console.log(`✅ Função ${funcName}() existe (reverte com parâmetros de teste - NORMAL)`);
                 buyFunctionName = funcName;
                 updateCompatibilityStatus('buyStatus', '✅ Disponível', 'success');
                 addContractMessage(`✅ Função de compra "${funcName}" detectada`, 'success');
