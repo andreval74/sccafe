@@ -179,10 +179,16 @@
               <!-- Configuração de Preço -->
               <div class="row g-3 mb-4">
                 <div class="col-md-6">
-                  <label for="token-price" class="form-label text-white">Preço por Token (BNB)</label>
-                  <input type="number" class="form-control bg-dark text-white border-secondary" id="token-price" 
-                         placeholder="0.001" step="0.000001" disabled>
-                  <div class="form-text text-muted">Preço detectado automaticamente ou configure manualmente</div>
+                  <label for="token-price" class="form-label text-white">
+                    <i class="bi bi-lock me-1"></i>Preço por Token (BNB)
+                    <small class="text-muted ms-2">[Detectado do Contrato]</small>
+                  </label>
+                  <input type="number" class="form-control bg-secondary text-white border-secondary" id="token-price" 
+                         placeholder="Detectando..." step="0.000001" readonly disabled>
+                  <div class="form-text text-warning">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Preço fixo definido no contrato - não pode ser alterado
+                  </div>
                 </div>
                 <div class="col-md-6">
                   <label for="token-quantity" class="form-label text-white">Quantidade de Tokens</label>

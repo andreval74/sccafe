@@ -40,9 +40,16 @@ const CONFIG = {
         "function buy() payable",
         "function buyTokens() payable",
         "function purchase() payable",
+        
+        // Funções para detectar preço (expandido)
         "function tokenPrice() view returns (uint256)",
         "function price() view returns (uint256)",
-        "function getPrice() view returns (uint256)"
+        "function getPrice() view returns (uint256)",
+        "function buyPrice() view returns (uint256)",
+        "function tokenCost() view returns (uint256)",
+        "function cost() view returns (uint256)",
+        "function salePrice() view returns (uint256)",
+        "function pricePerToken() view returns (uint256)"
     ],
     
     // Configurações de gas
@@ -121,15 +128,13 @@ function setupEventListeners() {
     
     // Campos de compra
     const quantityInput = document.getElementById('token-quantity');
-    const priceInput = document.getElementById('token-price');
     
     if (quantityInput) {
         quantityInput.addEventListener('input', calculateTotal);
     }
     
-    if (priceInput) {
-        priceInput.addEventListener('input', calculateTotal);
-    }
+    // PREÇO É READ-ONLY - removido listener pois é detectado do contrato
+    // O campo de preço não deve ser editável pelo usuário
     
     // Botão de compra
     const purchaseBtn = document.getElementById('execute-purchase-btn');
@@ -453,27 +458,37 @@ async function loadTokenInfo() {
             contractBalance: await currentProvider.getBalance(currentContract.address)
         };
         
-        // Tenta detectar preço
+        // Tenta detectar preço do contrato
         try {
             let price = null;
-            const priceFunctions = ['tokenPrice', 'price', 'getPrice'];
+            const priceFunctions = [
+                'tokenPrice', 'price', 'getPrice', 'buyPrice', 
+                'tokenCost', 'cost', 'salePrice', 'pricePerToken'
+            ];
+            
+            console.log('💰 Detectando preço do contrato...');
             
             for (const priceFunc of priceFunctions) {
                 try {
+                    console.log(`🔍 Tentando função: ${priceFunc}()`);
                     price = await currentContract[priceFunc]();
+                    console.log(`✅ Preço encontrado via ${priceFunc}(): ${price.toString()}`);
                     break;
                 } catch (e) {
-                    // Função não existe, tenta próxima
+                    console.log(`❌ Função ${priceFunc}() não disponível`);
                 }
             }
             
             if (price) {
                 tokenInfo.price = ethers.utils.formatEther(price);
+                console.log(`💰 Preço final detectado: ${tokenInfo.price} BNB por token`);
             } else {
                 tokenInfo.price = CONFIG.defaultTokenPrice;
+                console.log(`⚠️ Preço não detectado, usando padrão: ${CONFIG.defaultTokenPrice} BNB`);
             }
         } catch (error) {
             tokenInfo.price = CONFIG.defaultTokenPrice;
+            console.log(`❌ Erro na detecção de preço: ${error.message}`);
         }
         
         updateTokenInfoUI();
@@ -500,10 +515,19 @@ function updateTokenInfoUI() {
     const contractBalance = ethers.utils.formatEther(tokenInfo.contractBalance);
     document.getElementById('contractBalance').textContent = `${formatNumber(contractBalance)} BNB`;
     
-    // Define preço
+    // Define preço como READ-ONLY (detectado do contrato)
     const priceInput = document.getElementById('token-price');
     if (priceInput) {
         priceInput.value = tokenInfo.price;
+        priceInput.readOnly = true; // Campo somente leitura
+        priceInput.disabled = false; // Habilita para mostrar o valor
+        priceInput.style.backgroundColor = '#2d3748'; // Cor de fundo diferenciada
+        priceInput.style.cursor = 'not-allowed'; // Cursor indicativo
+        
+        // Adiciona tooltip explicativo
+        priceInput.title = 'Preço detectado automaticamente do contrato - não pode ser alterado';
+        
+        console.log(`💰 Preço detectado: ${tokenInfo.price} BNB por token`);
     }
 }
 
@@ -519,9 +543,14 @@ function enablePurchaseSection() {
     const purchaseBtn = document.getElementById('execute-purchase-btn');
     
     if (section) section.style.display = 'block';
-    if (priceInput) priceInput.disabled = false;
+    
+    // Campo de preço permanece READ-ONLY (já configurado em updateTokenInfoUI)
+    // Não habilitamos edição do preço pois é detectado do contrato
+    
     if (quantityInput) quantityInput.disabled = false;
     if (purchaseBtn && buyFunctionName) purchaseBtn.disabled = false;
+    
+    console.log('🛒 Seção de compra habilitada - Preço fixo do contrato');
 }
 
 /**
