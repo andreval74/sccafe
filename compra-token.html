@@ -22,10 +22,7 @@ const tokenPrice = ethers.utils.parseEther("0.003"); // Preço inicial em tBNB p
 
 // ABI mínimo necessário para a função receive() (compra direta)
 const contractABI = [
-    {
-        "type": "receive",
-        "stateMutability": "payable"
-    }
+    "receive() external payable"
 ];
 
 let provider;
@@ -59,8 +56,8 @@ async function buyTokens() {
 
     let amountBNB, amountWei;
     try {
-        amountBNB = tokenPrice * amountInput; // total a pagar
-        amountWei = ethers.utils.parseEther(amountBNB.toString());
+        amountBNB = tokenPrice.mul(ethers.BigNumber.from(amountInput)); // total a pagar
+        amountWei = amountBNB; // já está em wei
     } catch (err) {
         addError("Erro ao calcular valor em BNB: " + err.message);
         return;
