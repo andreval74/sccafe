@@ -13,48 +13,25 @@
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 
+<!-- SCCAFE Global CSS Unificado -->
+<link href="styles/globals.css" rel="stylesheet">
+
 <!-- Ethers.js -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
-
-<style>
-body {
-  background: linear-gradient(135deg, #0d1421 0%, #1a252f 100%);
-  color: #ffffff;
-  min-height: 100vh;
-}
-.token-purchase-card {
-  background: rgba(13, 20, 33, 0.95);
-  border: 1px solid #0d6efd;
-  backdrop-filter: blur(10px);
-}
-.info-card {
-  background: rgba(25, 37, 47, 0.8);
-  border: 1px solid #6c757d;
-}
-.calculation-card {
-  background: rgba(13, 110, 253, 0.1);
-  border: 1px solid #0d6efd;
-}
-.transaction-card {
-  background: rgba(25, 135, 84, 0.1);
-  border: 1px solid #198754;
-}
-.alert-custom {
-  background: rgba(220, 53, 69, 0.1);
-  border: 1px solid #dc3545;
-  color: #ffffff;
-}
-</style>
 </head>
 <body>
-<main class="py-5">
+<!-- Header -->
+<header data-component="header"></header>
+
+<!-- Main Content -->
+<main class="token-creator-main py-5">
   <div class="container">
     <div class="row justify-content-center">
-      <div class="col-xl-8 col-lg-10">
-        <div class="token-purchase-card rounded-4 p-4 shadow-lg">
+      <div class="col-xl-10 col-lg-11">
+        <div class="creator-card bg-dark border border-primary rounded-4 p-4 shadow-lg">
           
           <!-- Header -->
-          <div class="border-bottom border-secondary pb-4 mb-4">
+          <div class="creator-header border-bottom border-secondary pb-4 mb-4">
             <div class="d-flex justify-content-between align-items-center">
               <div>
                 <h1 class="display-6 fw-bold text-white mb-2">
@@ -63,48 +40,56 @@ body {
                 <p class="text-secondary mb-0">Adquira tokens TKN usando BNB na BSC Testnet</p>
               </div>
               <div class="d-none d-md-block">
-                <img src="imgs/sccafe.png" alt="SCCAFE" style="height: 50px;">
+                <img src="imgs/sccafe.png" alt="SCCAFE" style="height: 60px;">
               </div>
             </div>
           </div>
 
-          <!-- Status e Conexão -->
-          <div class="card info-card mb-4">
+          <!-- Seção 1: Teste de Conexão -->
+          <div class="card bg-dark border-warning shadow mb-4">
             <div class="card-header bg-warning text-dark">
               <h5 class="card-title mb-0">
-                <i class="bi bi-wallet2 me-2"></i>Status da Conexão
+                <i class="bi bi-wifi me-2"></i>1. Teste de Conexão MetaMask
               </h5>
             </div>
             <div class="card-body">
+              <p class="text-secondary mb-3">Primeiro, vamos verificar se sua carteira está funcionando</p>
               <div class="row g-3">
                 <div class="col-md-8">
-                  <p id="status" class="mb-2 text-white">Clique em conectar para iniciar</p>
+                  <p id="status" class="mb-2 text-white">Clique em "Testar Conexão" para verificar</p>
                 </div>
                 <div class="col-md-4">
-                  <button id="testConnection" class="btn btn-outline-primary w-100 mb-2">
-                    <i class="bi bi-wifi me-2"></i>Testar Conexão
+                  <button id="testConnection" class="btn btn-warning w-100 fw-bold">
+                    <i class="bi bi-wifi me-2"></i>TESTAR CONEXÃO
                   </button>
                 </div>
               </div>
+              <!-- Resultado do teste -->
+              <div id="connectionResult" class="mt-3" style="display: none;">
+                <div class="alert alert-info mb-0">
+                  <ul id="connectionErrors" class="mb-0"></ul>
+                </div>
+              </div>
             </div>
           </div>
 
-          <!-- Informações do Token -->
-          <div class="card info-card mb-4">
-            <div class="card-header">
-              <h5 class="card-title mb-0 text-white">
-                <i class="bi bi-coin me-2"></i>Informações do Token
+          <!-- Seção 2: Verificação do Contrato -->
+          <div class="card bg-dark border-info shadow mb-4">
+            <div class="card-header bg-info text-dark">
+              <h5 class="card-title mb-0">
+                <i class="bi bi-search me-2"></i>2. Verificação do Contrato
               </h5>
             </div>
             <div class="card-body">
-              <div class="row g-3">
+              <p class="text-secondary mb-3">Verificar informações do token e disponibilidade</p>
+              <div class="row g-3 mb-3">
                 <div class="col-md-6">
                   <small class="text-muted">Nome do Token</small>
-                  <p id="tokenName" class="fw-bold mb-2">Carregando...</p>
+                  <p id="tokenName" class="fw-bold mb-2">Clique em verificar</p>
                 </div>
                 <div class="col-md-6">
                   <small class="text-muted">Símbolo</small>
-                  <p id="tokenSymbol" class="fw-bold mb-2">Carregando...</p>
+                  <p id="tokenSymbol" class="fw-bold mb-2">-</p>
                 </div>
                 <div class="col-md-6">
                   <small class="text-muted">Preço por Token</small>
@@ -112,77 +97,83 @@ body {
                 </div>
                 <div class="col-md-6">
                   <small class="text-muted">Disponível para Compra</small>
-                  <p id="tokenBalance" class="fw-bold text-success mb-2">Carregando...</p>
+                  <p id="tokenBalance" class="fw-bold text-success mb-2">-</p>
                 </div>
               </div>
-              <div class="mt-3">
-                <button id="checkContract" class="btn btn-primary">
-                  <i class="bi bi-search me-2"></i>Verificar Contrato
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Calculadora de Compra -->
-          <div class="card calculation-card mb-4" id="calculationDisplay" style="display: none;">
-            <div class="card-header">
-              <h5 class="card-title mb-0 text-white">
-                <i class="bi bi-calculator me-2"></i>Calculadora de Compra
-              </h5>
-            </div>
-            <div class="card-body">
-              <div class="row g-3">
-                <div class="col-md-4">
-                  <small class="text-muted">Quantidade de Tokens</small>
-                  <p id="calcTokens" class="fw-bold">0</p>
-                </div>
-                <div class="col-md-4">
-                  <small class="text-muted">Preço Total</small>
-                  <p id="calcTotal" class="fw-bold text-primary">0 BNB</p>
-                </div>
-                <div class="col-md-4">
-                  <small class="text-muted">Status</small>
-                  <p id="availabilityStatus" class="fw-bold">-</p>
+              <button id="checkContract" class="btn btn-info fw-bold">
+                <i class="bi bi-search me-2"></i>VERIFICAR CONTRATO
+              </button>
+              <!-- Resultado da verificação -->
+              <div id="contractResult" class="mt-3" style="display: none;">
+                <div class="alert alert-success mb-0">
+                  <ul id="contractErrors" class="mb-0"></ul>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Formulário de Compra -->
-          <div class="card info-card mb-4">
-            <div class="card-header">
-              <h5 class="card-title mb-0 text-white">
-                <i class="bi bi-bag me-2"></i>Realizar Compra
+          <!-- Seção 3: Calculadora e Compra -->
+          <div class="card bg-dark border-success shadow mb-4">
+            <div class="card-header bg-success text-dark">
+              <h5 class="card-title mb-0">
+                <i class="bi bi-calculator me-2"></i>3. Calculadora e Compra
               </h5>
             </div>
             <div class="card-body">
-              <div class="row g-3">
+              <p class="text-secondary mb-3">Digite a quantidade e realize a compra</p>
+              <div class="row g-3 mb-3">
                 <div class="col-md-8">
                   <label for="tokenAmount" class="form-label text-white">Quantidade de Tokens</label>
                   <input type="number" id="tokenAmount" class="form-control bg-dark text-white border-secondary" 
                          placeholder="Ex: 100" min="1" oninput="calculateTotal()">
                 </div>
                 <div class="col-md-4 d-flex align-items-end">
-                  <button id="buyButton" class="btn btn-success w-100 btn-lg">
+                  <button id="buyButton" class="btn btn-success w-100 btn-lg fw-bold">
                     <i class="bi bi-cart-check me-2"></i>COMPRAR
                   </button>
+                </div>
+              </div>
+              
+              <!-- Calculadora (aparece quando digita) -->
+              <div id="calculationDisplay" class="alert alert-primary" style="display: none;">
+                <h6 class="text-dark mb-2">💰 Cálculo da Compra</h6>
+                <div class="row g-2">
+                  <div class="col-md-4">
+                    <small class="text-dark">Quantidade</small>
+                    <p id="calcTokens" class="fw-bold text-dark mb-1">0</p>
+                  </div>
+                  <div class="col-md-4">
+                    <small class="text-dark">Total a Pagar</small>
+                    <p id="calcTotal" class="fw-bold text-dark mb-1">0 BNB</p>
+                  </div>
+                  <div class="col-md-4">
+                    <small class="text-dark">Status</small>
+                    <p id="availabilityStatus" class="fw-bold mb-1">-</p>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Resultado da compra -->
+              <div id="purchaseResult" class="mt-3" style="display: none;">
+                <div class="alert alert-warning mb-0">
+                  <ul id="purchaseErrors" class="mb-0"></ul>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Detalhes da Transação -->
-          <div class="card transaction-card mb-4" id="transactionDetails" style="display: none;">
-            <div class="card-header">
-              <h5 class="card-title mb-0 text-white">
-                <i class="bi bi-receipt me-2"></i>Detalhes da Transação
+          <!-- Seção 4: Detalhes da Transação -->
+          <div class="card bg-dark border-primary shadow mb-4" id="transactionDetails" style="display: none;">
+            <div class="card-header bg-primary text-dark">
+              <h5 class="card-title mb-0">
+                <i class="bi bi-receipt me-2"></i>4. Detalhes da Transação
               </h5>
             </div>
             <div class="card-body">
               <div class="row g-3">
                 <div class="col-md-6">
                   <small class="text-muted">Hash da Transação</small>
-                  <p id="txHash" class="fw-bold font-monospace small text-break">-</p>
+                  <p id="txHash" class="fw-bold font-monospace small text-break text-primary">-</p>
                 </div>
                 <div class="col-md-6">
                   <small class="text-muted">Tokens Recebidos</small>
@@ -190,11 +181,11 @@ body {
                 </div>
                 <div class="col-md-4">
                   <small class="text-muted">Valor Enviado</small>
-                  <p id="txValue" class="fw-bold">- BNB</p>
+                  <p id="txValue" class="fw-bold text-white">- BNB</p>
                 </div>
                 <div class="col-md-4">
                   <small class="text-muted">Taxa de Gas</small>
-                  <p id="txGasPrice" class="fw-bold">- BNB</p>
+                  <p id="txGasPrice" class="fw-bold text-white">- BNB</p>
                 </div>
                 <div class="col-md-4">
                   <small class="text-muted">Total Pago</small>
@@ -204,21 +195,14 @@ body {
             </div>
           </div>
 
-          <!-- Lista de Erros -->
-          <div id="errorContainer" style="display: none;">
-            <div class="alert alert-custom">
-              <h6 class="text-white mb-2">
-                <i class="bi bi-exclamation-triangle me-2"></i>Informações e Erros
-              </h6>
-              <ul id="errorList" class="mb-0"></ul>
-            </div>
-          </div>
-
         </div>
       </div>
     </div>
   </div>
 </main>
+
+<!-- Footer -->
+<footer data-component="footer"></footer>
 
 <script>
 const contractAddress = "0x5265F80e30e019344a218Dd89b67cBE164511c65"; // Endereço do TKN na testnet
@@ -236,6 +220,356 @@ const tokenABI = [
 
 let provider;
 let signer;
+
+// Funções para manipular lista de erros por seção
+function addConnectionError(msg) {
+    const ul = document.getElementById("connectionErrors");
+    const container = document.getElementById("connectionResult");
+    const li = document.createElement("li");
+    li.textContent = msg;
+    li.className = "text-dark mb-1";
+    ul.appendChild(li);
+    container.style.display = "block";
+}
+
+function addContractError(msg) {
+    const ul = document.getElementById("contractErrors");
+    const container = document.getElementById("contractResult");
+    const li = document.createElement("li");
+    li.textContent = msg;
+    li.className = "text-dark mb-1";
+    ul.appendChild(li);
+    container.style.display = "block";
+}
+
+function addPurchaseError(msg) {
+    const ul = document.getElementById("purchaseErrors");
+    const container = document.getElementById("purchaseResult");
+    const li = document.createElement("li");
+    li.textContent = msg;
+    li.className = "text-dark mb-1";
+    ul.appendChild(li);
+    container.style.display = "block";
+}
+
+function clearConnectionErrors() {
+    const ul = document.getElementById("connectionErrors");
+    const container = document.getElementById("connectionResult");
+    if (ul) ul.innerHTML = "";
+    if (container) container.style.display = "none";
+}
+
+function clearContractErrors() {
+    const ul = document.getElementById("contractErrors");
+    const container = document.getElementById("contractResult");
+    if (ul) ul.innerHTML = "";
+    if (container) container.style.display = "none";
+}
+
+function clearPurchaseErrors() {
+    const ul = document.getElementById("purchaseErrors");
+    const container = document.getElementById("purchaseResult");
+    if (ul) ul.innerHTML = "";
+    if (container) container.style.display = "none";
+}
+
+// Função para calcular total em tempo real
+function calculateTotal() {
+    const amount = document.getElementById("tokenAmount").value;
+    const calcDiv = document.getElementById("calculationDisplay");
+    
+    if (amount && amount > 0) {
+        const total = parseFloat(amount) * parseFloat(tokenPriceFormatted);
+        
+        const calcTokensEl = document.getElementById("calcTokens");
+        const calcTotalEl = document.getElementById("calcTotal");
+        const statusEl = document.getElementById("availabilityStatus");
+        
+        if (calcTokensEl) calcTokensEl.textContent = amount;
+        if (calcTotalEl) calcTotalEl.textContent = total.toFixed(6) + " BNB";
+        
+        // Verificar disponibilidade
+        const availableText = document.getElementById("tokenBalance").textContent;
+        if (availableText !== "-" && availableText !== "Clique em verificar" && !isNaN(parseFloat(availableText))) {
+            const available = parseFloat(availableText);
+            
+            if (statusEl) {
+                if (parseFloat(amount) <= available) {
+                    statusEl.textContent = "✅ Disponível";
+                    statusEl.className = "fw-bold text-success";
+                } else {
+                    statusEl.textContent = "❌ Indisponível";
+                    statusEl.className = "fw-bold text-danger";
+                }
+            }
+        } else {
+            if (statusEl) {
+                statusEl.textContent = "⏳ Verificar contrato";
+                statusEl.className = "fw-bold text-warning";
+            }
+        }
+        
+        if (calcDiv) calcDiv.style.display = "block";
+    } else {
+        if (calcDiv) calcDiv.style.display = "none";
+    }
+}
+
+// Atualizar displays iniciais
+document.addEventListener('DOMContentLoaded', function() {
+    const priceEl = document.getElementById("tokenPriceDisplay");
+    if (priceEl) priceEl.textContent = tokenPriceFormatted + " BNB";
+});
+
+async function connectWallet() {
+    if (window.ethereum) {
+        try {
+            // Verificar conectividade básica primeiro
+            await window.ethereum.request({ method: 'eth_chainId' });
+            
+            provider = new ethers.providers.Web3Provider(window.ethereum);
+            await provider.send("eth_requestAccounts", []);
+            signer = provider.getSigner();
+            
+            // Verificar se consegue obter o endereço
+            const address = await signer.getAddress();
+            document.getElementById("status").innerText = "✅ Carteira conectada: " + address;
+            
+            // Verificar rede
+            const network = await provider.getNetwork();
+            if (network.chainId !== 97) {
+                addConnectionError("⚠️ Você está na rede " + network.name + " (chainId: " + network.chainId + ")");
+                addConnectionError("Por favor, mude para BSC Testnet (chainId: 97)");
+            } else {
+                addConnectionError("✅ Conectado à BSC Testnet");
+            }
+            
+        } catch (err) {
+            addConnectionError("Erro ao conectar carteira: " + err.message);
+            throw err;
+        }
+    } else {
+        alert("Instale a Metamask ou outro provedor Web3!");
+    }
+}
+
+async function buyTokens() {
+    clearPurchaseErrors();
+    const amountInput = document.getElementById("tokenAmount").value;
+    if (!amountInput || amountInput <= 0) {
+        addPurchaseError("Informe a quantidade de tokens.");
+        return;
+    }
+
+    if (!signer) {
+        addPurchaseError("Carteira não conectada.");
+        return;
+    }
+
+    // Verificar se há tokens suficientes disponíveis
+    const availableText = document.getElementById("tokenBalance").textContent;
+    if (availableText !== "-" && availableText !== "Clique em verificar" && !isNaN(parseFloat(availableText))) {
+        const available = parseFloat(availableText);
+        if (parseFloat(amountInput) > available) {
+            addPurchaseError(`❌ Tokens insuficientes! Disponível: ${available.toLocaleString()}, Solicitado: ${amountInput}`);
+            return;
+        }
+    }
+
+    let amountBNB, amountWei;
+    try {
+        amountBNB = tokenPrice.mul(ethers.BigNumber.from(amountInput));
+        amountWei = amountBNB;
+        addPurchaseError(`💰 Valor calculado: ${ethers.utils.formatEther(amountWei)} BNB para ${amountInput} tokens`);
+    } catch (err) {
+        addPurchaseError("Erro ao calcular valor em BNB: " + err.message);
+        return;
+    }
+
+    try {
+        document.getElementById("status").innerText = "Enviando transação...";
+        addPurchaseError("📤 Preparando transação...");
+        
+        // Transação direta sem verificações que causam erro RPC
+        const tx = await signer.sendTransaction({
+            to: contractAddress,
+            value: amountWei,
+            gasLimit: 150000 // Gas um pouco maior para segurança
+        });
+        
+        document.getElementById("status").innerText = "Transação enviada. Aguarde confirmação...";
+        addPurchaseError("⏳ Transação enviada, aguardando confirmação...");
+        
+        const receipt = await tx.wait();
+        
+        // Mostrar detalhes da transação
+        document.getElementById("txHash").textContent = tx.hash;
+        document.getElementById("txValue").textContent = ethers.utils.formatEther(amountWei);
+        
+        // Calcular taxa de gas
+        const gasFee = receipt.gasUsed.mul(receipt.effectiveGasPrice || tx.gasPrice);
+        document.getElementById("txGasPrice").textContent = ethers.utils.formatEther(gasFee);
+        
+        // Calcular total (aproximado)
+        const totalApprox = amountWei.add(gasFee);
+        document.getElementById("txTotalCost").textContent = ethers.utils.formatEther(totalApprox);
+        document.getElementById("txTokensReceived").textContent = amountInput + " TKN";
+        
+        // Mostrar div de detalhes
+        document.getElementById("transactionDetails").style.display = "block";
+        
+        document.getElementById("status").innerText = `✅ Compra concluída! Hash: ${tx.hash}`;
+        addPurchaseError(`✅ Transação confirmada no bloco ${receipt.blockNumber}`);
+        addPurchaseError(`🎉 Você comprou ${amountInput} tokens!`);
+        
+        // Atualizar saldo do contrato após a transação
+        setTimeout(() => {
+            addPurchaseError("🔄 Atualizando informações do contrato...");
+            checkContract();
+        }, 3000);
+        
+    } catch (err) {
+        addPurchaseError("❌ Erro na transação: " + err.message);
+        if (err.reason) {
+            addPurchaseError("Motivo: " + err.reason);
+        }
+        if (err.code) {
+            addPurchaseError("Código do erro: " + err.code);
+        }
+        
+        // Dicas de solução
+        if (err.message.includes("insufficient funds")) {
+            addPurchaseError("💡 Dica: Você não tem BNB suficiente para a transação + taxas de gas.");
+        }
+        if (err.message.includes("execution reverted")) {
+            addPurchaseError("💡 Dica: O contrato rejeitou a transação. Verifique se há tokens disponíveis.");
+        }
+    }
+}
+
+async function checkContract() {
+    clearContractErrors();
+    
+    // Tentar com um provider público da BSC Testnet
+    const publicProvider = new ethers.providers.JsonRpcProvider("https://data-seed-prebsc-1-s1.binance.org:8545/");
+    
+    try {
+        addContractError("🔍 Verificando contrato...");
+        
+        // Verificar se existe código no endereço
+        const code = await publicProvider.getCode(contractAddress);
+        
+        if (code === '0x') {
+            addContractError("❌ PROBLEMA: Não existe contrato neste endereço!");
+            addContractError("O endereço pode estar incorreto ou o contrato não foi deployed na BSC Testnet.");
+            return;
+        } else {
+            addContractError("✅ Contrato encontrado no endereço.");
+        }
+        
+        // Verificar saldo do contrato em BNB
+        const balance = await publicProvider.getBalance(contractAddress);
+        addContractError(`💰 Saldo BNB do contrato: ${ethers.utils.formatEther(balance)} BNB`);
+        
+        // Verificar conectividade da rede
+        const blockNumber = await publicProvider.getBlockNumber();
+        addContractError(`📡 Bloco atual BSC Testnet: ${blockNumber}`);
+        
+        // Tentar acessar as funções do token ERC-20
+        try {
+            const tokenContract = new ethers.Contract(contractAddress, tokenABI, publicProvider);
+            
+            // Obter informações básicas do token
+            const name = await tokenContract.name();
+            const symbol = await tokenContract.symbol();
+            const totalSupply = await tokenContract.totalSupply();
+            const contractTokenBalance = await tokenContract.balanceOf(contractAddress);
+            
+            // Atualizar interface
+            document.getElementById("tokenName").textContent = name;
+            document.getElementById("tokenSymbol").textContent = symbol;
+            document.getElementById("tokenBalance").textContent = ethers.utils.formatUnits(contractTokenBalance, tokenDecimals);
+            
+            addContractError(`✅ Token: ${name} (${symbol})`);
+            addContractError(`📊 Total Supply: ${ethers.utils.formatUnits(totalSupply, tokenDecimals)} ${symbol}`);
+            addContractError(`🪙 Tokens disponíveis no contrato: ${ethers.utils.formatUnits(contractTokenBalance, tokenDecimals)} ${symbol}`);
+            
+            // Verificar se tem tokens suficientes para venda
+            if (contractTokenBalance.gt(0)) {
+                addContractError("✅ Contrato tem tokens disponíveis para venda.");
+            } else {
+                addContractError("⚠️ ATENÇÃO: Contrato não tem tokens para venda!");
+            }
+            
+        } catch (tokenErr) {
+            addContractError("⚠️ Não foi possível acessar funções ERC-20: " + tokenErr.message);
+            addContractError("O contrato pode não ser um token ERC-20 padrão.");
+            
+            // Resetar displays
+            document.getElementById("tokenName").textContent = "N/A";
+            document.getElementById("tokenSymbol").textContent = "N/A";
+            document.getElementById("tokenBalance").textContent = "N/A";
+        }
+        
+    } catch (err) {
+        addContractError("❌ Erro ao verificar contrato: " + err.message);
+        addContractError("💡 Pode ser um problema de conectividade com a BSC Testnet.");
+    }
+}
+
+async function testConnection() {
+    clearConnectionErrors();
+    
+    try {
+        if (!window.ethereum) {
+            addConnectionError("❌ MetaMask não instalado!");
+            return;
+        }
+        
+        addConnectionError("🔍 Testando conectividade...");
+        
+        // Teste básico - obter chainId
+        const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+        addConnectionError(`✅ MetaMask respondeu! ChainId: ${parseInt(chainId, 16)}`);
+        
+        // Verificar se é BSC Testnet
+        if (parseInt(chainId, 16) === 97) {
+            addConnectionError("✅ Conectado à BSC Testnet (correto)");
+        } else {
+            addConnectionError(`⚠️ Você está na rede ${parseInt(chainId, 16)}, mude para BSC Testnet (97)`);
+        }
+        
+        // Teste de contas
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        if (accounts.length > 0) {
+            addConnectionError(`✅ Conta conectada: ${accounts[0]}`);
+        }
+        
+        addConnectionError("🎉 MetaMask está funcionando! Pode prosseguir para verificar o contrato.");
+        
+    } catch (err) {
+        addConnectionError("❌ Erro de conectividade: " + err.message);
+        addConnectionError("💡 Possíveis soluções:");
+        addConnectionError("• Reinicie o MetaMask");
+        addConnectionError("• Mude para BSC Testnet manualmente");
+        addConnectionError("• Verifique sua conexão com internet");
+    }
+}
+
+// Eventos dos botões
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById("checkContract").addEventListener("click", checkContract);
+    document.getElementById("testConnection").addEventListener("click", testConnection);
+    document.getElementById("buyButton").addEventListener("click", async () => {
+        clearPurchaseErrors();
+        try {
+            if (!signer) await connectWallet();
+            await buyTokens();
+        } catch (err) {
+            addPurchaseError("Erro inesperado: " + err.message);
+        }
+    });
+});
 
 // Função para calcular total em tempo real
 function calculateTotal() {
@@ -547,6 +881,13 @@ document.getElementById("buyButton").addEventListener("click", async () => {
     }
 });
 </script>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+});
+
+<!-- Template Loader -->
+<script src="js/template-loader.js"></script>
 
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
