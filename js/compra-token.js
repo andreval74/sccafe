@@ -624,6 +624,40 @@ async function executePurchase() {
         console.log(`💰 Executando compra: ${quantity} tokens por ${totalValue} BNB`);
         console.log(`📝 Função: ${buyFunctionName}()`);
         console.log(`💎 Valor: ${valueInWei.toString()} wei`);
+        console.log(`📍 Contrato: ${currentContract.address}`);
+        console.log(`👤 Comprador: ${walletAddress}`);
+        
+        // DIAGNÓSTICO ANTES DA COMPRA
+        try {
+            const contractBalance = await web3Provider.getBalance(currentContract.address);
+            const userBalance = await web3Provider.getBalance(walletAddress);
+            
+            console.log(`💰 Saldo do contrato: ${ethers.utils.formatEther(contractBalance)} BNB`);
+            console.log(`💰 Saldo do usuário: ${ethers.utils.formatEther(userBalance)} BNB`);
+            
+            // Verifica se o contrato tem tokens suficientes
+            if (tokenInfo.totalSupply) {
+                const contractTokenBalance = await currentContract.balanceOf(currentContract.address);
+                console.log(`🪙 Tokens no contrato: ${ethers.utils.formatUnits(contractTokenBalance, tokenInfo.decimals)} ${tokenInfo.symbol}`);
+            }
+        } catch (diagError) {
+            console.warn('⚠️ Erro no diagnóstico:', diagError.message);
+        }
+        
+        // SIMULAÇÃO DA TRANSAÇÃO (call estático)
+        addPurchaseMessage('🧪 Simulando transação antes de executar...', 'info');
+        try {
+            await contractWithSigner.callStatic[buyFunctionName]({
+                value: valueInWei,
+                from: walletAddress
+            });
+            console.log('✅ Simulação bem-sucedida - transação deve funcionar');
+            addPurchaseMessage('✅ Simulação bem-sucedida', 'success');
+        } catch (simError) {
+            console.warn('⚠️ Simulação falhou:', simError.message);
+            addPurchaseMessage(`⚠️ Simulação falhou: ${simError.message}`, 'warning');
+            addPurchaseMessage('🚀 Tentando executar mesmo assim...', 'info');
+        }
         
         // Executa a transação
         const tx = await contractWithSigner[buyFunctionName]({
@@ -647,20 +681,56 @@ async function executePurchase() {
         
         // Mensagens de erro mais detalhadas
         let errorMessage = 'Erro desconhecido';
+        let technicalDetails = '';
         
         if (error.code === 'INSUFFICIENT_FUNDS') {
             errorMessage = 'Saldo insuficiente na carteira';
         } else if (error.code === 'USER_REJECTED') {
             errorMessage = 'Transação cancelada pelo usuário';
         } else if (error.code === 'CALL_EXCEPTION') {
-            errorMessage = 'Erro no contrato - verifique os parâmetros';
+            errorMessage = 'Erro na execução do contrato';
+            
+            // Análise específica do CALL_EXCEPTION
+            if (error.receipt) {
+                technicalDetails = `Hash: ${error.receipt.transactionHash}\n`;
+                technicalDetails += `Gas usado: ${error.receipt.gasUsed}\n`;
+                technicalDetails += `Status: ${error.receipt.status === 0 ? 'FAILED' : 'SUCCESS'}\n`;
+                
+                console.log('📋 Detalhes da transação falhada:');
+                console.log('🔗 Hash:', error.receipt.transactionHash);
+                console.log('⛽ Gas usado:', error.receipt.gasUsed.toString());
+                console.log('📊 Status:', error.receipt.status === 0 ? 'FAILED' : 'SUCCESS');
+                
+                // Possíveis causas do erro
+                console.log('🔍 Possíveis causas:');
+                console.log('1. Contrato sem tokens suficientes para vender');
+                console.log('2. Valor enviado incorreto (muito alto/baixo)');
+                console.log('3. Contrato pausado ou com restrições');
+                console.log('4. Função buy() com lógica específica não atendida');
+                console.log('5. Problema de aprovação ou allowance');
+                
+                errorMessage += '\n\nPossíveis causas:\n';
+                errorMessage += '• Contrato sem tokens para vender\n';
+                errorMessage += '• Valor enviado incorreto\n';
+                errorMessage += '• Contrato pausado ou restrito\n';
+                errorMessage += '• Lógica específica do contrato não atendida';
+            }
         } else if (error.message.includes('revert')) {
             errorMessage = 'Transação rejeitada pelo contrato';
+            
+            // Tenta extrair razão do revert
+            if (error.reason) {
+                errorMessage += `\nRazão: ${error.reason}`;
+            }
         } else {
             errorMessage = error.message;
         }
         
         addPurchaseMessage(`❌ Erro: ${errorMessage}`, 'error');
+        
+        if (technicalDetails) {
+            addPurchaseMessage(`🔧 Detalhes técnicos:\n${technicalDetails}`, 'warning');
+        }
     }
 }
 
