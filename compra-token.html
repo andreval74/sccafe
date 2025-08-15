@@ -1,57 +1,224 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-theme="dark">
 <head>
 <meta charset="UTF-8">
-<title>Compra Direta TKN</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Compra Direta TKN - SCCAFE</title>
+
+<!-- Favicons -->
+<link rel="icon" type="image/png" sizes="16x16" href="imgs/sccafe-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="imgs/sccafe-32x32.png">
+
+<!-- Bootstrap CSS -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+
+<!-- Ethers.js -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+
+<style>
+body {
+  background: linear-gradient(135deg, #0d1421 0%, #1a252f 100%);
+  color: #ffffff;
+  min-height: 100vh;
+}
+.token-purchase-card {
+  background: rgba(13, 20, 33, 0.95);
+  border: 1px solid #0d6efd;
+  backdrop-filter: blur(10px);
+}
+.info-card {
+  background: rgba(25, 37, 47, 0.8);
+  border: 1px solid #6c757d;
+}
+.calculation-card {
+  background: rgba(13, 110, 253, 0.1);
+  border: 1px solid #0d6efd;
+}
+.transaction-card {
+  background: rgba(25, 135, 84, 0.1);
+  border: 1px solid #198754;
+}
+.alert-custom {
+  background: rgba(220, 53, 69, 0.1);
+  border: 1px solid #dc3545;
+  color: #ffffff;
+}
+</style>
 </head>
 <body>
-<h2>Compra Direta de TKN</h2>
+<main class="py-5">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-xl-8 col-lg-10">
+        <div class="token-purchase-card rounded-4 p-4 shadow-lg">
+          
+          <!-- Header -->
+          <div class="border-bottom border-secondary pb-4 mb-4">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <h1 class="display-6 fw-bold text-white mb-2">
+                  <i class="bi bi-cart-plus text-primary me-2"></i>Compra Direta TKN
+                </h1>
+                <p class="text-secondary mb-0">Adquira tokens TKN usando BNB na BSC Testnet</p>
+              </div>
+              <div class="d-none d-md-block">
+                <img src="imgs/sccafe.png" alt="SCCAFE" style="height: 50px;">
+              </div>
+            </div>
+          </div>
 
-<div style="border: 1px solid #ccc; padding: 10px; margin: 10px 0; background-color: #f9f9f9;">
-    <h4>💰 Informações do Token</h4>
-    <p><strong>Preço por token:</strong> <span id="tokenPriceDisplay">0.003 BNB</span></p>
-    <p><strong>Endereço do contrato:</strong> <span id="contractDisplay">0x5265F80e30e019344a218Dd89b67cBE164511c65</span></p>
-    <p><strong>Nome do token:</strong> <span id="tokenName">Carregando...</span></p>
-    <p><strong>Símbolo:</strong> <span id="tokenSymbol">Carregando...</span></p>
-    <p><strong>Tokens disponíveis no contrato:</strong> <span id="tokenBalance">Carregando...</span></p>
-    <p><strong>Total supply:</strong> <span id="totalSupply">Carregando...</span></p>
-</div>
+          <!-- Status e Conexão -->
+          <div class="card info-card mb-4">
+            <div class="card-header bg-warning text-dark">
+              <h5 class="card-title mb-0">
+                <i class="bi bi-wallet2 me-2"></i>Status da Conexão
+              </h5>
+            </div>
+            <div class="card-body">
+              <div class="row g-3">
+                <div class="col-md-8">
+                  <p id="status" class="mb-2 text-white">Clique em conectar para iniciar</p>
+                </div>
+                <div class="col-md-4">
+                  <button id="testConnection" class="btn btn-outline-primary w-100 mb-2">
+                    <i class="bi bi-wifi me-2"></i>Testar Conexão
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
 
-<button id="checkContract">Verificar Contrato e Tokens</button>
-<button id="testConnection">Testar Conexão MetaMask</button>
-<br><br>
-<label>Quantidade de Tokens:</label>
-<input type="number" id="tokenAmount" placeholder="Quantidade de tokens" min="1" oninput="calculateTotal()">
-<br><br>
+          <!-- Informações do Token -->
+          <div class="card info-card mb-4">
+            <div class="card-header">
+              <h5 class="card-title mb-0 text-white">
+                <i class="bi bi-coin me-2"></i>Informações do Token
+              </h5>
+            </div>
+            <div class="card-body">
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <small class="text-muted">Nome do Token</small>
+                  <p id="tokenName" class="fw-bold mb-2">Carregando...</p>
+                </div>
+                <div class="col-md-6">
+                  <small class="text-muted">Símbolo</small>
+                  <p id="tokenSymbol" class="fw-bold mb-2">Carregando...</p>
+                </div>
+                <div class="col-md-6">
+                  <small class="text-muted">Preço por Token</small>
+                  <p id="tokenPriceDisplay" class="fw-bold text-primary mb-2">0.003 BNB</p>
+                </div>
+                <div class="col-md-6">
+                  <small class="text-muted">Disponível para Compra</small>
+                  <p id="tokenBalance" class="fw-bold text-success mb-2">Carregando...</p>
+                </div>
+              </div>
+              <div class="mt-3">
+                <button id="checkContract" class="btn btn-primary">
+                  <i class="bi bi-search me-2"></i>Verificar Contrato
+                </button>
+              </div>
+            </div>
+          </div>
 
-<div id="calculationDisplay" style="border: 1px solid #ddd; padding: 10px; margin: 10px 0; background-color: #f0f8ff; display: none;">
-    <h4>🧮 Cálculo da Compra</h4>
-    <p><strong>Quantidade de tokens:</strong> <span id="calcTokens">0</span></p>
-    <p><strong>Preço unitário:</strong> <span id="calcPrice">0.003 BNB</span></p>
-    <p><strong>Total a pagar:</strong> <span id="calcTotal">0 BNB</span></p>
-    <p><strong>Disponível no contrato:</strong> <span id="calcAvailable">Verificar contrato primeiro</span></p>
-    <p id="availabilityStatus" style="font-weight: bold;"></p>
-</div>
+          <!-- Calculadora de Compra -->
+          <div class="card calculation-card mb-4" id="calculationDisplay" style="display: none;">
+            <div class="card-header">
+              <h5 class="card-title mb-0 text-white">
+                <i class="bi bi-calculator me-2"></i>Calculadora de Compra
+              </h5>
+            </div>
+            <div class="card-body">
+              <div class="row g-3">
+                <div class="col-md-4">
+                  <small class="text-muted">Quantidade de Tokens</small>
+                  <p id="calcTokens" class="fw-bold">0</p>
+                </div>
+                <div class="col-md-4">
+                  <small class="text-muted">Preço Total</small>
+                  <p id="calcTotal" class="fw-bold text-primary">0 BNB</p>
+                </div>
+                <div class="col-md-4">
+                  <small class="text-muted">Status</small>
+                  <p id="availabilityStatus" class="fw-bold">-</p>
+                </div>
+              </div>
+            </div>
+          </div>
 
-<button id="buyButton">Comprar</button>
+          <!-- Formulário de Compra -->
+          <div class="card info-card mb-4">
+            <div class="card-header">
+              <h5 class="card-title mb-0 text-white">
+                <i class="bi bi-bag me-2"></i>Realizar Compra
+              </h5>
+            </div>
+            <div class="card-body">
+              <div class="row g-3">
+                <div class="col-md-8">
+                  <label for="tokenAmount" class="form-label text-white">Quantidade de Tokens</label>
+                  <input type="number" id="tokenAmount" class="form-control bg-dark text-white border-secondary" 
+                         placeholder="Ex: 100" min="1" oninput="calculateTotal()">
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                  <button id="buyButton" class="btn btn-success w-100 btn-lg">
+                    <i class="bi bi-cart-check me-2"></i>COMPRAR
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
 
-<p id="status"></p>
-<ul id="errorList" style="color:red;"></ul>
+          <!-- Detalhes da Transação -->
+          <div class="card transaction-card mb-4" id="transactionDetails" style="display: none;">
+            <div class="card-header">
+              <h5 class="card-title mb-0 text-white">
+                <i class="bi bi-receipt me-2"></i>Detalhes da Transação
+              </h5>
+            </div>
+            <div class="card-body">
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <small class="text-muted">Hash da Transação</small>
+                  <p id="txHash" class="fw-bold font-monospace small text-break">-</p>
+                </div>
+                <div class="col-md-6">
+                  <small class="text-muted">Tokens Recebidos</small>
+                  <p id="txTokensReceived" class="fw-bold text-success">-</p>
+                </div>
+                <div class="col-md-4">
+                  <small class="text-muted">Valor Enviado</small>
+                  <p id="txValue" class="fw-bold">- BNB</p>
+                </div>
+                <div class="col-md-4">
+                  <small class="text-muted">Taxa de Gas</small>
+                  <p id="txGasPrice" class="fw-bold">- BNB</p>
+                </div>
+                <div class="col-md-4">
+                  <small class="text-muted">Total Pago</small>
+                  <p id="txTotalCost" class="fw-bold text-warning">- BNB</p>
+                </div>
+              </div>
+            </div>
+          </div>
 
-<div id="transactionDetails" style="border: 1px solid #28a745; padding: 10px; margin: 10px 0; background-color: #d4edda; display: none;">
-    <h4>📊 Detalhes da Transação</h4>
-    <p><strong>Hash da transação:</strong> <span id="txHash"></span></p>
-    <p><strong>Valor enviado:</strong> <span id="txValue"></span> BNB</p>
-    <p><strong>Gas usado:</strong> <span id="txGas"></span></p>
-    <p><strong>Taxa de gas:</strong> <span id="txGasPrice"></span> BNB</p>
-    <p><strong>Total pago (incluindo gas):</strong> <span id="txTotalCost"></span> BNB</p>
-    <hr>
-    <p><strong>🎯 Destino dos valores:</strong></p>
-    <p>• <strong>Para o contrato (compra tokens):</strong> <span id="txToContract"></span> BNB</p>
-    <p>• <strong>Taxa de rede (gas):</strong> <span id="txNetworkFee"></span> BNB</p>
-    <p>• <strong>Tokens recebidos (estimativa):</strong> <span id="txTokensReceived"></span> TKN</p>
-</div>
+          <!-- Lista de Erros -->
+          <div id="errorContainer" style="display: none;">
+            <div class="alert alert-custom">
+              <h6 class="text-white mb-2">
+                <i class="bi bi-exclamation-triangle me-2"></i>Informações e Erros
+              </h6>
+              <ul id="errorList" class="mb-0"></ul>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
 
 <script>
 const contractAddress = "0x5265F80e30e019344a218Dd89b67cBE164511c65"; // Endereço do TKN na testnet
@@ -86,19 +253,18 @@ function calculateTotal() {
         const availableText = document.getElementById("tokenBalance").textContent;
         if (availableText !== "Carregando..." && availableText !== "N/A") {
             const available = parseFloat(availableText);
-            document.getElementById("calcAvailable").textContent = available.toLocaleString() + " tokens";
             
             const statusEl = document.getElementById("availabilityStatus");
             if (parseFloat(amount) <= available) {
-                statusEl.textContent = "✅ Quantidade disponível";
-                statusEl.style.color = "green";
+                statusEl.textContent = "✅ Disponível";
+                statusEl.className = "fw-bold text-success";
             } else {
-                statusEl.textContent = "❌ Quantidade indisponível (máximo: " + available.toLocaleString() + ")";
-                statusEl.style.color = "red";
+                statusEl.textContent = "❌ Indisponível";
+                statusEl.className = "fw-bold text-danger";
             }
         } else {
-            document.getElementById("calcAvailable").textContent = "Verificar contrato primeiro";
-            document.getElementById("availabilityStatus").textContent = "";
+            document.getElementById("availabilityStatus").textContent = "⏳ Verificando...";
+            document.getElementById("availabilityStatus").className = "fw-bold text-warning";
         }
         
         calcDiv.style.display = "block";
@@ -109,7 +275,6 @@ function calculateTotal() {
 
 // Atualizar displays iniciais
 document.getElementById("tokenPriceDisplay").textContent = tokenPriceFormatted + " BNB";
-document.getElementById("contractDisplay").textContent = contractAddress;
 
 async function connectWallet() {
     if (window.ethereum) {
@@ -354,12 +519,19 @@ async function testConnection() {
 // Funções para manipular lista de erros
 function addError(msg) {
     const ul = document.getElementById("errorList");
+    const container = document.getElementById("errorContainer");
     const li = document.createElement("li");
     li.textContent = msg;
+    li.className = "text-white mb-1";
     ul.appendChild(li);
+    container.style.display = "block";
 }
+
 function clearErrors() {
-    document.getElementById("errorList").innerHTML = "";
+    const ul = document.getElementById("errorList");
+    const container = document.getElementById("errorContainer");
+    ul.innerHTML = "";
+    container.style.display = "none";
 }
 
 // Eventos dos botões
@@ -375,5 +547,8 @@ document.getElementById("buyButton").addEventListener("click", async () => {
     }
 });
 </script>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
