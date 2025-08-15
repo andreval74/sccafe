@@ -19,6 +19,7 @@
 </div>
 
 <button id="checkContract">Verificar Contrato e Tokens</button>
+<button id="testConnection">Testar Conexão MetaMask</button>
 <br><br>
 <label>Quantidade de Tokens:</label>
 <input type="number" id="tokenAmount" placeholder="Quantidade de tokens" min="1" oninput="calculateTotal()">
@@ -155,6 +156,16 @@ async function buyTokens() {
         return;
     }
 
+    // Verificar se há tokens suficientes disponíveis
+    const availableText = document.getElementById("tokenBalance").textContent;
+    if (availableText !== "Carregando..." && availableText !== "N/A") {
+        const available = parseFloat(availableText);
+        if (parseFloat(amountInput) > available) {
+            addError(`❌ Tokens insuficientes! Disponível: ${available.toLocaleString()}, Solicitado: ${amountInput}`);
+            return;
+        }
+    }
+
     let amountBNB, amountWei;
     try {
         amountBNB = tokenPrice.mul(ethers.BigNumber.from(amountInput));
@@ -167,32 +178,32 @@ async function buyTokens() {
 
     try {
         document.getElementById("status").innerText = "Enviando transação...";
+        addError("📤 Preparando transação...");
         
-        // Obter saldo antes da transação
-        const balanceBefore = await signer.getBalance();
-        addError(`💳 Saldo antes: ${ethers.utils.formatEther(balanceBefore)} BNB`);
-        
-        // Transação
+        // Transação direta sem verificações que causam erro RPC
         const tx = await signer.sendTransaction({
             to: contractAddress,
             value: amountWei,
-            gasLimit: 100000 // Gas fixo para evitar estimativa
+            gasLimit: 150000 // Gas um pouco maior para segurança
         });
         
         document.getElementById("status").innerText = "Transação enviada. Aguarde confirmação...";
+        addError("⏳ Transação enviada, aguardando confirmação...");
+        
         const receipt = await tx.wait();
         
-        // Obter saldo após a transação
-        const balanceAfter = await signer.getBalance();
-        const totalSpent = balanceBefore.sub(balanceAfter);
-        const gasFee = receipt.gasUsed.mul(receipt.effectiveGasPrice);
-        
-        // Mostrar detalhes da transação
+        // Mostrar detalhes básicos da transação
         document.getElementById("txHash").textContent = tx.hash;
         document.getElementById("txValue").textContent = ethers.utils.formatEther(amountWei);
         document.getElementById("txGas").textContent = receipt.gasUsed.toString();
+        
+        // Calcular taxa de gas
+        const gasFee = receipt.gasUsed.mul(receipt.effectiveGasPrice || tx.gasPrice);
         document.getElementById("txGasPrice").textContent = ethers.utils.formatEther(gasFee);
-        document.getElementById("txTotalCost").textContent = ethers.utils.formatEther(totalSpent);
+        
+        // Calcular total (aproximado)
+        const totalApprox = amountWei.add(gasFee);
+        document.getElementById("txTotalCost").textContent = ethers.utils.formatEther(totalApprox);
         document.getElementById("txToContract").textContent = ethers.utils.formatEther(amountWei);
         document.getElementById("txNetworkFee").textContent = ethers.utils.formatEther(gasFee);
         document.getElementById("txTokensReceived").textContent = amountInput;
@@ -201,8 +212,14 @@ async function buyTokens() {
         document.getElementById("transactionDetails").style.display = "block";
         
         document.getElementById("status").innerText = `✅ Compra concluída! Hash: ${tx.hash}`;
-        addError(`💳 Saldo após: ${ethers.utils.formatEther(balanceAfter)} BNB`);
-        addError(`💸 Total gasto: ${ethers.utils.formatEther(totalSpent)} BNB`);
+        addError(`✅ Transação confirmada no bloco ${receipt.blockNumber}`);
+        addError(`🎉 Você comprou ${amountInput} tokens!`);
+        
+        // Atualizar saldo do contrato após a transação
+        setTimeout(() => {
+            addError("🔄 Atualizando informações do contrato...");
+            checkContract();
+        }, 3000);
         
     } catch (err) {
         addError("❌ Erro na transação: " + err.message);
@@ -211,6 +228,14 @@ async function buyTokens() {
         }
         if (err.code) {
             addError("Código do erro: " + err.code);
+        }
+        
+        // Dicas de solução
+        if (err.message.includes("insufficient funds")) {
+            addError("💡 Dica: Você não tem BNB suficiente para a transação + taxas de gas.");
+        }
+        if (err.message.includes("execution reverted")) {
+            addError("💡 Dica: O contrato rejeitou a transação. Verifique se há tokens disponíveis.");
         }
     }
 }
@@ -287,6 +312,45 @@ async function checkContract() {
     }
 }
 
+async function testConnection() {
+    clearErrors();
+    
+    try {
+        if (!window.ethereum) {
+            addError("❌ MetaMask não instalado!");
+            return;
+        }
+        
+        addError("🔍 Testando conectividade...");
+        
+        // Teste básico - obter chainId
+        const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+        addError(`✅ MetaMask respondeu! ChainId: ${parseInt(chainId, 16)}`);
+        
+        // Verificar se é BSC Testnet
+        if (parseInt(chainId, 16) === 97) {
+            addError("✅ Conectado à BSC Testnet (correto)");
+        } else {
+            addError(`⚠️ Você está na rede ${parseInt(chainId, 16)}, mude para BSC Testnet (97)`);
+        }
+        
+        // Teste de contas
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        if (accounts.length > 0) {
+            addError(`✅ Conta conectada: ${accounts[0]}`);
+        }
+        
+        addError("🎉 MetaMask está funcionando! Pode tentar comprar tokens.");
+        
+    } catch (err) {
+        addError("❌ Erro de conectividade: " + err.message);
+        addError("💡 Possíveis soluções:");
+        addError("• Reinicie o MetaMask");
+        addError("• Mude para BSC Testnet manualmente");
+        addError("• Verifique sua conexão com internet");
+    }
+}
+
 // Funções para manipular lista de erros
 function addError(msg) {
     const ul = document.getElementById("errorList");
@@ -300,6 +364,7 @@ function clearErrors() {
 
 // Eventos dos botões
 document.getElementById("checkContract").addEventListener("click", checkContract);
+document.getElementById("testConnection").addEventListener("click", testConnection);
 document.getElementById("buyButton").addEventListener("click", async () => {
     clearErrors();
     try {
