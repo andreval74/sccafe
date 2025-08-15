@@ -26,7 +26,7 @@ const CONFIG = {
     defaultTokenPrice: "0.001", // BNB por token (padrão)
     supportedChains: [56, 97], // BSC Mainnet e Testnet
     
-    // ABI estendido para verificação completa
+    // ABI estendido para verificação completa e diagnóstico
     tokenABI: [
         // Funções básicas ERC-20
         "function balanceOf(address owner) view returns (uint256)",
@@ -49,7 +49,20 @@ const CONFIG = {
         "function tokenCost() view returns (uint256)",
         "function cost() view returns (uint256)",
         "function salePrice() view returns (uint256)",
-        "function pricePerToken() view returns (uint256)"
+        "function pricePerToken() view returns (uint256)",
+        
+        // Funções para diagnóstico avançado
+        "function owner() view returns (address)",
+        "function paused() view returns (bool)",
+        "function saleActive() view returns (bool)",
+        "function saleEnabled() view returns (bool)",
+        "function maxPurchase() view returns (uint256)",
+        "function minPurchase() view returns (uint256)",
+        "function tokensForSale() view returns (uint256)",
+        "function tokensAvailable() view returns (uint256)",
+        "function isWhitelisted(address) view returns (bool)",
+        "function purchaseLimit(address) view returns (uint256)",
+        "function hasPurchased(address) view returns (bool)"
     ],
     
     // Configurações de gas
@@ -627,7 +640,7 @@ async function executePurchase() {
         console.log(`📍 Contrato: ${currentContract.address}`);
         console.log(`👤 Comprador: ${walletAddress}`);
         
-        // DIAGNÓSTICO ANTES DA COMPRA (usando RPC público)
+        // DIAGNÓSTICO AVANÇADO DO CONTRATO
         addPurchaseMessage('🔍 Verificando condições da compra...', 'info');
         try {
             // Usa RPC público para diagnóstico (não MetaMask que está falhando)
@@ -656,6 +669,10 @@ async function executePurchase() {
                     throw new Error(`Contrato não tem tokens suficientes. Disponível: ${contractTokens}, solicitado: ${quantity}`);
                 }
             }
+            
+            // DIAGNÓSTICO AVANÇADO - Verifica condições especiais do contrato
+            console.log('🔍 Executando diagnóstico avançado do contrato...');
+            await performAdvancedContractDiagnostics(publicProvider);
             
             addPurchaseMessage('✅ Verificações iniciais aprovadas', 'success');
             
@@ -745,6 +762,29 @@ async function executePurchase() {
                 console.log('⛽ Gas usado:', error.receipt.gasUsed.toString());
                 console.log('📊 Status:', error.receipt.status === 0 ? 'FAILED' : 'SUCCESS');
                 
+                // Análise específica baseada no gas usado
+                const gasUsed = error.receipt.gasUsed.toNumber();
+                if (gasUsed === 21307 || gasUsed < 25000) {
+                    console.log('🔍 ANÁLISE: Gas muito baixo - função falha no início');
+                    console.log('💡 Isso indica que o contrato rejeitou a transação imediatamente');
+                    console.log('💡 Possíveis causas específicas:');
+                    console.log('   - require() falhando logo no início da função');
+                    console.log('   - Função payable recebendo valor quando não deveria');
+                    console.log('   - Modificadores (onlyOwner, whenNotPaused, etc.) rejeitando');
+                    console.log('   - Função não existe ou tem assinatura diferente');
+                    
+                    errorMessage += '\n\n🔍 ANÁLISE TÉCNICA:';
+                    errorMessage += '\nGas muito baixo (21307) indica que o contrato rejeitou a transação imediatamente.';
+                    errorMessage += '\n\nCausas mais prováveis:';
+                    errorMessage += '\n• Contrato está pausado ou com restrições';
+                    errorMessage += '\n• Função buy() tem condições específicas não atendidas';
+                    errorMessage += '\n• Valor enviado não está correto para este contrato';
+                    errorMessage += '\n• Contrato requer whitelist ou aprovação prévia';
+                    
+                } else {
+                    console.log('🔍 ANÁLISE: Gas normal - erro durante execução');
+                }
+                
                 // Possíveis causas do erro
                 console.log('🔍 Possíveis causas:');
                 console.log('1. Contrato sem tokens suficientes para vender');
@@ -776,6 +816,104 @@ async function executePurchase() {
             addPurchaseMessage(`🔧 Detalhes técnicos:\n${technicalDetails}`, 'warning');
         }
     }
+}
+
+/**
+ * Diagnóstico avançado do contrato para identificar problemas específicos
+ */
+async function performAdvancedContractDiagnostics(provider) {
+    const diagnosticFunctions = [
+        { name: 'paused', desc: 'Contrato pausado' },
+        { name: 'saleActive', desc: 'Venda ativa' },
+        { name: 'saleEnabled', desc: 'Venda habilitada' },
+        { name: 'owner', desc: 'Proprietário do contrato' },
+        { name: 'maxPurchase', desc: 'Compra máxima permitida' },
+        { name: 'minPurchase', desc: 'Compra mínima permitida' },
+        { name: 'tokensForSale', desc: 'Tokens para venda' },
+        { name: 'tokensAvailable', desc: 'Tokens disponíveis' }
+    ];
+    
+    const contractWithProvider = new ethers.Contract(currentContract.address, CONFIG.tokenABI, provider);
+    const quantity = parseFloat(document.getElementById('token-quantity').value);
+    
+    for (const func of diagnosticFunctions) {
+        try {
+            const result = await contractWithProvider[func.name]();
+            console.log(`📋 ${func.desc}: ${result.toString()}`);
+            
+            // Análise específica de cada resultado
+            if (func.name === 'paused' && result === true) {
+                console.log('🚨 PROBLEMA: Contrato está pausado!');
+                throw new Error('Contrato está pausado - compras temporariamente desabilitadas');
+            }
+            
+            if ((func.name === 'saleActive' || func.name === 'saleEnabled') && result === false) {
+                console.log('🚨 PROBLEMA: Venda não está ativa!');
+                throw new Error('Venda não está ativa neste contrato');
+            }
+            
+            if (func.name === 'maxPurchase' && result.gt(0)) {
+                const maxInTokens = ethers.utils.formatUnits(result, tokenInfo.decimals);
+                if (parseFloat(maxInTokens) < quantity) {
+                    console.log(`🚨 PROBLEMA: Quantidade solicitada (${quantity}) excede máximo permitido (${maxInTokens})`);
+                    throw new Error(`Quantidade máxima permitida: ${maxInTokens} tokens`);
+                }
+            }
+            
+            if (func.name === 'minPurchase' && result.gt(0)) {
+                const minInTokens = ethers.utils.formatUnits(result, tokenInfo.decimals);
+                if (parseFloat(minInTokens) > quantity) {
+                    console.log(`🚨 PROBLEMA: Quantidade solicitada (${quantity}) é menor que mínimo (${minInTokens})`);
+                    throw new Error(`Quantidade mínima necessária: ${minInTokens} tokens`);
+                }
+            }
+            
+        } catch (error) {
+            // Se é um erro específico da análise, repassa
+            if (error.message.includes('pausado') || error.message.includes('ativa') || 
+                error.message.includes('máxima') || error.message.includes('mínima')) {
+                throw error;
+            }
+            // Senão, função simplesmente não existe no contrato (normal)
+            console.log(`📋 ${func.desc}: Não disponível`);
+        }
+    }
+    
+    // Verifica se usuário está na whitelist (se aplicável)
+    try {
+        const isWhitelisted = await contractWithProvider.isWhitelisted(walletAddress);
+        console.log(`📋 Usuário na whitelist: ${isWhitelisted}`);
+        if (isWhitelisted === false) {
+            console.log('🚨 PROBLEMA: Usuário não está na whitelist!');
+            throw new Error('Seu endereço não está autorizado para comprar tokens');
+        }
+    } catch (error) {
+        if (error.message.includes('autorizado')) {
+            throw error;
+        }
+        console.log('📋 Whitelist: Não aplicável');
+    }
+    
+    // Verifica limites por usuário
+    try {
+        const userLimit = await contractWithProvider.purchaseLimit(walletAddress);
+        const hasPurchased = await contractWithProvider.hasPurchased(walletAddress);
+        
+        console.log(`📋 Limite por usuário: ${userLimit.toString()}`);
+        console.log(`📋 Já comprou antes: ${hasPurchased}`);
+        
+        if (hasPurchased && userLimit.eq(0)) {
+            console.log('🚨 PROBLEMA: Usuário já atingiu limite de compras!');
+            throw new Error('Você já atingiu o limite de compras para este token');
+        }
+    } catch (error) {
+        if (error.message.includes('limite')) {
+            throw error;
+        }
+        console.log('📋 Limites por usuário: Não aplicável');
+    }
+    
+    console.log('✅ Diagnóstico avançado concluído - nenhum problema detectado');
 }
 
 // ==================== FUNÇÕES AUXILIARES ====================
