@@ -12,9 +12,13 @@
     <h4>💰 Informações do Token</h4>
     <p><strong>Preço por token:</strong> <span id="tokenPriceDisplay">0.003 BNB</span></p>
     <p><strong>Endereço do contrato:</strong> <span id="contractDisplay">0x5265F80e30e019344a218Dd89b67cBE164511c65</span></p>
+    <p><strong>Nome do token:</strong> <span id="tokenName">Carregando...</span></p>
+    <p><strong>Símbolo:</strong> <span id="tokenSymbol">Carregando...</span></p>
+    <p><strong>Tokens disponíveis no contrato:</strong> <span id="tokenBalance">Carregando...</span></p>
+    <p><strong>Total supply:</strong> <span id="totalSupply">Carregando...</span></p>
 </div>
 
-<button id="checkContract">Verificar Contrato</button>
+<button id="checkContract">Verificar Contrato e Tokens</button>
 <br><br>
 <label>Quantidade de Tokens:</label>
 <input type="number" id="tokenAmount" placeholder="Quantidade de tokens" min="1" oninput="calculateTotal()">
@@ -25,6 +29,8 @@
     <p><strong>Quantidade de tokens:</strong> <span id="calcTokens">0</span></p>
     <p><strong>Preço unitário:</strong> <span id="calcPrice">0.003 BNB</span></p>
     <p><strong>Total a pagar:</strong> <span id="calcTotal">0 BNB</span></p>
+    <p><strong>Disponível no contrato:</strong> <span id="calcAvailable">Verificar contrato primeiro</span></p>
+    <p id="availabilityStatus" style="font-weight: bold;"></p>
 </div>
 
 <button id="buyButton">Comprar</button>
@@ -52,6 +58,14 @@ const tokenDecimals = 18; // Decimais do token
 const tokenPrice = ethers.utils.parseEther("0.003"); // Preço inicial em tBNB por token
 const tokenPriceFormatted = "0.003"; // Para exibição
 
+// ABI básico do ERC-20 para verificar saldo
+const tokenABI = [
+    "function balanceOf(address owner) view returns (uint256)",
+    "function totalSupply() view returns (uint256)",
+    "function name() view returns (string)",
+    "function symbol() view returns (string)"
+];
+
 let provider;
 let signer;
 
@@ -66,6 +80,25 @@ function calculateTotal() {
         document.getElementById("calcTokens").textContent = amount;
         document.getElementById("calcPrice").textContent = tokenPriceFormatted + " BNB";
         document.getElementById("calcTotal").textContent = total.toFixed(6) + " BNB";
+        
+        // Verificar disponibilidade
+        const availableText = document.getElementById("tokenBalance").textContent;
+        if (availableText !== "Carregando..." && availableText !== "N/A") {
+            const available = parseFloat(availableText);
+            document.getElementById("calcAvailable").textContent = available.toLocaleString() + " tokens";
+            
+            const statusEl = document.getElementById("availabilityStatus");
+            if (parseFloat(amount) <= available) {
+                statusEl.textContent = "✅ Quantidade disponível";
+                statusEl.style.color = "green";
+            } else {
+                statusEl.textContent = "❌ Quantidade indisponível (máximo: " + available.toLocaleString() + ")";
+                statusEl.style.color = "red";
+            }
+        } else {
+            document.getElementById("calcAvailable").textContent = "Verificar contrato primeiro";
+            document.getElementById("availabilityStatus").textContent = "";
+        }
         
         calcDiv.style.display = "block";
     } else {
@@ -197,17 +230,56 @@ async function checkContract() {
         if (code === '0x') {
             addError("❌ PROBLEMA: Não existe contrato neste endereço!");
             addError("O endereço pode estar incorreto ou o contrato não foi deployed na BSC Testnet.");
+            return;
         } else {
             addError("✅ Contrato encontrado no endereço.");
-            
-            // Verificar saldo do contrato
-            const balance = await publicProvider.getBalance(contractAddress);
-            addError(`💰 Saldo do contrato: ${ethers.utils.formatEther(balance)} BNB`);
         }
+        
+        // Verificar saldo do contrato em BNB
+        const balance = await publicProvider.getBalance(contractAddress);
+        addError(`💰 Saldo BNB do contrato: ${ethers.utils.formatEther(balance)} BNB`);
         
         // Verificar conectividade da rede
         const blockNumber = await publicProvider.getBlockNumber();
         addError(`📡 Bloco atual BSC Testnet: ${blockNumber}`);
+        
+        // Tentar acessar as funções do token ERC-20
+        try {
+            const tokenContract = new ethers.Contract(contractAddress, tokenABI, publicProvider);
+            
+            // Obter informações básicas do token
+            const name = await tokenContract.name();
+            const symbol = await tokenContract.symbol();
+            const totalSupply = await tokenContract.totalSupply();
+            const contractTokenBalance = await tokenContract.balanceOf(contractAddress);
+            
+            // Atualizar interface
+            document.getElementById("tokenName").textContent = name;
+            document.getElementById("tokenSymbol").textContent = symbol;
+            document.getElementById("totalSupply").textContent = ethers.utils.formatUnits(totalSupply, tokenDecimals);
+            document.getElementById("tokenBalance").textContent = ethers.utils.formatUnits(contractTokenBalance, tokenDecimals);
+            
+            addError(`✅ Token: ${name} (${symbol})`);
+            addError(`📊 Total Supply: ${ethers.utils.formatUnits(totalSupply, tokenDecimals)} ${symbol}`);
+            addError(`🪙 Tokens disponíveis no contrato: ${ethers.utils.formatUnits(contractTokenBalance, tokenDecimals)} ${symbol}`);
+            
+            // Verificar se tem tokens suficientes para venda
+            if (contractTokenBalance.gt(0)) {
+                addError("✅ Contrato tem tokens disponíveis para venda.");
+            } else {
+                addError("⚠️ ATENÇÃO: Contrato não tem tokens para venda!");
+            }
+            
+        } catch (tokenErr) {
+            addError("⚠️ Não foi possível acessar funções ERC-20: " + tokenErr.message);
+            addError("O contrato pode não ser um token ERC-20 padrão.");
+            
+            // Resetar displays
+            document.getElementById("tokenName").textContent = "N/A";
+            document.getElementById("tokenSymbol").textContent = "N/A";
+            document.getElementById("totalSupply").textContent = "N/A";
+            document.getElementById("tokenBalance").textContent = "N/A";
+        }
         
     } catch (err) {
         addError("❌ Erro ao verificar contrato: " + err.message);
