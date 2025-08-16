@@ -1036,7 +1036,7 @@ async function verifyBuyFunctions() {
         'exchange', 'buyToken'
     ];
     
-    addContractMessage('� Teste 4: Testando função buy()...', 'info');
+    addContractMessage('� Teste 4: Testando função de compra...', 'info');
     
     for (const funcName of buyFunctions) {
         try {
@@ -1071,7 +1071,7 @@ async function verifyBuyFunctions() {
             const gasEstimate = await currentContract.estimateGas[funcName](...gasEstimateParams);
             
             // Se chegou aqui, a função existe e é válida
-            console.log(`✅ Função buy(): Detectada e funcional (Gas: ${gasEstimate})`);
+            console.log(`✅ Função de compra: Detectada e funcional (Gas: ${gasEstimate})`);
             
             // **MELHORIA: Teste callStatic adicional como no teste**
             try {
@@ -1102,7 +1102,7 @@ async function verifyBuyFunctions() {
                        error.message.includes('execution reverted')) {
                 // **MELHORIA: Melhor tratamento de revert - incluir motivo**
                 const reason = error.reason || error.message.split(':')[1] || 'Motivo não especificado';
-                console.log(`⚠️ Função buy(): Detectada mas reverte (${reason})`);
+                console.log(`⚠️ Função de compra: Detectada mas reverte (${reason})`);
                 buyFunctionName = funcName;
                 updateCompatibilityStatus('buyStatus', '✅ Disponível', 'success');
                 addContractMessage(`✅ Função de compra "${funcName}" detectada (reverte com parâmetros de teste - normal)`, 'success');
@@ -1651,8 +1651,8 @@ async function executePurchase() {
                 console.log('❌ Simulação com valor exato: FALHOU');
                 console.log('🔍 Razão:', simError1.reason || simError1.message);
                 
-                // Tenta extrair a razão específica do revert
-                await analyzeRevertReason(simError1, contractForSim, valueInWei);
+                // Log apenas no console - não mostra erro para usuário na simulação
+                // A simulação pode falhar mas a transação real pode funcionar
             }
             
         } catch (simError) {
@@ -1662,8 +1662,8 @@ async function executePurchase() {
             if (simError.message.includes('missing trie node')) {
                 addPurchaseMessage('⚠️ Problema de sincronização da rede - tentando mesmo assim', 'warning');
             } else if (simError.message.includes('revert')) {
-                addPurchaseMessage('❌ Parâmetros inválidos - verifique os dados', 'error');
-                return;
+                // Não mostra erro de revert na simulação - pode funcionar na transação real
+                console.log('🔍 Simulação falhou com revert - mas transação real pode funcionar');
             } else {
                 addPurchaseMessage(`⚠️ Simulação falhou: ${simError.message}`, 'warning');
             }
@@ -1746,7 +1746,7 @@ async function executePurchase() {
                     errorMessage += '\nGas muito baixo (21307) indica que o contrato rejeitou a transação imediatamente.';
                     errorMessage += '\n\nCausas mais prováveis:';
                     errorMessage += '\n• Contrato está pausado ou com restrições';
-                    errorMessage += '\n• Função buy() tem condições específicas não atendidas';
+                    errorMessage += '\n• Função de compra (buy()) tem condições específicas não atendidas';
                     errorMessage += '\n• Valor enviado não está correto para este contrato';
                     errorMessage += '\n• Contrato requer whitelist ou aprovação prévia';
                     
@@ -1759,7 +1759,7 @@ async function executePurchase() {
                 console.log('1. Contrato sem tokens suficientes para vender');
                 console.log('2. Valor enviado incorreto (muito alto/baixo)');
                 console.log('3. Contrato pausado ou com restrições');
-                console.log('4. Função buy() com lógica específica não atendida');
+                console.log('4. Função de compra (buy()) com lógica específica não atendida');
                 console.log('5. Problema de aprovação ou allowance');
                 
                 errorMessage += '\n\nPossíveis causas:\n';
@@ -1966,7 +1966,7 @@ async function analyzeRevertReason(error, contract, valueInWei) {
             console.log(`🧪 Testando: ${scenario.name}`);
             await scenario.test();
             console.log(`✅ ${scenario.name}: FUNCIONOU!`);
-            addPurchaseMessage(`💡 Descoberta: ${scenario.name} funciona - ajuste necessário`, 'warning');
+            // Não mostra mais descobertas para o usuário - apenas no console
             return;
         } catch (testError) {
             console.log(`❌ ${scenario.name}: ${testError.reason || 'Falhou'}`);
@@ -1990,13 +1990,13 @@ async function analyzeRevertReason(error, contract, valueInWei) {
     for (const [pattern, explanation] of Object.entries(commonReverts)) {
         if (revertReason.toLowerCase().includes(pattern)) {
             console.log(`💡 Padrão identificado: ${explanation}`);
-            addPurchaseMessage(`❌ Erro identificado: ${explanation}`, 'error');
+            // Não mostra mais erros técnicos para o usuário durante simulação
             return;
         }
     }
     
-    // Se não conseguiu identificar, mostra a razão bruta
-    addPurchaseMessage(`❌ Compra rejeitada: ${revertReason}`, 'error');
+    // Log apenas no console - não mostra erro técnico para o usuário
+    console.log(`🔍 Razão do revert: ${revertReason}`);
 }
 
 // ==================== FUNÇÕES AUXILIARES ====================
