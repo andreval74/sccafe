@@ -198,6 +198,37 @@ async function checkInitialWalletState() {
 }
 
 /**
+ * Inicializa conexão da wallet (compatibilidade)
+ */
+function initializeWalletConnection() {
+    // Monitora mudanças de rede e conta
+    if (typeof window.ethereum !== 'undefined') {
+        window.ethereum.on('accountsChanged', (accounts) => {
+            if (accounts.length > 0) {
+                walletAddress = accounts[0];
+                walletConnected = true;
+                updateWalletUI();
+                // Atualizar saldo quando trocar de conta
+                updateWalletBalance(true); // Force update ao trocar conta
+            } else {
+                walletConnected = false;
+                walletAddress = '';
+                // Reset da interface
+                location.reload();
+            }
+        });
+        
+        window.ethereum.on('chainChanged', () => {
+            // Recarrega a página quando muda de rede
+            location.reload();
+        });
+    }
+    
+    // Verificação periódica REMOVIDA para economizar recursos
+    // Saldo será atualizado apenas quando necessário (manual ou após transação)
+}
+
+/**
  * Configura event listeners
  */
 function setupEventListeners() {
@@ -2706,37 +2737,6 @@ function getMessageClass(type) {
 }
 
 // ==================== FUNÇÕES GLOBAIS PARA COMPATIBILIDADE ====================
-
-/**
- * Inicializa conexão da wallet (compatibilidade)
- */
-function initializeWalletConnection() {
-    // Monitora mudanças de rede e conta
-    if (typeof window.ethereum !== 'undefined') {
-        window.ethereum.on('accountsChanged', (accounts) => {
-            if (accounts.length > 0) {
-                walletAddress = accounts[0];
-                walletConnected = true;
-                updateWalletUI();
-                // Atualizar saldo quando trocar de conta
-                updateWalletBalance(true); // Force update ao trocar conta
-            } else {
-                walletConnected = false;
-                walletAddress = '';
-                // Reset da interface
-                location.reload();
-            }
-        });
-        
-        window.ethereum.on('chainChanged', () => {
-            // Recarrega a página quando muda de rede
-            location.reload();
-        });
-    }
-    
-    // Verificação periódica REMOVIDA para economizar recursos
-    // Saldo será atualizado apenas quando necessário (manual ou após transação)
-}
 
 // ==================== SISTEMA DE FALLBACK RPC ====================
 
