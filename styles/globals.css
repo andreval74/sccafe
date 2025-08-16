@@ -320,9 +320,9 @@ body {
   background-color: var(--bs-dark) !important;
 }
 
-.bg-dark {
-  /* background-color: #1a1a1a !important; */
-}
+/* .bg-dark {
+  background-color: #1a1a1a !important;
+} */
 
 /* Bootstrap Border Colors */
 .border-primary {
