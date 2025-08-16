@@ -148,6 +148,8 @@ async function checkInitialWalletState() {
                 walletConnected = true;
                 await detectNetwork();
                 updateWalletUI();
+                // Carregar saldo inicial se já conectado
+                updateWalletBalance();
             }
         } catch (error) {
             console.log('Wallet não conectada previamente');
@@ -241,6 +243,34 @@ async function connectWallet() {
 }
 
 /**
+ * Atualiza saldo da carteira
+ */
+async function updateWalletBalance() {
+    const balanceElement = document.getElementById('wallet-balance-value');
+    
+    if (!walletConnected || !walletAddress || !balanceElement) return;
+    
+    try {
+        console.log('💰 Atualizando saldo da carteira...');
+        
+        // Buscar saldo usando provider público
+        const balance = await publicProvider.getBalance(walletAddress);
+        const balanceInBNB = ethers.utils.formatEther(balance);
+        
+        // Formatar para exibição
+        const formattedBalance = formatNumber(balanceInBNB);
+        
+        balanceElement.textContent = `${formattedBalance} BNB`;
+        
+        console.log(`💰 Saldo da carteira: ${formattedBalance} BNB`);
+        
+    } catch (error) {
+        console.error('❌ Erro ao buscar saldo da carteira:', error);
+        balanceElement.textContent = 'Erro ao carregar';
+    }
+}
+
+/**
  * Atualiza interface da wallet
  */
 function updateWalletUI() {
@@ -267,6 +297,9 @@ function updateWalletUI() {
         if (networkSection) {
             networkSection.style.display = 'block';
         }
+        
+        // Atualiza saldo da carteira
+        updateWalletBalance();
         
         // Habilita seção de contrato apenas após conexão
         enableContractSection();
@@ -2279,6 +2312,8 @@ function initializeWalletConnection() {
                 walletAddress = accounts[0];
                 walletConnected = true;
                 updateWalletUI();
+                // Atualizar saldo quando trocar de conta
+                updateWalletBalance();
             } else {
                 walletConnected = false;
                 walletAddress = '';
@@ -2547,6 +2582,12 @@ function clearAllData() {
     const availabilityInfo = document.getElementById('tokens-availability');
     if (availabilityInfo) {
         availabilityInfo.style.display = 'none';
+    }
+    
+    // Limpar saldo da carteira
+    const balanceElement = document.getElementById('wallet-balance-value');
+    if (balanceElement) {
+        balanceElement.textContent = '-';
     }
     
     // Resetar status
