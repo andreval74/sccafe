@@ -202,6 +202,13 @@ function setupEventListeners() {
         newPurchaseBtn.addEventListener('click', startNewPurchase);
         console.log('✅ Event listener configurado para botão de nova compra');
     }
+    
+    // Botão de limpar dados
+    const clearAllBtn = document.getElementById('clear-all-btn');
+    if (clearAllBtn) {
+        clearAllBtn.addEventListener('click', clearAllData);
+        console.log('✅ Event listener configurado para botão de limpar dados');
+    }
 }
 
 // ==================== GERENCIAMENTO DE WALLET ====================
@@ -424,7 +431,7 @@ async function verifyContract() {
             window.contractLogger.logContractError(contractAddress, 'CONTRACT_NOT_FOUND', {
                 message: 'Nenhum código encontrado no endereço',
                 code: code,
-                network: currentNetworkId
+                network: networkData.chainId || 'desconhecida'
             });
             window.contractLogger.showDownloadButton();
             
@@ -927,7 +934,7 @@ async function testActualPayableFunctions() {
                     // Função existe, apenas reverte com parâmetros de teste
                     buyFunctionName = funcName;
                     updateCompatibilityStatus('buyStatus', '✅ Disponível', 'success');
-                    addContractMessage(`✅ Função "${funcName}" detectada - reverte com parâmetros teste`, 'success');
+                    addContractMessage(`✅ Função de compra detectada - reverte com parâmetros teste`, 'success');
                     
                     // **DIAGNÓSTICO PROFUNDO antes de habilitar**
                     console.log('🔬 Executando diagnóstico profundo para função com revert...');
@@ -1112,7 +1119,7 @@ async function verifyBuyFunctions() {
                 console.log(`⚠️ Função de compra: Detectada mas reverte (${reason})`);
                 buyFunctionName = funcName;
                 updateCompatibilityStatus('buyStatus', '✅ Disponível', 'success');
-                addContractMessage(`✅ Função de compra "${funcName}" detectada (reverte com parâmetros de teste - normal)`, 'success');
+                addContractMessage(`✅ Função de compra detectada (reverte com parâmetros de teste - normal)`, 'success');
                 return;
             } else {
                 console.log(`❌ Função ${funcName}() erro: ${error.message}`);
@@ -1764,7 +1771,7 @@ async function executePurchase() {
                     errorMessage += '\nGas muito baixo (21307) indica que o contrato rejeitou a transação imediatamente.';
                     errorMessage += '\n\nCausas mais prováveis:';
                     errorMessage += '\n• Contrato está pausado ou com restrições';
-                    errorMessage += '\n• Função de compra (buy()) tem condições específicas não atendidas';
+                    errorMessage += '\n• Função de compra tem condições específicas não atendidas';
                     errorMessage += '\n• Valor enviado não está correto para este contrato';
                     errorMessage += '\n• Contrato requer whitelist ou aprovação prévia';
                     
@@ -1777,7 +1784,7 @@ async function executePurchase() {
                 console.log('1. Contrato sem tokens suficientes para vender');
                 console.log('2. Valor enviado incorreto (muito alto/baixo)');
                 console.log('3. Contrato pausado ou com restrições');
-                console.log('4. Função de compra (buy()) com lógica específica não atendida');
+                console.log('4. Função de compra com lógica específica não atendida');
                 console.log('5. Problema de aprovação ou allowance');
                 
                 errorMessage += '\n\nPossíveis causas:\n';
@@ -2477,6 +2484,146 @@ function getFallbackRpcUrls(chainId) {
     return rpcUrls[chainId] || [];
 }
 
+// ==================== CONTROLES DO SISTEMA ====================
+
+/**
+ * Limpa todos os dados do sistema e reinicia
+ */
+function clearAllData() {
+    // Confirmação do usuário
+    const confirm = window.confirm(
+        '⚠️ ATENÇÃO!\n\n' +
+        'Esta ação irá:\n' +
+        '• Limpar todos os dados inseridos\n' +
+        '• Ocultar todas as seções\n' +
+        '• Reiniciar o sistema completamente\n\n' +
+        'Deseja continuar?'
+    );
+    
+    if (!confirm) {
+        return;
+    }
+    
+    console.log('🧹 Iniciando limpeza completa dos dados...');
+    
+    // 1. Limpar campos de entrada
+    const contractInput = document.getElementById('contract-address');
+    const quantityInput = document.getElementById('token-quantity');
+    const priceInput = document.getElementById('token-price');
+    const totalValueInput = document.getElementById('total-value');
+    
+    if (contractInput) {
+        contractInput.value = '';
+        contractInput.classList.remove('border-success', 'border-danger', 'is-valid', 'is-invalid');
+    }
+    
+    if (quantityInput) {
+        quantityInput.value = '';
+        quantityInput.disabled = true;
+    }
+    
+    if (priceInput) {
+        priceInput.value = '';
+    }
+    
+    if (totalValueInput) {
+        totalValueInput.value = '';
+    }
+    
+    // 2. Limpar informações do token
+    const tokenFields = ['token-name', 'token-symbol', 'token-decimals', 'token-price-display'];
+    tokenFields.forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (field) {
+            field.textContent = '-';
+        }
+    });
+    
+    // 3. Resetar status das funcionalidades
+    const statusFields = ['erc20Status', 'transferStatus', 'buyStatus'];
+    statusFields.forEach(fieldId => {
+        updateCompatibilityStatus(fieldId, 'Verificando...', 'warning');
+    });
+    
+    // 4. Limpar mensagens
+    const messagesContainer = document.getElementById('contract-messages');
+    if (messagesContainer) {
+        messagesContainer.innerHTML = '';
+    }
+    
+    const systemMessages = document.getElementById('system-messages');
+    if (systemMessages) {
+        systemMessages.innerHTML = '';
+    }
+    
+    const purchaseResult = document.getElementById('purchaseResult');
+    if (purchaseResult) {
+        purchaseResult.style.display = 'none';
+        const purchaseErrors = document.getElementById('purchaseErrors');
+        if (purchaseErrors) {
+            purchaseErrors.innerHTML = '';
+        }
+    }
+    
+    // 5. Ocultar seções
+    const sectionsToHide = [
+        'contract-detection-section',
+        'token-info-section',
+        'purchase-section',
+        'transactionDetails'
+    ];
+    
+    sectionsToHide.forEach(sectionId => {
+        const section = document.getElementById(sectionId);
+        if (section) {
+            section.style.display = 'none';
+        }
+    });
+    
+    // 6. Resetar botões
+    const detectBtn = document.getElementById('detect-contract-btn');
+    if (detectBtn) {
+        detectBtn.disabled = false;
+        detectBtn.textContent = 'DETECTAR';
+        detectBtn.classList.remove('btn-success');
+        detectBtn.classList.add('btn-info');
+    }
+    
+    const purchaseBtn = document.getElementById('execute-purchase-btn');
+    if (purchaseBtn) {
+        purchaseBtn.disabled = true;
+        purchaseBtn.style.opacity = '0.5';
+        purchaseBtn.style.cursor = 'not-allowed';
+        purchaseBtn.style.backgroundColor = '';
+    }
+    
+    // 7. Resetar variáveis globais
+    currentContract = null;
+    tokenInfo = {
+        name: '',
+        symbol: '',
+        decimals: 0,
+        price: '0',
+        minPurchase: null,
+        maxPurchase: null
+    };
+    buyFunctionName = null;
+    
+    // 8. Limpar logs (se necessário)
+    if (window.contractLogger) {
+        console.log('📝 Limpando logs do sistema...');
+        // Aqui você pode adicionar lógica para limpar logs se necessário
+    }
+    
+    console.log('✅ Sistema limpo completamente!');
+    
+    // Mostrar mensagem de sucesso
+    showSuccessMessage('🧹 Todos os dados foram limpos com sucesso! Sistema reiniciado.');
+    
+    // Scroll para o topo
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
 // ==================== EXPORTS ====================
 
 // Tornar funções disponíveis globalmente para compatibilidade
@@ -2490,7 +2637,8 @@ window.DynamicTokenPurchase = {
     clearContractMessages,
     clearPurchaseMessages,
     initializeProviderWithFallback,
-    retryWithFallbackProvider
+    retryWithFallbackProvider,
+    clearAllData
 };
 
 // CSS para animação de loading
