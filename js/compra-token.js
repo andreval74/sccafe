@@ -74,6 +74,37 @@ const CONFIG = {
         "function getEthForTokens(uint256 tokenAmount) view returns (uint256)"
     ],
     
+    // ABI para contratos de venda (sale contracts)
+    saleContractABI: [
+        // Funções para detectar token
+        "function token() view returns (address)",
+        "function tokenAddress() view returns (address)",
+        "function getToken() view returns (address)",
+        "function tokenContract() view returns (address)",
+        "function saleToken() view returns (address)",
+        "function targetToken() view returns (address)",
+        "function purchaseToken() view returns (address)",
+        "function sellToken() view returns (address)",
+        
+        // Funções de compra em contratos de venda
+        "function buyTokens() payable",
+        "function buyTokens(uint256) payable",
+        "function buy() payable",
+        "function buy(uint256) payable",
+        "function purchase() payable",
+        "function purchase(uint256) payable",
+        
+        // Funções de informação do contrato de venda
+        "function tokenPrice() view returns (uint256)",
+        "function price() view returns (uint256)",
+        "function getPrice() view returns (uint256)",
+        "function salePrice() view returns (uint256)",
+        "function tokensForSale() view returns (uint256)",
+        "function tokensAvailable() view returns (uint256)",
+        "function saleActive() view returns (bool)",
+        "function saleEnabled() view returns (bool)"
+    ],
+    
     // Configurações de gas
     gasLimit: 200000,
     gasPrice: "5000000000" // 5 gwei
@@ -87,6 +118,7 @@ let walletConnected = false;
 let walletAddress = '';
 let networkData = {};
 let currentContract = null;
+let currentSaleContract = null; // Para contratos de venda
 let tokenInfo = {};
 let buyFunctionName = null;
 
@@ -555,6 +587,97 @@ function validateContractAddress() {
     }
 }
 
+// ==================== DETECÇÃO DE CONTRATOS DE VENDA ====================
+
+/**
+ * Verifica se o contrato informado é um contrato de venda que aponta para outro token
+ */
+async function checkIfSaleContract(contractAddress) {
+    console.log('🔍 Verificando se é contrato de venda...');
+    
+    try {
+        // Lista de funções comuns em contratos de venda para detectar o token
+        const tokenFunctions = [
+            'token',           // Mais comum
+            'tokenAddress',    // Comum
+            'getToken',        // Alternativa
+            'tokenContract',   // Alternativa
+            'saleToken',       // Específico para sales
+            'targetToken',     // Específico
+            'purchaseToken',   // Específico
+            'sellToken'        // Específico
+        ];
+        
+        // ABI básico para contratos de venda
+        const saleContractABI = [
+            "function token() view returns (address)",
+            "function tokenAddress() view returns (address)",
+            "function getToken() view returns (address)",
+            "function tokenContract() view returns (address)",
+            "function saleToken() view returns (address)",
+            "function targetToken() view returns (address)",
+            "function purchaseToken() view returns (address)",
+            "function sellToken() view returns (address)",
+            // Funções de compra comuns em contratos de venda
+            "function buyTokens() payable",
+            "function buyTokens(uint256) payable",
+            "function buy() payable",
+            "function buy(uint256) payable",
+            "function purchase() payable",
+            "function purchase(uint256) payable"
+        ];
+        
+        const saleContract = new ethers.Contract(contractAddress, CONFIG.saleContractABI, currentProvider);
+        
+        // Tenta encontrar o endereço do token através das funções comuns
+        for (const funcName of tokenFunctions) {
+            try {
+                console.log(`🔍 Testando função: ${funcName}()`);
+                const tokenAddress = await saleContract[funcName]();
+                
+                if (tokenAddress && ethers.utils.isAddress(tokenAddress) && tokenAddress !== '0x0000000000000000000000000000000000000000') {
+                    console.log(`✅ Token encontrado via ${funcName}(): ${tokenAddress}`);
+                    
+                    // Verifica se o endereço do token é diferente do contrato de venda
+                    if (tokenAddress.toLowerCase() !== contractAddress.toLowerCase()) {
+                        // Verifica se o endereço do token realmente tem um contrato
+                        const tokenCode = await currentProvider.getCode(tokenAddress);
+                        if (tokenCode !== '0x') {
+                            console.log(`✅ Contrato de venda confirmado! Token real: ${tokenAddress}`);
+                            return {
+                                isSaleContract: true,
+                                tokenAddress: tokenAddress,
+                                saleContractAddress: contractAddress,
+                                tokenFunction: funcName
+                            };
+                        }
+                    }
+                }
+            } catch (error) {
+                // Função não existe ou falhou, continua tentando
+                console.log(`❌ Função ${funcName}() não disponível`);
+            }
+        }
+        
+        console.log('ℹ️ Não é um contrato de venda - é o próprio token');
+        return {
+            isSaleContract: false,
+            tokenAddress: contractAddress,
+            saleContractAddress: null,
+            tokenFunction: null
+        };
+        
+    } catch (error) {
+        console.error('❌ Erro ao verificar contrato de venda:', error);
+        return {
+            isSaleContract: false,
+            tokenAddress: contractAddress,
+            saleContractAddress: null,
+            tokenFunction: null
+        };
+    }
+}
+
 /**
  * Verifica o contrato na blockchain
  */
@@ -603,11 +726,29 @@ async function verifyContract() {
         
         addContractMessage(`✅ Contrato detectado no endereço: ${contractAddress.slice(0,6)}...${contractAddress.slice(-4)}`, 'success');
         
-        // Armazena endereço validado
-        CONFIG.contractAddress = contractAddress;
+        // **NOVA FUNCIONALIDADE: Verificar se é um contrato de venda**
+        const saleContractInfo = await checkIfSaleContract(contractAddress);
         
-        // **MELHORIA 2: Criar instância do contrato**
-        currentContract = new ethers.Contract(contractAddress, CONFIG.tokenABI, currentProvider);
+        if (saleContractInfo.isSaleContract) {
+            addContractMessage('🎯 Contrato de venda detectado!', 'info');
+            addContractMessage(`📍 Token real: ${saleContractInfo.tokenAddress.slice(0,6)}...${saleContractInfo.tokenAddress.slice(-4)}`, 'info');
+            
+            // Usar o endereço do token real para as próximas verificações
+            CONFIG.contractAddress = saleContractInfo.tokenAddress;
+            CONFIG.saleContractAddress = contractAddress; // Guardar endereço do contrato de venda
+            
+            // Criar instância do token real
+            currentContract = new ethers.Contract(saleContractInfo.tokenAddress, CONFIG.tokenABI, currentProvider);
+            // Criar instância do contrato de venda para compras
+            currentSaleContract = new ethers.Contract(contractAddress, CONFIG.saleContractABI, currentProvider);
+            
+            addContractMessage('🔄 Verificando token real do contrato de venda...', 'info');
+        } else {
+            // Armazena endereço validado
+            CONFIG.contractAddress = contractAddress;
+            // **MELHORIA 2: Criar instância do contrato**
+            currentContract = new ethers.Contract(contractAddress, CONFIG.tokenABI, currentProvider);
+        }
         
         // **MELHORIA 3: Verificar funções básicas ERC-20 com melhor tratamento de erro**
         await verifyERC20Functions();
