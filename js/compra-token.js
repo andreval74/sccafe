@@ -473,8 +473,302 @@ async function verifyERC20Functions() {
 }
 
 /**
- * NOVA ESTRATÉGIA: Teste direto das funções PAYABLE encontradas no ABI
+ * 🔍 DIAGNÓSTICO PROFUNDO: Identifica exatamente por que o contrato rejeita transações
  */
+async function performDeepContractAnalysis(contractAddress, buyFunctionName) {
+    console.log('🔬 INICIANDO DIAGNÓSTICO PROFUNDO DO CONTRATO...');
+    
+    try {
+        // 1. Verificações básicas do estado do contrato
+        const basicChecks = await performBasicContractChecks();
+        
+        // 2. Testa diferentes cenários de chamada
+        const callTests = await performCallTests(buyFunctionName);
+        
+        // 3. Analisa condições específicas
+        const conditions = await analyzeContractConditions();
+        
+        // 4. Gera relatório final
+        const isReady = generateReadinessReport(basicChecks, callTests, conditions);
+        
+        return isReady;
+        
+    } catch (error) {
+        console.log('❌ Erro no diagnóstico profundo:', error.message);
+        return false;
+    }
+}
+
+/**
+ * 1️⃣ Verificações básicas do estado do contrato
+ */
+async function performBasicContractChecks() {
+    console.log('🔍 1️⃣ Verificações básicas do estado...');
+    
+    const checks = {
+        contractExists: false,
+        hasTokens: false,
+        hasBalance: false,
+        isPaused: null,
+        saleActive: null,
+        owner: null
+    };
+    
+    try {
+        // Verifica se o contrato existe
+        const code = await currentProvider.getCode(CONFIG.contractAddress);
+        checks.contractExists = code !== '0x';
+        console.log(`📋 Contrato existe: ${checks.contractExists}`);
+        
+        // Verifica tokens no contrato
+        try {
+            const tokenBalance = await currentContract.balanceOf(CONFIG.contractAddress);
+            const tokens = parseFloat(ethers.utils.formatUnits(tokenBalance, tokenInfo.decimals || 18));
+            checks.hasTokens = tokens > 0;
+            console.log(`📋 Tokens no contrato: ${tokens} (${checks.hasTokens ? 'OK' : 'ZERO'})`);
+        } catch (e) {
+            console.log('📋 Não foi possível verificar tokens no contrato');
+        }
+        
+        // Verifica se está pausado
+        try {
+            checks.isPaused = await currentContract.paused();
+            console.log(`📋 Contrato pausado: ${checks.isPaused}`);
+        } catch (e) {
+            console.log('📋 Função paused() não disponível');
+        }
+        
+        // Verifica se venda está ativa
+        const saleChecks = ['saleActive', 'saleEnabled', 'isActive', 'enabled'];
+        for (const funcName of saleChecks) {
+            try {
+                checks.saleActive = await currentContract[funcName]();
+                console.log(`📋 ${funcName}(): ${checks.saleActive}`);
+                break;
+            } catch (e) {
+                // Função não existe
+            }
+        }
+        
+        // Verifica owner
+        try {
+            checks.owner = await currentContract.owner();
+            console.log(`📋 Owner: ${checks.owner}`);
+        } catch (e) {
+            console.log('📋 Função owner() não disponível');
+        }
+        
+        return checks;
+        
+    } catch (error) {
+        console.log('❌ Erro nas verificações básicas:', error.message);
+        return checks;
+    }
+}
+
+/**
+ * 2️⃣ Testa diferentes cenários de chamada
+ */
+async function performCallTests(buyFunctionName) {
+    console.log('🔍 2️⃣ Testando cenários de chamada...');
+    
+    const tests = {
+        withoutValue: false,
+        withSmallValue: false,
+        withCorrectPrice: false,
+        withParameters: false,
+        gasEstimation: null
+    };
+    
+    try {
+        // Teste 1: Sem valor (para verificar se função é realmente payable)
+        try {
+            await currentContract.callStatic[buyFunctionName]();
+            tests.withoutValue = true;
+            console.log('✅ Teste sem valor: PASSOU (função pode não ser payable)');
+        } catch (e) {
+            console.log(`❌ Teste sem valor: ${e.reason || e.message}`);
+        }
+        
+        // Teste 2: Com valor pequeno
+        try {
+            await currentContract.callStatic[buyFunctionName]({ value: ethers.utils.parseEther('0.001') });
+            tests.withSmallValue = true;
+            console.log('✅ Teste valor pequeno: PASSOU');
+        } catch (e) {
+            console.log(`❌ Teste valor pequeno: ${e.reason || e.message}`);
+        }
+        
+        // Teste 3: Tentativa de estimativa de gas
+        try {
+            tests.gasEstimation = await currentContract.estimateGas[buyFunctionName]({ value: ethers.utils.parseEther('0.001') });
+            console.log(`📋 Estimativa de gas: ${tests.gasEstimation.toString()}`);
+        } catch (e) {
+            console.log(`❌ Estimativa de gas: ${e.reason || e.message}`);
+        }
+        
+        return tests;
+        
+    } catch (error) {
+        console.log('❌ Erro nos testes de chamada:', error.message);
+        return tests;
+    }
+}
+
+/**
+ * 3️⃣ Analisa condições específicas do contrato
+ */
+async function analyzeContractConditions() {
+    console.log('🔍 3️⃣ Analisando condições específicas...');
+    
+    const conditions = {
+        hasWhitelist: false,
+        hasMinMax: false,
+        hasCooldown: false,
+        requiresApproval: false
+    };
+    
+    try {
+        // Verifica whitelist
+        try {
+            await currentContract.isWhitelisted(walletAddress);
+            conditions.hasWhitelist = true;
+            console.log('📋 Contrato usa whitelist');
+        } catch (e) {
+            console.log('📋 Contrato não usa whitelist');
+        }
+        
+        // Verifica limites
+        const limitFunctions = ['minPurchase', 'maxPurchase', 'purchaseLimit'];
+        for (const func of limitFunctions) {
+            try {
+                const limit = await currentContract[func](walletAddress || '0x0000000000000000000000000000000000000000');
+                if (limit.gt(0)) {
+                    conditions.hasMinMax = true;
+                    console.log(`📋 ${func}: ${ethers.utils.formatEther(limit)} BNB`);
+                }
+            } catch (e) {
+                // Função não existe
+            }
+        }
+        
+        return conditions;
+        
+    } catch (error) {
+        console.log('❌ Erro na análise de condições:', error.message);
+        return conditions;
+    }
+}
+
+/**
+ * 4️⃣ Gera relatório final de prontidão
+ */
+function generateReadinessReport(basicChecks, callTests, conditions) {
+    console.log('🔍 4️⃣ Gerando relatório de prontidão...');
+    
+    let score = 0;
+    let maxScore = 0;
+    const issues = [];
+    
+    // Avaliação básica
+    maxScore += 10;
+    if (basicChecks.contractExists) score += 10;
+    else issues.push('❌ CRÍTICO: Contrato não existe no endereço informado');
+    
+    // Avaliação de estado
+    if (basicChecks.isPaused === true) {
+        issues.push('⚠️ BLOQUEADOR: Contrato está PAUSADO');
+    } else if (basicChecks.isPaused === false) {
+        score += 5;
+    }
+    maxScore += 5;
+    
+    if (basicChecks.saleActive === true) {
+        score += 5;
+    } else if (basicChecks.saleActive === false) {
+        issues.push('⚠️ BLOQUEADOR: Venda não está ATIVA');
+    }
+    maxScore += 5;
+    
+    // Avaliação de tokens
+    if (basicChecks.hasTokens) {
+        score += 3;
+    } else {
+        issues.push('⚠️ AVISO: Contrato não tem tokens (pode usar mint)');
+    }
+    maxScore += 3;
+    
+    // Avaliação de testes
+    if (callTests.withoutValue || callTests.withSmallValue) {
+        score += 7;
+    } else {
+        issues.push('❌ CRÍTICO: Função não aceita chamadas de teste');
+    }
+    maxScore += 7;
+    
+    const readinessPercent = Math.round((score / maxScore) * 100);
+    const isReady = score >= (maxScore * 0.7); // 70% de prontidão mínima
+    
+    console.log(`📊 RELATÓRIO DE PRONTIDÃO: ${readinessPercent}% (${score}/${maxScore})`);
+    console.log(`🎯 Status: ${isReady ? '✅ PRONTO PARA NEGOCIAÇÃO' : '❌ NÃO PRONTO'}`);
+    
+    if (issues.length > 0) {
+        console.log('🚨 PROBLEMAS IDENTIFICADOS:');
+        issues.forEach(issue => console.log(`   ${issue}`));
+    }
+    
+    // Atualiza UI com o resultado
+    updateReadinessUI(readinessPercent, isReady, issues);
+    
+    return isReady;
+}
+
+/**
+ * 🎯 Atualiza UI com resultado da análise de prontidão
+ */
+function updateReadinessUI(readinessPercent, isReady, issues) {
+    // Cria ou atualiza seção de status de prontidão
+    let readinessSection = document.getElementById('readiness-status');
+    if (!readinessSection) {
+        // Cria seção se não existe
+        const contractSection = document.querySelector('#contract-section .card-body');
+        if (contractSection) {
+            readinessSection = document.createElement('div');
+            readinessSection.id = 'readiness-status';
+            readinessSection.className = 'mt-3 p-3 border rounded';
+            contractSection.appendChild(readinessSection);
+        }
+    }
+    
+    if (readinessSection) {
+        const statusColor = isReady ? 'success' : 'danger';
+        const statusIcon = isReady ? '✅' : '❌';
+        const statusText = isReady ? 'PRONTO PARA NEGOCIAÇÃO' : 'PROBLEMAS IDENTIFICADOS';
+        
+        readinessSection.innerHTML = `
+            <div class="d-flex align-items-center mb-2">
+                <div class="flex-grow-1">
+                    <h6 class="text-${statusColor} mb-0">${statusIcon} Status de Prontidão: ${readinessPercent}%</h6>
+                    <small class="text-${statusColor}">${statusText}</small>
+                </div>
+                <div class="progress" style="width: 120px; height: 8px;">
+                    <div class="progress-bar bg-${statusColor}" style="width: ${readinessPercent}%"></div>
+                </div>
+            </div>
+            ${issues.length > 0 ? `
+                <div class="alert alert-warning alert-sm mb-0">
+                    <small><strong>Problemas encontrados:</strong></small>
+                    <ul class="mb-0 mt-1" style="font-size: 0.875em;">
+                        ${issues.map(issue => `<li>${issue}</li>`).join('')}
+                    </ul>
+                </div>
+            ` : ''}
+        `;
+        
+        readinessSection.className = `mt-3 p-3 border border-${statusColor} rounded bg-${statusColor} bg-opacity-10`;
+    }
+}
+
 async function testActualPayableFunctions() {
     console.log('🎯 TESTE DIRETO: Validando funções PAYABLE do ABI...');
     
@@ -544,11 +838,21 @@ async function testActualPayableFunctions() {
                 updateCompatibilityStatus('buyStatus', '✅ Validada 100%', 'success');
                 addContractMessage(`✅ Função "${funcName}" totalmente validada`, 'success');
                 
-                // 🎯 AGORA SIM: Habilita seção de compra apenas quando função válida é encontrada
-                console.log('🎉 Função de compra válida encontrada - Habilitando seção de compra');
-                enablePurchaseSection();
+                // **DIAGNÓSTICO PROFUNDO antes de habilitar**
+                console.log('🔬 Executando diagnóstico profundo antes de habilitar seção...');
+                const contractReady = await performDeepContractAnalysis(CONFIG.contractAddress, funcName);
                 
-                return true;
+                if (contractReady) {
+                    // 🎯 AGORA SIM: Habilita seção de compra apenas quando contrato está realmente pronto
+                    console.log('🎉 Contrato APROVADO no diagnóstico profundo - Habilitando seção de compra');
+                    enablePurchaseSection();
+                } else {
+                    console.log('❌ Contrato REPROVADO no diagnóstico profundo - Seção permanece bloqueada');
+                    addContractMessage('❌ Contrato não está pronto para negociações', 'error');
+                    hidePurchaseSection();
+                }
+                
+                return contractReady;
                 
             } catch (error) {
                 // **MUDANÇA CRÍTICA: Considerar REVERT como função VÁLIDA**
@@ -564,11 +868,21 @@ async function testActualPayableFunctions() {
                     updateCompatibilityStatus('buyStatus', '✅ Validada (com revert)', 'success');
                     addContractMessage(`✅ Função "${funcName}" detectada - reverte com parâmetros teste`, 'success');
                     
-                    // 🎯 Habilita seção de compra 
-                    console.log('🎉 Função de compra com revert encontrada - Habilitando seção de compra');
-                    enablePurchaseSection();
+                    // **DIAGNÓSTICO PROFUNDO antes de habilitar**
+                    console.log('🔬 Executando diagnóstico profundo para função com revert...');
+                    const contractReady = await performDeepContractAnalysis(CONFIG.contractAddress, funcName);
                     
-                    return true;
+                    if (contractReady) {
+                        // 🎯 Habilita seção de compra 
+                        console.log('🎉 Contrato APROVADO no diagnóstico profundo - Habilitando seção de compra');
+                        enablePurchaseSection();
+                    } else {
+                        console.log('❌ Contrato REPROVADO no diagnóstico profundo - Seção permanece bloqueada');
+                        addContractMessage('❌ Contrato não está pronto para negociações', 'error');
+                        hidePurchaseSection();
+                    }
+                    
+                    return contractReady;
                 } else {
                     console.log(`❌ Função ${funcName}() falhou: ${error.message}`);
                 }
