@@ -195,6 +195,13 @@ function setupEventListeners() {
     } else {
         console.error('❌ Botão de compra não encontrado ao configurar listeners');
     }
+    
+    // Botão de nova compra
+    const newPurchaseBtn = document.getElementById('new-purchase-btn');
+    if (newPurchaseBtn) {
+        newPurchaseBtn.addEventListener('click', startNewPurchase);
+        console.log('✅ Event listener configurado para botão de nova compra');
+    }
 }
 
 // ==================== GERENCIAMENTO DE WALLET ====================
@@ -890,7 +897,7 @@ async function testActualPayableFunctions() {
                 
                 buyFunctionName = funcName;
                 updateCompatibilityStatus('buyStatus', '✅ Disponível', 'success');
-                addContractMessage(`✅ Função "${funcName}" totalmente validada`, 'success');
+                addContractMessage(`✅ Função de compra totalmente validada`, 'success');
                 
                 // **DIAGNÓSTICO PROFUNDO antes de habilitar**
                 console.log('🔬 Executando diagnóstico profundo antes de habilitar seção...');
@@ -1091,7 +1098,7 @@ async function verifyBuyFunctions() {
             
             buyFunctionName = funcName;
             updateCompatibilityStatus('buyStatus', '✅ Disponível', 'success');
-            addContractMessage(`✅ Função "${funcName}" totalmente validada`, 'success');
+            addContractMessage(`✅ Função de compra totalmente validada`, 'success');
             return;
             
         } catch (error) {
@@ -2089,6 +2096,42 @@ function formatNumber(num) {
     } else {
         return number.toLocaleString('pt-BR', { maximumFractionDigits: 6 });
     }
+}
+
+/**
+ * Inicia uma nova compra - reseta os campos e oculta detalhes da transação
+ */
+function startNewPurchase() {
+    console.log('🔄 Iniciando nova compra...');
+    
+    // Oculta detalhes da transação anterior
+    const transactionDetails = document.getElementById('transactionDetails');
+    if (transactionDetails) {
+        transactionDetails.style.display = 'none';
+    }
+    
+    // Limpa os campos de compra
+    const quantityInput = document.getElementById('token-quantity');
+    if (quantityInput) {
+        quantityInput.value = '';
+    }
+    
+    // Reseta os totais
+    const totalTokensSpan = document.getElementById('totalTokens');
+    const totalPriceSpan = document.getElementById('totalPrice');
+    
+    if (totalTokensSpan) totalTokensSpan.textContent = '0';
+    if (totalPriceSpan) totalPriceSpan.textContent = '0 BNB';
+    
+    // Limpa mensagens de compra anteriores
+    clearPurchaseMessages();
+    
+    // Foca no campo de quantidade para nova entrada
+    if (quantityInput && !quantityInput.disabled) {
+        quantityInput.focus();
+    }
+    
+    console.log('✅ Interface resetada para nova compra');
 }
 
 // ==================== SISTEMA DE FEEDBACK ====================
