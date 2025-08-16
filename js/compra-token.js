@@ -127,8 +127,6 @@ let walletBalanceLoaded = false;
 let providerInitialized = false;
 let balanceUpdateInProgress = false;
 let buyFunctionName = null;
-let lastBalanceUpdate = 0; // Timestamp da última atualização
-let cachedBalance = null; // Cache do último saldo
 
 // ==================== INICIALIZAÇÃO ====================
 
@@ -156,6 +154,7 @@ function ensurePurchaseSectionHidden() {
     
     if (section) {
         section.style.display = 'none';
+        console.log('🔒 Seção de compra garantidamente OCULTA no início');
     }
     
     if (purchaseBtn) {
@@ -167,6 +166,8 @@ function ensurePurchaseSectionHidden() {
     if (quantityInput) {
         quantityInput.disabled = true;
     }
+    
+    console.log('🔒 Estado inicial: Seção de compra BLOQUEADA até validação do contrato');
 }
 
 /**
@@ -185,47 +186,18 @@ async function checkInitialWalletState() {
                 walletConnected = true;
                 await detectNetwork();
                 updateWalletUI();
-                // Carregar saldo apenas uma vez na inicialização
+                // Carregar saldo inicial se já conectado (apenas uma vez)
                 if (!walletBalanceLoaded) {
-                    updateWalletBalance(true); // Force update na inicialização
-                    walletBalanceLoaded = true;
+                    setTimeout(() => {
+                        updateWalletBalance();
+                        walletBalanceLoaded = true;
+                    }, 800);
                 }
             }
         } catch (error) {
-            // Wallet não conectada previamente
+            console.log('Wallet não conectada previamente');
         }
     }
-}
-
-/**
- * Inicializa conexão da wallet (compatibilidade)
- */
-function initializeWalletConnection() {
-    // Monitora mudanças de rede e conta
-    if (typeof window.ethereum !== 'undefined') {
-        window.ethereum.on('accountsChanged', (accounts) => {
-            if (accounts.length > 0) {
-                walletAddress = accounts[0];
-                walletConnected = true;
-                updateWalletUI();
-                // Atualizar saldo quando trocar de conta
-                updateWalletBalance(true); // Force update ao trocar conta
-            } else {
-                walletConnected = false;
-                walletAddress = '';
-                // Reset da interface
-                location.reload();
-            }
-        });
-        
-        window.ethereum.on('chainChanged', () => {
-            // Recarrega a página quando muda de rede
-            location.reload();
-        });
-    }
-    
-    // Verificação periódica REMOVIDA para economizar recursos
-    // Saldo será atualizado apenas quando necessário (manual ou após transação)
 }
 
 /**
@@ -264,6 +236,7 @@ function setupEventListeners() {
     const purchaseBtn = document.getElementById('execute-purchase-btn');
     if (purchaseBtn) {
         purchaseBtn.addEventListener('click', executePurchase);
+        console.log('✅ Event listener configurado para botão de compra');
     } else {
         console.error('❌ Botão de compra não encontrado ao configurar listeners');
     }
@@ -276,14 +249,17 @@ function setupEventListeners() {
                 location.reload();
             }
         });
+        console.log('✅ Event listener configurado para botão de limpar dados (reload)');
     }
     
     // Botão de atualizar saldo
     const refreshBalanceBtn = document.getElementById('refresh-balance-btn');
     if (refreshBalanceBtn) {
         refreshBalanceBtn.addEventListener('click', () => {
-            updateWalletBalance(true); // Force update manual
+            console.log('🔄 Atualizando saldo manualmente...');
+            updateWalletBalance();
         });
+        console.log('✅ Event listener configurado para botão de atualizar saldo');
     }
 }
 
@@ -362,8 +338,10 @@ async function connectWallet() {
             await detectNetwork();
             updateWalletUI();
             
-            // Carregar saldo apenas na conexão
-            updateWalletBalance(true); // Force update ao conectar
+            // Carregar saldo após conectar (apenas uma vez)
+            setTimeout(() => {
+                updateWalletBalance();
+            }, 800);
             
             console.log('✅ Wallet conectada:', walletAddress);
         }
@@ -377,17 +355,12 @@ async function connectWallet() {
 }
 
 /**
- * Atualiza saldo da carteira (com controle de execuções múltiplas e cache)
+ * Atualiza saldo da carteira (com controle de execuções múltiplas)
  */
-async function updateWalletBalance(forceUpdate = false) {
+async function updateWalletBalance() {
     // Evitar execuções múltiplas simultâneas
     if (balanceUpdateInProgress) {
-        return;
-    }
-    
-    // Cache: evitar atualizações muito frequentes (menos de 10 segundos)
-    const now = Date.now();
-    if (!forceUpdate && cachedBalance && (now - lastBalanceUpdate) < 10000) {
+        console.log('⏳ Atualização de saldo já em progresso, ignorando...');
         return;
     }
     
@@ -399,7 +372,6 @@ async function updateWalletBalance(forceUpdate = false) {
         if (balanceContainer) {
             balanceContainer.style.display = 'none';
         }
-        cachedBalance = null;
         return;
     }
     
@@ -410,15 +382,20 @@ async function updateWalletBalance(forceUpdate = false) {
     
     try {
         balanceUpdateInProgress = true;
+        console.log('💰 Atualizando saldo da carteira...');
+        console.log(`👤 Endereço: ${walletAddress}`);
+        console.log(`🔗 Conectado: ${walletConnected}`);
         
-        // Mostra loading no saldo apenas se necessário
-        if (forceUpdate) {
-            balanceElement.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span>Carregando...';
+        // Mostra loading no saldo
+        balanceElement.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span>Carregando...';
+        if (balanceContainer) {
+            balanceContainer.style.display = 'block';
         }
         
         // Usar provider atual ou inicializar um novo
         let provider = currentProvider;
         if (!provider) {
+            console.log('⚙️ Provider não encontrado, inicializando...');
             provider = await initializeProviderWithFallback();
         }
         
@@ -426,17 +403,18 @@ async function updateWalletBalance(forceUpdate = false) {
             throw new Error('Não foi possível inicializar provider');
         }
         
+        console.log('🌐 Provider pronto, buscando saldo...');
+        
         // Buscar saldo
         const balance = await provider.getBalance(walletAddress);
+        console.log(`💰 Saldo raw: ${balance.toString()} wei`);
         
         const balanceInBNB = ethers.utils.formatEther(balance);
+        console.log(`💰 Saldo em BNB: ${balanceInBNB}`);
         
         // Formatar para exibição
         const formattedBalance = formatNumber(balanceInBNB);
-        
-        // Atualizar cache
-        cachedBalance = formattedBalance;
-        lastBalanceUpdate = now;
+        console.log(`💰 Saldo formatado: ${formattedBalance}`);
         
         balanceElement.textContent = formattedBalance;
         
@@ -444,6 +422,8 @@ async function updateWalletBalance(forceUpdate = false) {
         if (balanceContainer) {
             balanceContainer.style.display = 'block';
         }
+        
+        console.log(`✅ Saldo da carteira exibido: ${formattedBalance} BNB`);
         
     } catch (error) {
         console.error('❌ Erro ao buscar saldo da carteira:', error);
@@ -487,8 +467,8 @@ function updateWalletUI() {
             networkSection.style.display = 'block';
         }
         
-        // Atualiza saldo da carteira (force update na UI)
-        updateWalletBalance(true);
+        // Atualiza saldo da carteira (apenas uma vez)
+        updateWalletBalance();
         
         // Habilita seção de contrato apenas após conexão
         enableContractSection();
@@ -518,7 +498,14 @@ async function detectNetwork() {
             chainIdSpan.textContent = networkData.chainId;
         }
         
-        // Rede detectada - saldo será atualizado apenas quando necessário
+        console.log('🌐 Rede detectada:', networkData);
+        
+        // Se carteira já conectada, atualiza saldo ao detectar rede
+        if (walletConnected && walletAddress) {
+            setTimeout(() => {
+                updateWalletBalance();
+            }, 500);
+        }
         
     } catch (error) {
         console.error('❌ Erro ao detectar rede:', error);
@@ -615,11 +602,107 @@ function validateContractAddress() {
 
 /**
  * Verifica se o contrato tem múltiplos tokens/sales para escolha
- * DESABILITADO - Sempre retorna que não é multi-contrato
  */
 async function checkForMultipleContracts(contractAddress) {
-    console.log('🔍 Verificação de multi-contratos DESABILITADA');
-    return { isMultiContract: false };
+    console.log('🔍 Verificando contratos múltiplos...');
+    
+    try {
+        // Funções comuns para arrays de contratos
+        const arrayFunctions = [
+            'tokens',          // Array de tokens
+            'saleTokens',      // Array de tokens em venda
+            'availableTokens', // Array de tokens disponíveis
+            'tokenList',       // Lista de tokens
+            'contracts',       // Array de contratos
+            'saleContracts',   // Array de contratos de venda
+            'getTokens',       // Função que retorna tokens
+            'getAllTokens',    // Função que retorna todos os tokens
+            'tokenCount'       // Contador de tokens (para iterar)
+        ];
+        
+        // ABI para contratos múltiplos
+        const multiContractABI = [
+            "function tokens() view returns (address[])",
+            "function saleTokens() view returns (address[])",
+            "function availableTokens() view returns (address[])",
+            "function tokenList() view returns (address[])",
+            "function contracts() view returns (address[])",
+            "function saleContracts() view returns (address[])",
+            "function getTokens() view returns (address[])",
+            "function getAllTokens() view returns (address[])",
+            "function tokenCount() view returns (uint256)",
+            "function getTokenAt(uint256) view returns (address)",
+            "function tokenAt(uint256) view returns (address)",
+            "function saleAt(uint256) view returns (address)",
+            // Funções para obter informações dos tokens
+            "function getTokenInfo(address) view returns (string, string, uint8)",
+            "function getTokenPrice(address) view returns (uint256)",
+            "function isTokenActive(address) view returns (bool)"
+        ];
+        
+        const multiContract = new ethers.Contract(contractAddress, multiContractABI, currentProvider);
+        
+        // Testa funções que retornam arrays
+        for (const funcName of arrayFunctions) {
+            try {
+                if (funcName === 'tokenCount') {
+                    // Função especial que retorna count
+                    const count = await multiContract[funcName]();
+                    const tokenCount = parseInt(count.toString());
+                    
+                    if (tokenCount > 1) {
+                        console.log(`✅ Encontrados ${tokenCount} tokens via ${funcName}()`);
+                        
+                        // Busca os tokens via getTokenAt ou tokenAt
+                        const tokens = [];
+                        const indexFunctions = ['getTokenAt', 'tokenAt', 'saleAt'];
+                        
+                        for (const indexFunc of indexFunctions) {
+                            try {
+                                for (let i = 0; i < Math.min(tokenCount, 10); i++) { // Limite de 10 por segurança
+                                    const tokenAddress = await multiContract[indexFunc](i);
+                                    if (tokenAddress && ethers.utils.isAddress(tokenAddress)) {
+                                        tokens.push(tokenAddress);
+                                    }
+                                }
+                                if (tokens.length > 0) break;
+                            } catch (e) {
+                                // Função não existe, tenta próxima
+                            }
+                        }
+                        
+                        if (tokens.length > 1) {
+                            return await processMultipleTokens(contractAddress, tokens, funcName);
+                        }
+                    }
+                } else {
+                    // Funções que retornam arrays direto
+                    const result = await multiContract[funcName]();
+                    
+                    if (Array.isArray(result) && result.length > 1) {
+                        console.log(`✅ Encontrados ${result.length} tokens via ${funcName}()`);
+                        const validTokens = result.filter(addr => 
+                            addr && ethers.utils.isAddress(addr) && addr !== '0x0000000000000000000000000000000000000000'
+                        );
+                        
+                        if (validTokens.length > 1) {
+                            return await processMultipleTokens(contractAddress, validTokens, funcName);
+                        }
+                    }
+                }
+            } catch (error) {
+                // Função não existe ou falhou, continua
+                console.log(`❌ Função ${funcName}() não disponível`);
+            }
+        }
+        
+        console.log('ℹ️ Não é um contrato de múltiplos tokens');
+        return { isMultiContract: false };
+        
+    } catch (error) {
+        console.error('❌ Erro ao verificar contratos múltiplos:', error);
+        return { isMultiContract: false };
+    }
 }
 
 /**
@@ -1014,7 +1097,7 @@ async function verifyContract() {
  * Verifica funções básicas ERC-20 com melhor diagnóstico
  */
 async function verifyERC20Functions() {
-    addContractMessage('✅ Verificando ERC-20...', 'info');
+    addContractMessage('📝 Teste 1: Verificando ERC-20...', 'info');
     
     try {
         // **MELHORIA: Verificar cada função individualmente para melhor diagnóstico**
@@ -1059,8 +1142,99 @@ async function verifyERC20Functions() {
     }
 }
 
+/**
+ * 🔍 DIAGNÓSTICO PROFUNDO: Identifica exatamente por que o contrato rejeita transações
+ */
+async function performDeepContractAnalysis(contractAddress, buyFunctionName) {
+    console.log('🔬 INICIANDO DIAGNÓSTICO PROFUNDO DO CONTRATO...');
+    
+    try {
+        // 1. Verificações básicas do estado do contrato
+        const basicChecks = await performBasicContractChecks();
+        
+        // 2. Testa diferentes cenários de chamada
+        const callTests = await performCallTests(buyFunctionName);
+        
+        // 3. Analisa condições específicas
+        const conditions = await analyzeContractConditions();
+        
+        // 4. Gera relatório final
+        const isReady = generateReadinessReport(basicChecks, callTests, conditions);
+        
+        return isReady;
+        
+    } catch (error) {
+        console.log('❌ Erro no diagnóstico profundo:', error.message);
+        return false;
+    }
+}
 
-
+/**
+ * 1️⃣ Verificações básicas do estado do contrato
+ */
+async function performBasicContractChecks() {
+    console.log('🔍 1️⃣ Verificações básicas do estado...');
+    
+    const checks = {
+        contractExists: false,
+        hasTokens: false,
+        hasBalance: false,
+        isPaused: null,
+        saleActive: null,
+        owner: null
+    };
+    
+    try {
+        // Verifica se o contrato existe
+        const code = await currentProvider.getCode(CONFIG.contractAddress);
+        checks.contractExists = code !== '0x';
+        console.log(`📋 Contrato existe: ${checks.contractExists}`);
+        
+        // Verifica tokens no contrato
+        try {
+            const tokenBalance = await currentContract.balanceOf(CONFIG.contractAddress);
+            const tokens = parseFloat(ethers.utils.formatUnits(tokenBalance, tokenInfo.decimals || 18));
+            checks.hasTokens = tokens > 0;
+            console.log(`📋 Tokens no contrato: ${tokens} (${checks.hasTokens ? 'OK' : 'ZERO'})`);
+        } catch (e) {
+            console.log('📋 Não foi possível verificar tokens no contrato');
+        }
+        
+        // Verifica se está pausado
+        try {
+            checks.isPaused = await currentContract.paused();
+            console.log(`📋 Contrato pausado: ${checks.isPaused}`);
+        } catch (e) {
+            console.log('📋 Função paused() não disponível');
+        }
+        
+        // Verifica se venda está ativa
+        const saleChecks = ['saleActive', 'saleEnabled', 'isActive', 'enabled'];
+        for (const funcName of saleChecks) {
+            try {
+                checks.saleActive = await currentContract[funcName]();
+                console.log(`📋 ${funcName}(): ${checks.saleActive}`);
+                break;
+            } catch (e) {
+                // Função não existe
+            }
+        }
+        
+        // Verifica owner
+        try {
+            checks.owner = await currentContract.owner();
+            console.log(`📋 Owner: ${checks.owner}`);
+        } catch (e) {
+            console.log('📋 Função owner() não disponível');
+        }
+        
+        return checks;
+        
+    } catch (error) {
+        console.log('❌ Erro nas verificações básicas:', error.message);
+        return checks;
+    }
+}
 
 /**
  * 2️⃣ Testa diferentes cenários de chamada
@@ -1102,6 +1276,15 @@ async function performCallTests(buyFunctionName) {
         } catch (e) {
             console.log(`❌ Estimativa de gas: ${e.reason || e.message}`);
         }
+        
+        return tests;
+        
+    } catch (error) {
+        console.log('❌ Erro nos testes de chamada:', error.message);
+        return tests;
+    }
+}
+
 /**
  * 3️⃣ Analisa condições específicas do contrato
  */
@@ -1269,15 +1452,19 @@ async function testActualPayableFunctions() {
             return fragment.payable;
         });
         
+        console.log(`💰 Encontradas ${payableFunctions.length} funções PAYABLE no ABI:`);
         payableFunctions.forEach(func => console.log(`   💡 ${func}`));
         
         if (payableFunctions.length === 0) {
+            console.log('❌ Nenhuma função PAYABLE encontrada no ABI!');
             return false;
         }
         
         // Testa cada função PAYABLE com estimateGas
         for (const funcName of payableFunctions) {
             try {
+                console.log(`🧪 Testando função PAYABLE: ${funcName}()`);
+                
                 const fragment = contractInterface.functions[funcName];
                 const testValue = ethers.utils.parseEther('0.001');
                 
@@ -1568,7 +1755,7 @@ async function verifyBuyFunctions() {
         window.contractLogger.logContractError(currentContract.address, 'NO_BUY_FUNCTION', {
             message: 'Nenhuma função de compra detectada',
             availableFunctions: Object.keys(currentContract.functions || {}),
-            possibleBuyFunctions: (typeof possibleBuyFunctions !== 'undefined') ? possibleBuyFunctions : [],
+            possibleBuyFunctions: possibleBuyFunctions || [],
             contractABI: CONFIG.tokenABI.map(f => typeof f === 'string' ? f : f.name).filter(Boolean),
             testedFunctions: {
                 buyFunctionName: buyFunctionName,
@@ -2738,6 +2925,44 @@ function getMessageClass(type) {
 
 // ==================== FUNÇÕES GLOBAIS PARA COMPATIBILIDADE ====================
 
+/**
+ * Inicializa conexão da wallet (compatibilidade)
+ */
+function initializeWalletConnection() {
+    // Monitora mudanças de rede e conta
+    if (typeof window.ethereum !== 'undefined') {
+        window.ethereum.on('accountsChanged', (accounts) => {
+            if (accounts.length > 0) {
+                walletAddress = accounts[0];
+                walletConnected = true;
+                updateWalletUI();
+                // Atualizar saldo quando trocar de conta
+                setTimeout(() => {
+                    updateWalletBalance();
+                }, 500);
+            } else {
+                walletConnected = false;
+                walletAddress = '';
+                // Reset da interface
+                location.reload();
+            }
+        });
+        
+        window.ethereum.on('chainChanged', () => {
+            // Recarrega a página quando muda de rede
+            location.reload();
+        });
+    }
+    
+    // Verificação periódica menos frequente (60 segundos se conectado)
+    setInterval(() => {
+        if (walletConnected && walletAddress && !balanceUpdateInProgress) {
+            console.log('🔄 Verificação periódica do saldo...');
+            updateWalletBalance();
+        }
+    }, 60000); // 60 segundos
+}
+
 // ==================== SISTEMA DE FALLBACK RPC ====================
 
 /**
@@ -2988,9 +3213,3 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
-
-// Fechar blocos em aberto
-    } catch (error) {
-        console.error('Erro:', error);
-    }
-}
