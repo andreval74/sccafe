@@ -1266,33 +1266,33 @@ function updateTokenInfoUI() {
     document.getElementById('tokenSymbol').textContent = tokenInfo.symbol || '-';
     document.getElementById('tokenDecimals').textContent = tokenInfo.decimals || '-';
     
-    // Formata total supply
+    // Formata total supply (sem símbolo do token)
     const totalSupply = ethers.utils.formatUnits(tokenInfo.totalSupply, tokenInfo.decimals);
-    document.getElementById('tokenTotalSupply').textContent = `${formatNumber(totalSupply)} ${tokenInfo.symbol}`;
+    document.getElementById('tokenTotalSupply').textContent = formatNumber(totalSupply);
     
     // Formata saldo do contrato (BNB)
     const contractBalance = ethers.utils.formatEther(tokenInfo.contractBalance);
     document.getElementById('contractBalance').textContent = `${formatNumber(contractBalance)} BNB`;
     
-    // Formata tokens disponíveis para venda
+    // Formata tokens disponíveis para venda (sem símbolo do token)
     const tokensForSaleElement = document.getElementById('tokensForSale');
     if (tokensForSaleElement) {
         const tokensAvailable = tokenInfo.tokensForSaleFormatted || 0;
         if (tokensAvailable > 0) {
-            tokensForSaleElement.textContent = `${formatNumber(tokensAvailable)} ${tokenInfo.symbol}`;
+            tokensForSaleElement.textContent = formatNumber(tokensAvailable);
             tokensForSaleElement.className = 'fw-bold text-success mb-2'; // Verde se há tokens
         } else {
-            tokensForSaleElement.textContent = `0 ${tokenInfo.symbol || 'tokens'}`;
+            tokensForSaleElement.textContent = '0';
             tokensForSaleElement.className = 'fw-bold text-danger mb-2'; // Vermelho se não há tokens
         }
     }
     
-    // Atualiza informação de disponibilidade na área de compra
+    // Atualiza informação de disponibilidade na área de compra (sem símbolo do token)
     const availabilityInfo = document.getElementById('tokens-availability');
     const availableDisplay = document.getElementById('available-tokens-display');
     if (availabilityInfo && availableDisplay && tokenInfo.tokensForSaleFormatted !== undefined) {
         const tokensAvailable = tokenInfo.tokensForSaleFormatted || 0;
-        availableDisplay.textContent = `${formatNumber(tokensAvailable)} ${tokenInfo.symbol}`;
+        availableDisplay.textContent = formatNumber(tokensAvailable);
         
         if (tokensAvailable > 0) {
             availabilityInfo.className = 'alert alert-success border-0 mb-3 py-2';
@@ -1300,7 +1300,7 @@ function updateTokenInfoUI() {
         } else {
             availabilityInfo.className = 'alert alert-warning border-0 mb-3 py-2';
             availabilityInfo.style.display = 'block';
-            availableDisplay.innerHTML = `<span class="text-warning">Nenhum token disponível para compra</span>`;
+            availableDisplay.innerHTML = `<span class="text-warning">Nenhum token disponível</span>`;
         }
     }
     
@@ -2152,19 +2152,35 @@ function showTransactionDetails(receipt, tokensQuantity, totalValue) {
 }
 
 /**
- * Formata números para exibição
+ * Formata números para exibição de forma amigável
  */
 function formatNumber(num) {
     const number = parseFloat(num);
-    if (isNaN(number)) return '0';
+    if (isNaN(number) || number === 0) return '0';
     
-    if (number >= 1000000) {
+    // Para números muito grandes
+    if (number >= 1000000000) {
+        return (number / 1000000000).toFixed(2) + 'B';
+    } else if (number >= 1000000) {
         return (number / 1000000).toFixed(2) + 'M';
     } else if (number >= 1000) {
         return (number / 1000).toFixed(2) + 'K';
-    } else if (number < 0.001 && number > 0) {
-        return number.toExponential(3);
-    } else {
+    } 
+    // Para números muito pequenos, mostrar com mais precisão sem notação científica
+    else if (number < 1 && number > 0) {
+        // Encontrar quantas casas decimais são necessárias
+        const str = number.toString();
+        if (str.includes('e-')) {
+            // Se ainda tem notação científica, converter para decimal fixo
+            const parts = str.split('e-');
+            const decimals = parseInt(parts[1]) + 2; // Adiciona 2 casas extras
+            return number.toFixed(Math.min(decimals, 18)); // Máximo 18 casas
+        } else {
+            return number.toFixed(6).replace(/\.?0+$/, ''); // Remove zeros desnecessários
+        }
+    } 
+    // Para números normais
+    else {
         return number.toLocaleString('pt-BR', { maximumFractionDigits: 6 });
     }
 }
