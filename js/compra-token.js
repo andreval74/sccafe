@@ -1328,12 +1328,19 @@ async function checkPurchaseLimits() {
 // ==================== GERENCIAMENTO DE COMPRA ====================
 
 /**
- * Habilita seção de compra - APENAS quando função válida é confirmada
+ * Habilita seção de compra - APENAS quando função válida é confirmada E seção de informações está visível
  */
 function enablePurchaseSection() {
     // 🛡️ PROTEÇÃO: Só executa se realmente há uma função de compra válida
     if (!buyFunctionName) {
         console.log('❌ enablePurchaseSection() chamada sem função de compra válida - IGNORANDO');
+        return;
+    }
+    
+    // 🛡️ PROTEÇÃO: Verifica se a seção de informações está visível primeiro
+    const infoSection = document.getElementById('token-info-section');
+    if (!infoSection || infoSection.style.display === 'none') {
+        console.log('📢 Sistema: Aguardando exibição da seção de informações antes de habilitar compra');
         return;
     }
     
@@ -2042,6 +2049,12 @@ function showTokenInfo() {
     const section = document.getElementById('token-info-section');
     if (section) {
         section.style.display = 'block';
+        
+        // Após mostrar as informações, verifica se pode habilitar a compra
+        console.log('📢 Sistema: Seção de informações exibida, verificando se pode habilitar compra...');
+        if (buyFunctionName) {
+            enablePurchaseSection();
+        }
     }
 }
 
