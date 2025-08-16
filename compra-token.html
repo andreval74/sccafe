@@ -143,6 +143,10 @@
                   <small class="text-muted">Saldo do Contrato</small>
                   <p id="contractBalance" class="fw-bold text-info mb-2">-</p>
                 </div>
+                <div class="col-md-6">
+                  <small class="text-muted">Tokens para Venda</small>
+                  <p id="tokensForSale" class="fw-bold text-warning mb-2">-</p>
+                </div>
               </div>
               
               <!-- Verificação de Compatibilidade -->
@@ -237,6 +241,21 @@
                       </div>
                     </div>
                   </div>
+                  
+                  <!-- Informação de Disponibilidade -->
+                  <div id="tokens-availability" class="alert alert-info border-0 mb-3 py-2" style="display: none;">
+                    <div class="row align-items-center">
+                      <div class="col-auto">
+                        <i class="bi bi-info-circle text-info"></i>
+                      </div>
+                      <div class="col">
+                        <small class="mb-0">
+                          <strong>Disponível:</strong> <span id="available-tokens-display">-</span>
+                        </small>
+                      </div>
+                    </div>
+                  </div>
+                  
                   <button id="execute-purchase-btn" type="button" class="btn btn-primary w-100 fw-bold" disabled>
                     <i class="bi bi-lightning me-2"></i>COMPRAR TOKENS
                   </button>

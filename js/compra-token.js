@@ -1197,6 +1197,20 @@ async function loadTokenInfo() {
             contractBalance: await currentProvider.getBalance(currentContract.address)
         };
         
+        // Verificar tokens disponíveis para venda no contrato
+        try {
+            console.log('🔍 Verificando tokens disponíveis para venda...');
+            const tokensBalance = await currentContract.balanceOf(currentContract.address);
+            const tokensForSale = parseFloat(ethers.utils.formatUnits(tokensBalance, tokenInfo.decimals));
+            tokenInfo.tokensForSale = tokensBalance;
+            tokenInfo.tokensForSaleFormatted = tokensForSale;
+            console.log(`💰 Tokens disponíveis para venda: ${tokensForSale.toLocaleString()} ${tokenInfo.symbol}`);
+        } catch (error) {
+            console.log('⚠️ Não foi possível verificar tokens para venda:', error.message);
+            tokenInfo.tokensForSale = ethers.BigNumber.from(0);
+            tokenInfo.tokensForSaleFormatted = 0;
+        }
+        
         // Tenta detectar preço do contrato
         try {
             let price = null;
@@ -1256,9 +1270,39 @@ function updateTokenInfoUI() {
     const totalSupply = ethers.utils.formatUnits(tokenInfo.totalSupply, tokenInfo.decimals);
     document.getElementById('tokenTotalSupply').textContent = `${formatNumber(totalSupply)} ${tokenInfo.symbol}`;
     
-    // Formata saldo do contrato
+    // Formata saldo do contrato (BNB)
     const contractBalance = ethers.utils.formatEther(tokenInfo.contractBalance);
     document.getElementById('contractBalance').textContent = `${formatNumber(contractBalance)} BNB`;
+    
+    // Formata tokens disponíveis para venda
+    const tokensForSaleElement = document.getElementById('tokensForSale');
+    if (tokensForSaleElement) {
+        const tokensAvailable = tokenInfo.tokensForSaleFormatted || 0;
+        if (tokensAvailable > 0) {
+            tokensForSaleElement.textContent = `${formatNumber(tokensAvailable)} ${tokenInfo.symbol}`;
+            tokensForSaleElement.className = 'fw-bold text-success mb-2'; // Verde se há tokens
+        } else {
+            tokensForSaleElement.textContent = `0 ${tokenInfo.symbol || 'tokens'}`;
+            tokensForSaleElement.className = 'fw-bold text-danger mb-2'; // Vermelho se não há tokens
+        }
+    }
+    
+    // Atualiza informação de disponibilidade na área de compra
+    const availabilityInfo = document.getElementById('tokens-availability');
+    const availableDisplay = document.getElementById('available-tokens-display');
+    if (availabilityInfo && availableDisplay && tokenInfo.tokensForSaleFormatted !== undefined) {
+        const tokensAvailable = tokenInfo.tokensForSaleFormatted || 0;
+        availableDisplay.textContent = `${formatNumber(tokensAvailable)} ${tokenInfo.symbol}`;
+        
+        if (tokensAvailable > 0) {
+            availabilityInfo.className = 'alert alert-success border-0 mb-3 py-2';
+            availabilityInfo.style.display = 'block';
+        } else {
+            availabilityInfo.className = 'alert alert-warning border-0 mb-3 py-2';
+            availabilityInfo.style.display = 'block';
+            availableDisplay.innerHTML = `<span class="text-warning">Nenhum token disponível para compra</span>`;
+        }
+    }
     
     // Define preço como READ-ONLY (detectado do contrato)
     const priceInput = document.getElementById('token-price');
@@ -2474,13 +2518,20 @@ function clearAllData() {
     }
     
     // Limpar informações do token
-    const tokenFields = ['token-name', 'token-symbol', 'token-decimals', 'token-price-display'];
+    const tokenFields = ['tokenName', 'tokenSymbol', 'tokenDecimals', 'tokenTotalSupply', 'contractBalance', 'tokensForSale'];
     tokenFields.forEach(fieldId => {
         const field = document.getElementById(fieldId);
         if (field) {
             field.textContent = '-';
+            field.className = 'fw-bold text-muted mb-2'; // Reset de classes
         }
     });
+    
+    // Ocultar informação de disponibilidade
+    const availabilityInfo = document.getElementById('tokens-availability');
+    if (availabilityInfo) {
+        availabilityInfo.style.display = 'none';
+    }
     
     // Resetar status
     const statusFields = ['erc20Status', 'transferStatus', 'buyStatus'];
@@ -2526,7 +2577,16 @@ function clearAllData() {
     
     // Resetar variáveis globais
     currentContract = null;
-    tokenInfo = { name: '', symbol: '', decimals: 0, price: '0', minPurchase: null, maxPurchase: null };
+    tokenInfo = { 
+        name: '', 
+        symbol: '', 
+        decimals: 0, 
+        price: '0', 
+        minPurchase: null, 
+        maxPurchase: null,
+        tokensForSale: null,
+        tokensForSaleFormatted: 0
+    };
     buyFunctionName = null;
     
     console.log('✅ Sistema reiniciado');
