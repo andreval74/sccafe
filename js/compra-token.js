@@ -1072,15 +1072,65 @@ async function executePurchase() {
             }
             
             // Verifica se o contrato tem tokens suficientes
-            if (tokenInfo.totalSupply) {
-                const contractTokenBalance = await currentContract.balanceOf(currentContract.address);
-                const contractTokens = parseFloat(ethers.utils.formatUnits(contractTokenBalance, tokenInfo.decimals));
-                
-                console.log(`🪙 Tokens no contrato: ${contractTokens} ${tokenInfo.symbol}`);
-                
-                if (contractTokens < quantity) {
-                    throw new Error(`Contrato não tem tokens suficientes. Disponível: ${contractTokens}, solicitado: ${quantity}`);
+            // ⚠️ NOTA: Nem todos os contratos armazenam tokens no endereço do contrato
+            try {
+                if (tokenInfo.totalSupply) {
+                    const contractTokenBalance = await currentContract.balanceOf(currentContract.address);
+                    const contractTokens = parseFloat(ethers.utils.formatUnits(contractTokenBalance, tokenInfo.decimals));
+                    
+                    console.log(`🪙 Tokens no endereço do contrato: ${contractTokens} ${tokenInfo.symbol}`);
+                    
+                    if (contractTokens === 0) {
+                        console.log('⚠️ Contrato não tem tokens em seu endereço - pode usar mint ou reserva externa');
+                        addPurchaseMessage('ℹ️ Contrato pode usar mint dinâmico ou reserva externa', 'info');
+                    } else if (contractTokens < quantity) {
+                        console.log(`⚠️ Contrato tem poucos tokens (${contractTokens}), mas pode ter outras fontes`);
+                        addPurchaseMessage('⚠️ Verificando outras fontes de tokens...', 'warning');
+                    } else {
+                        console.log(`✅ Contrato tem tokens suficientes: ${contractTokens} >= ${quantity}`);
+                        addPurchaseMessage('✅ Tokens suficientes detectados no contrato', 'success');
+                    }
                 }
+            } catch (tokenCheckError) {
+                console.log('⚠️ Não foi possível verificar tokens do contrato:', tokenCheckError.message);
+                addPurchaseMessage('ℹ️ Verificação de tokens ignorada - contrato pode usar mint', 'info');
+            }
+            
+            // 🔍 VERIFICAÇÃO ADICIONAL: Tenta detectar se contrato usa mint ou tem reservas
+            try {
+                console.log('🔍 Verificando capacidade de fornecimento de tokens...');
+                
+                // Tenta verificar se há função de tokens disponíveis
+                const availabilityFunctions = ['tokensAvailable', 'tokensForSale', 'remainingTokens', 'maxSupply'];
+                
+                for (const funcName of availabilityFunctions) {
+                    try {
+                        const available = await currentContract[funcName]();
+                        const availableTokens = parseFloat(ethers.utils.formatUnits(available, tokenInfo.decimals));
+                        console.log(`💰 ${funcName}(): ${availableTokens} tokens disponíveis`);
+                        
+                        if (availableTokens >= quantity) {
+                            addPurchaseMessage(`✅ Tokens disponíveis confirmados via ${funcName}()`, 'success');
+                            break;
+                        }
+                    } catch (e) {
+                        // Função não existe ou falhou, continua
+                    }
+                }
+                
+                // Verifica se contrato tem função de mint (indicativo de criação dinâmica)
+                const contractInterface = currentContract.interface;
+                const hasMintFunction = Object.keys(contractInterface.functions).some(func => 
+                    func.toLowerCase().includes('mint')
+                );
+                
+                if (hasMintFunction) {
+                    console.log('✅ Contrato tem função de mint - pode criar tokens dinamicamente');
+                    addPurchaseMessage('✅ Contrato suporta criação dinâmica de tokens', 'success');
+                }
+                
+            } catch (availabilityError) {
+                console.log('ℹ️ Verificação de disponibilidade ignorada:', availabilityError.message);
             }
             
             // DIAGNÓSTICO AVANÇADO - Verifica condições especiais do contrato
