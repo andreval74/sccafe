@@ -218,6 +218,51 @@ function setupEventListeners() {
     }
 }
 
+// ==================== INDICADORES DE CARREGAMENTO ====================
+
+/**
+ * Mostra indicador de carregamento em um botão
+ */
+function showButtonLoading(buttonId, loadingText = 'Carregando...') {
+    const button = document.getElementById(buttonId);
+    if (button) {
+        button.originalText = button.textContent;
+        button.disabled = true;
+        button.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>${loadingText}`;
+    }
+}
+
+/**
+ * Remove indicador de carregamento de um botão
+ */
+function hideButtonLoading(buttonId, newText = null) {
+    const button = document.getElementById(buttonId);
+    if (button) {
+        button.disabled = false;
+        button.innerHTML = newText || button.originalText || button.textContent.replace(/Carregando\.\.\./g, '').trim();
+    }
+}
+
+/**
+ * Mostra indicador de carregamento em uma mensagem
+ */
+function showLoadingMessage(containerId, message = 'Processando...') {
+    const container = document.getElementById(containerId);
+    if (container) {
+        container.innerHTML = `
+            <div class="alert alert-info border-0 mb-3">
+                <div class="d-flex align-items-center">
+                    <div class="spinner-border spinner-border-sm me-3" role="status" aria-hidden="true"></div>
+                    <div>
+                        <strong>${message}</strong>
+                        <br><small class="text-muted">Aguarde, isso pode levar alguns segundos...</small>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+}
+
 // ==================== GERENCIAMENTO DE WALLET ====================
 
 /**
@@ -231,6 +276,9 @@ async function connectWallet() {
         }
         
         console.log('🔗 Conectando com MetaMask...');
+        
+        // Mostra loading
+        showButtonLoading('connect-metamask-btn', 'Conectando...');
         
         // Solicita conexão
         const accounts = await window.ethereum.request({
@@ -256,6 +304,8 @@ async function connectWallet() {
     } catch (error) {
         console.error('❌ Erro ao conectar wallet:', error);
         alert('Erro ao conectar com a MetaMask: ' + error.message);
+        // Restaura botão em caso de erro
+        hideButtonLoading('connect-metamask-btn', '<i class="bi bi-wallet2 me-2"></i>CONECTAR');
     }
 }
 
@@ -283,6 +333,12 @@ async function updateWalletBalance() {
         console.log('💰 Atualizando saldo da carteira...');
         console.log(`👤 Endereço: ${walletAddress}`);
         console.log(`🔗 Conectado: ${walletConnected}`);
+        
+        // Mostra loading no saldo
+        balanceElement.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span>Carregando...';
+        if (balanceContainer) {
+            balanceContainer.style.display = 'block';
+        }
         
         // Usar provider atual ou inicializar um novo
         let provider = currentProvider;
@@ -514,13 +570,15 @@ async function verifyContract() {
     
     try {
         // Mostra loading
+        showButtonLoading('verify-contract-btn', 'Verificando...');
         updateVerifyButton(true);
         clearContractMessages();
         hideTokenInfo();
         
-        addContractMessage('🔍 Verificando token...', 'info');
+        showLoadingMessage('contract-messages', 'Verificando contrato inteligente');
         
         // Inicializa provider com fallback para resolver problemas de RPC
+        addContractMessage('⚙️ Inicializando conexão blockchain...', 'info');
         currentProvider = await initializeProviderWithFallback();
         currentSigner = currentProvider.getSigner();
         
@@ -588,6 +646,7 @@ async function verifyContract() {
             addContractMessage(`❌ Erro: ${error.message}`, 'error');
         }
     } finally {
+        hideButtonLoading('verify-contract-btn', 'VERIFICAR CONTRATO');
         updateVerifyButton(false);
     }
 }
@@ -1736,6 +1795,10 @@ async function executePurchase() {
     }
 
     try {
+        // Mostra loading
+        showButtonLoading('execute-purchase-btn', 'Processando...');
+        showLoadingMessage('system-messages', 'Preparando transação');
+        
         const totalValueStr = totalValue.toString();
         const valueInWei = ethers.utils.parseEther(totalValueStr);
         
@@ -2042,6 +2105,9 @@ async function executePurchase() {
         if (technicalDetails) {
             addPurchaseMessage(`🔧 Detalhes técnicos:\n${technicalDetails}`, 'warning');
         }
+        
+        // Remove loading em caso de erro
+        hideButtonLoading('execute-purchase-btn', '<i class="bi bi-lightning me-2"></i>COMPRAR TOKENS');
     }
 }
 
@@ -2702,6 +2768,8 @@ function clearAllData() {
     if (contractInput) {
         contractInput.value = '';
         contractInput.classList.remove('border-success', 'border-danger', 'is-valid', 'is-invalid');
+        contractInput.disabled = false; // Reabilita o campo
+        contractInput.placeholder = 'Conecte sua carteira primeiro...';
     }
     
     if (quantityInput) {
@@ -2711,6 +2779,12 @@ function clearAllData() {
     
     if (priceInput) {
         priceInput.value = '';
+        priceInput.readOnly = false;
+        priceInput.disabled = true; // Desabilita até validação
+        priceInput.style.backgroundColor = '';
+        priceInput.style.borderColor = '';
+        priceInput.style.cursor = '';
+        priceInput.title = '';
     }
     
     if (totalValueInput) {
@@ -2775,6 +2849,15 @@ function clearAllData() {
         detectBtn.textContent = 'DETECTAR';
         detectBtn.classList.remove('btn-success');
         detectBtn.classList.add('btn-info');
+    }
+    
+    // Botão de verificar contrato
+    const verifyBtn = document.getElementById('verify-contract-btn');
+    if (verifyBtn) {
+        verifyBtn.disabled = true;
+        verifyBtn.textContent = 'VERIFICAR CONTRATO';
+        verifyBtn.classList.remove('btn-success', 'btn-warning');
+        verifyBtn.classList.add('btn-info');
     }
     
     const purchaseBtn = document.getElementById('execute-purchase-btn');
