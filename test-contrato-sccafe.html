@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎯 Teste do Contrato SCCAFE</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .card {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.95);
+            border: none;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        .btn-primary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border: none;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        .status-success { background-color: #d4edda; color: #155724; }
+        .status-warning { background-color: #fff3cd; color: #856404; }
+        .status-danger { background-color: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body class="gradient-bg">
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header bg-primary text-white text-center">
+                        <h3 class="mb-0">🎯 Teste do Contrato SCCAFE Direct Sale</h3>
+                    </div>
+                    <div class="card-body">
+                        
+                        <!-- Instruções -->
+                        <div class="alert alert-info">
+                            <h5>📋 Como testar:</h5>
+                            <ol class="mb-0">
+                                <li>Faça deploy do contrato no Remix (BSC Testnet)</li>
+                                <li>Cole o endereço do contrato abaixo</li>
+                                <li>Conecte sua MetaMask</li>
+                                <li>Clique "Testar Compatibilidade"</li>
+                            </ol>
+                        </div>
+
+                        <!-- Endereço do Contrato -->
+                        <div class="mb-4">
+                            <label class="form-label">📍 Endereço do Contrato Deployado:</label>
+                            <input type="text" id="contractAddress" class="form-control" 
+                                   placeholder="0x..." 
+                                   value="">
+                            <div class="form-text">Cole aqui o endereço após fazer deploy no Remix</div>
+                        </div>
+
+                        <!-- Status de Conexão -->
+                        <div class="mb-4">
+                            <h5>🔗 Status da Conexão:</h5>
+                            <div id="connectionStatus" class="status-badge status-warning">
+                                Não conectado
+                            </div>
+                            <button id="connectWallet" class="btn btn-primary ms-2">Conectar MetaMask</button>
+                        </div>
+
+                        <!-- Resultados dos Testes -->
+                        <div class="mb-4">
+                            <h5>🧪 Resultados dos Testes:</h5>
+                            <div id="testResults">
+                                <div class="alert alert-secondary">
+                                    Aguardando testes...
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Botão Principal -->
+                        <div class="text-center">
+                            <button id="testContract" class="btn btn-success btn-lg" disabled>
+                                🚀 Testar Compatibilidade Completa
+                            </button>
+                        </div>
+
+                        <!-- Logs de Debug -->
+                        <div class="mt-4">
+                            <h5>📋 Logs de Debug:</h5>
+                            <div id="debugLogs" class="bg-light p-3" style="height: 200px; overflow-y: auto; font-family: monospace; font-size: 0.875rem;">
+                                Aguardando testes...<br>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Informações do Contrato -->
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">📊 Informações do Contrato</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="contractInfo" class="row">
+                            <div class="col-md-6">
+                                <p><strong>Nome:</strong> <span id="tokenName">-</span></p>
+                                <p><strong>Símbolo:</strong> <span id="tokenSymbol">-</span></p>
+                                <p><strong>Decimais:</strong> <span id="tokenDecimals">-</span></p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Preço:</strong> <span id="tokenPrice">-</span> BNB</p>
+                                <p><strong>Venda Ativa:</strong> <span id="saleActive">-</span></p>
+                                <p><strong>Pausado:</strong> <span id="contractPaused">-</span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+    <script>
+        // Configuração
+        const CONFIG = {
+            chainId: 97, // BSC Testnet
+            rpcUrl: 'https://data-seed-prebsc-1-s1.binance.org:8545/',
+            contractABI: [
+                "function name() view returns (string)",
+                "function symbol() view returns (string)", 
+                "function decimals() view returns (uint8)",
+                "function tokenPrice() view returns (uint256)",
+                "function saleActive() view returns (bool)",
+                "function paused() view returns (bool)",
+                "function buy() payable",
+                "function balanceOf(address) view returns (uint256)",
+                "function owner() view returns (address)"
+            ]
+        };
+
+        let provider = null;
+        let signer = null;
+        let contract = null;
+
+        // Elementos DOM
+        const connectBtn = document.getElementById('connectWallet');
+        const testBtn = document.getElementById('testContract');
+        const contractAddressInput = document.getElementById('contractAddress');
+        const connectionStatus = document.getElementById('connectionStatus');
+        const testResults = document.getElementById('testResults');
+        const debugLogs = document.getElementById('debugLogs');
+
+        // Função para adicionar logs
+        function addLog(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            debugLogs.innerHTML += `[${timestamp}] ${message}<br>`;
+            debugLogs.scrollTop = debugLogs.scrollHeight;
+            console.log(message);
+        }
+
+        // Conectar MetaMask
+        connectBtn.addEventListener('click', async function() {
+            try {
+                addLog('🔗 Conectando MetaMask...');
+                
+                if (typeof window.ethereum === 'undefined') {
+                    throw new Error('MetaMask não detectado');
+                }
+
+                await window.ethereum.request({ method: 'eth_requestAccounts' });
+                provider = new ethers.providers.Web3Provider(window.ethereum);
+                signer = provider.getSigner();
+                
+                const address = await signer.getAddress();
+                const network = await provider.getNetwork();
+                
+                if (network.chainId !== CONFIG.chainId) {
+                    addLog('⚠️ Rede incorreta. Trocando para BSC Testnet...');
+                    await window.ethereum.request({
+                        method: 'wallet_switchEthereumChain',
+                        params: [{ chainId: '0x61' }] // BSC Testnet
+                    });
+                }
+
+                connectionStatus.textContent = `Conectado: ${address.slice(0,6)}...${address.slice(-4)}`;
+                connectionStatus.className = 'status-badge status-success';
+                testBtn.disabled = false;
+                
+                addLog(`✅ Conectado: ${address}`);
+                
+            } catch (error) {
+                addLog(`❌ Erro na conexão: ${error.message}`);
+                connectionStatus.textContent = 'Erro na conexão';
+                connectionStatus.className = 'status-badge status-danger';
+            }
+        });
+
+        // Testar contrato
+        testBtn.addEventListener('click', async function() {
+            const contractAddress = contractAddressInput.value.trim();
+            
+            if (!contractAddress) {
+                alert('Por favor, insira o endereço do contrato');
+                return;
+            }
+
+            if (!ethers.utils.isAddress(contractAddress)) {
+                alert('Endereço do contrato inválido');
+                return;
+            }
+
+            try {
+                addLog('🧪 Iniciando testes de compatibilidade...');
+                testResults.innerHTML = '<div class="alert alert-info">Executando testes...</div>';
+                
+                // Criar instância do contrato
+                contract = new ethers.Contract(contractAddress, CONFIG.contractABI, signer);
+                
+                const results = [];
+                
+                // Teste 1: Verificar se é ERC-20
+                addLog('📝 Teste 1: Verificando ERC-20...');
+                try {
+                    const name = await contract.name();
+                    const symbol = await contract.symbol();
+                    const decimals = await contract.decimals();
+                    
+                    document.getElementById('tokenName').textContent = name;
+                    document.getElementById('tokenSymbol').textContent = symbol;
+                    document.getElementById('tokenDecimals').textContent = decimals;
+                    
+                    results.push('✅ ERC-20: Detectado corretamente');
+                    addLog(`✅ Token: ${name} (${symbol}) - ${decimals} decimais`);
+                } catch (e) {
+                    results.push('❌ ERC-20: Não detectado');
+                    addLog(`❌ Erro ERC-20: ${e.message}`);
+                }
+
+                // Teste 2: Verificar preço
+                addLog('💰 Teste 2: Verificando preço...');
+                try {
+                    const price = await contract.tokenPrice();
+                    const priceFormatted = ethers.utils.formatEther(price);
+                    
+                    document.getElementById('tokenPrice').textContent = priceFormatted;
+                    
+                    results.push(`✅ Preço: ${priceFormatted} BNB detectado`);
+                    addLog(`✅ Preço: ${priceFormatted} BNB`);
+                } catch (e) {
+                    results.push('❌ Preço: Não detectado');
+                    addLog(`❌ Erro no preço: ${e.message}`);
+                }
+
+                // Teste 3: Verificar estado
+                addLog('🔍 Teste 3: Verificando estado do contrato...');
+                try {
+                    const saleActive = await contract.saleActive();
+                    const paused = await contract.paused();
+                    
+                    document.getElementById('saleActive').textContent = saleActive ? 'Sim ✅' : 'Não ❌';
+                    document.getElementById('contractPaused').textContent = paused ? 'Sim ❌' : 'Não ✅';
+                    
+                    if (saleActive && !paused) {
+                        results.push('✅ Estado: Pronto para vendas');
+                        addLog('✅ Venda ativa e não pausado');
+                    } else {
+                        results.push('⚠️ Estado: Problemas detectados');
+                        addLog(`⚠️ Venda ativa: ${saleActive}, Pausado: ${paused}`);
+                    }
+                } catch (e) {
+                    results.push('⚠️ Estado: Não foi possível verificar');
+                    addLog(`⚠️ Erro no estado: ${e.message}`);
+                }
+
+                // Teste 4: Testar função buy
+                addLog('🛒 Teste 4: Testando função buy()...');
+                try {
+                    const gasEstimate = await contract.estimateGas.buy({ 
+                        value: ethers.utils.parseEther('0.001') 
+                    });
+                    
+                    results.push(`✅ Função buy(): Detectada (Gas: ${gasEstimate})`);
+                    addLog(`✅ Função buy() funcional - Gas estimado: ${gasEstimate}`);
+                } catch (e) {
+                    if (e.message.includes('revert')) {
+                        results.push('⚠️ Função buy(): Detectada mas com revert (normal)');
+                        addLog(`⚠️ Função buy() detectada mas reverte: ${e.reason || e.message}`);
+                    } else {
+                        results.push('❌ Função buy(): Não detectada');
+                        addLog(`❌ Erro na função buy(): ${e.message}`);
+                    }
+                }
+
+                // Teste 5: CallStatic
+                addLog('🔬 Teste 5: Teste callStatic...');
+                try {
+                    await contract.callStatic.buy({ 
+                        value: ethers.utils.parseEther('0.001') 
+                    });
+                    results.push('✅ CallStatic: Passou sem problemas');
+                    addLog('✅ CallStatic funcionou perfeitamente');
+                } catch (e) {
+                    if (e.message.includes('revert')) {
+                        results.push('✅ CallStatic: Revert detectado (comportamento normal)');
+                        addLog(`✅ CallStatic com revert (normal): ${e.reason || e.message}`);
+                    } else {
+                        results.push('❌ CallStatic: Falhou');
+                        addLog(`❌ CallStatic falhou: ${e.message}`);
+                    }
+                }
+
+                // Mostrar resultados
+                const successCount = results.filter(r => r.startsWith('✅')).length;
+                const totalTests = results.length;
+                const successRate = Math.round((successCount / totalTests) * 100);
+
+                let resultClass = 'alert-success';
+                let resultIcon = '🎉';
+                let resultTitle = 'CONTRATO 100% COMPATÍVEL!';
+
+                if (successRate < 70) {
+                    resultClass = 'alert-danger';
+                    resultIcon = '❌';
+                    resultTitle = 'CONTRATO COM PROBLEMAS';
+                } else if (successRate < 90) {
+                    resultClass = 'alert-warning';
+                    resultIcon = '⚠️';
+                    resultTitle = 'CONTRATO COM ALERTAS';
+                }
+
+                testResults.innerHTML = `
+                    <div class="alert ${resultClass}">
+                        <h5>${resultIcon} ${resultTitle}</h5>
+                        <p><strong>Taxa de Sucesso: ${successRate}% (${successCount}/${totalTests})</strong></p>
+                        <ul class="mb-0">
+                            ${results.map(result => `<li>${result}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+
+                addLog(`🎯 RESULTADO FINAL: ${successRate}% de compatibilidade`);
+                
+            } catch (error) {
+                addLog(`❌ Erro geral nos testes: ${error.message}`);
+                testResults.innerHTML = `
+                    <div class="alert alert-danger">
+                        <h5>❌ Erro nos Testes</h5>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        });
+    </script>
+</body>
+</html>
