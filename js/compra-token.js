@@ -196,13 +196,6 @@ function setupEventListeners() {
         console.error('❌ Botão de compra não encontrado ao configurar listeners');
     }
     
-    // Botão de nova compra
-    const newPurchaseBtn = document.getElementById('new-purchase-btn');
-    if (newPurchaseBtn) {
-        newPurchaseBtn.addEventListener('click', startNewPurchase);
-        console.log('✅ Event listener configurado para botão de nova compra');
-    }
-    
     // Botão de limpar dados
     const clearAllBtn = document.getElementById('clear-all-btn');
     if (clearAllBtn) {
@@ -2132,42 +2125,6 @@ function formatNumber(num) {
     }
 }
 
-/**
- * Inicia uma nova compra - reseta os campos e oculta detalhes da transação
- */
-function startNewPurchase() {
-    console.log('🔄 Iniciando nova compra...');
-    
-    // Oculta detalhes da transação anterior
-    const transactionDetails = document.getElementById('transactionDetails');
-    if (transactionDetails) {
-        transactionDetails.style.display = 'none';
-    }
-    
-    // Limpa os campos de compra
-    const quantityInput = document.getElementById('token-quantity');
-    if (quantityInput) {
-        quantityInput.value = '';
-    }
-    
-    // Reseta os totais
-    const totalTokensSpan = document.getElementById('totalTokens');
-    const totalPriceSpan = document.getElementById('totalPrice');
-    
-    if (totalTokensSpan) totalTokensSpan.textContent = '0';
-    if (totalPriceSpan) totalPriceSpan.textContent = '0 BNB';
-    
-    // Limpa mensagens de compra anteriores
-    clearPurchaseMessages();
-    
-    // Foca no campo de quantidade para nova entrada
-    if (quantityInput && !quantityInput.disabled) {
-        quantityInput.focus();
-    }
-    
-    console.log('✅ Interface resetada para nova compra');
-}
-
 // ==================== SISTEMA DE FEEDBACK ====================
 
 /**
@@ -2487,26 +2444,12 @@ function getFallbackRpcUrls(chainId) {
 // ==================== CONTROLES DO SISTEMA ====================
 
 /**
- * Limpa todos os dados do sistema e reinicia
+ * Limpa todos os dados e reinicia o sistema
  */
 function clearAllData() {
-    // Confirmação do usuário
-    const confirm = window.confirm(
-        '⚠️ ATENÇÃO!\n\n' +
-        'Esta ação irá:\n' +
-        '• Limpar todos os dados inseridos\n' +
-        '• Ocultar todas as seções\n' +
-        '• Reiniciar o sistema completamente\n\n' +
-        'Deseja continuar?'
-    );
+    console.log('🧹 Limpando dados e reiniciando sistema...');
     
-    if (!confirm) {
-        return;
-    }
-    
-    console.log('🧹 Iniciando limpeza completa dos dados...');
-    
-    // 1. Limpar campos de entrada
+    // Limpar campos
     const contractInput = document.getElementById('contract-address');
     const quantityInput = document.getElementById('token-quantity');
     const priceInput = document.getElementById('token-price');
@@ -2530,7 +2473,7 @@ function clearAllData() {
         totalValueInput.value = '';
     }
     
-    // 2. Limpar informações do token
+    // Limpar informações do token
     const tokenFields = ['token-name', 'token-symbol', 'token-decimals', 'token-price-display'];
     tokenFields.forEach(fieldId => {
         const field = document.getElementById(fieldId);
@@ -2539,48 +2482,32 @@ function clearAllData() {
         }
     });
     
-    // 3. Resetar status das funcionalidades
+    // Resetar status
     const statusFields = ['erc20Status', 'transferStatus', 'buyStatus'];
     statusFields.forEach(fieldId => {
         updateCompatibilityStatus(fieldId, 'Verificando...', 'warning');
     });
     
-    // 4. Limpar mensagens
-    const messagesContainer = document.getElementById('contract-messages');
-    if (messagesContainer) {
-        messagesContainer.innerHTML = '';
-    }
-    
-    const systemMessages = document.getElementById('system-messages');
-    if (systemMessages) {
-        systemMessages.innerHTML = '';
-    }
+    // Limpar mensagens
+    ['contract-messages', 'system-messages'].forEach(id => {
+        const element = document.getElementById(id);
+        if (element) element.innerHTML = '';
+    });
     
     const purchaseResult = document.getElementById('purchaseResult');
     if (purchaseResult) {
         purchaseResult.style.display = 'none';
         const purchaseErrors = document.getElementById('purchaseErrors');
-        if (purchaseErrors) {
-            purchaseErrors.innerHTML = '';
-        }
+        if (purchaseErrors) purchaseErrors.innerHTML = '';
     }
     
-    // 5. Ocultar seções
-    const sectionsToHide = [
-        'contract-detection-section',
-        'token-info-section',
-        'purchase-section',
-        'transactionDetails'
-    ];
-    
-    sectionsToHide.forEach(sectionId => {
-        const section = document.getElementById(sectionId);
-        if (section) {
-            section.style.display = 'none';
-        }
+    // Ocultar seções
+    ['contract-detection-section', 'token-info-section', 'purchase-section', 'transactionDetails'].forEach(id => {
+        const element = document.getElementById(id);
+        if (element) element.style.display = 'none';
     });
     
-    // 6. Resetar botões
+    // Resetar botões
     const detectBtn = document.getElementById('detect-contract-btn');
     if (detectBtn) {
         detectBtn.disabled = false;
@@ -2597,30 +2524,12 @@ function clearAllData() {
         purchaseBtn.style.backgroundColor = '';
     }
     
-    // 7. Resetar variáveis globais
+    // Resetar variáveis globais
     currentContract = null;
-    tokenInfo = {
-        name: '',
-        symbol: '',
-        decimals: 0,
-        price: '0',
-        minPurchase: null,
-        maxPurchase: null
-    };
+    tokenInfo = { name: '', symbol: '', decimals: 0, price: '0', minPurchase: null, maxPurchase: null };
     buyFunctionName = null;
     
-    // 8. Limpar logs (se necessário)
-    if (window.contractLogger) {
-        console.log('📝 Limpando logs do sistema...');
-        // Aqui você pode adicionar lógica para limpar logs se necessário
-    }
-    
-    console.log('✅ Sistema limpo completamente!');
-    
-    // Mostrar mensagem de sucesso
-    showSuccessMessage('🧹 Todos os dados foram limpos com sucesso! Sistema reiniciado.');
-    
-    // Scroll para o topo
+    console.log('✅ Sistema reiniciado');
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
