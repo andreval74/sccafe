@@ -139,8 +139,11 @@
                 "function paused() view returns (bool)",
                 "function buy() payable",
                 "function balanceOf(address) view returns (uint256)",
-                "function owner() view returns (address)"
-            ]
+                "function owner() view returns (address)",
+                "function minPurchase() view returns (uint256)",
+                "function maxPurchase() view returns (uint256)"
+            ],
+            testValue: "0.001" // Valor de teste em BNB
         };
 
         let provider = null;
@@ -218,6 +221,13 @@
                 addLog('🧪 Iniciando testes de compatibilidade...');
                 testResults.innerHTML = '<div class="alert alert-info">Executando testes...</div>';
                 
+                // Verificar se o contrato existe primeiro
+                const code = await provider.getCode(contractAddress);
+                if (code === '0x') {
+                    throw new Error('Contrato não existe neste endereço. Verifique se foi deployado corretamente.');
+                }
+                addLog(`✅ Contrato detectado no endereço: ${contractAddress}`);
+                
                 // Criar instância do contrato
                 contract = new ethers.Contract(contractAddress, CONFIG.contractABI, signer);
                 
@@ -252,12 +262,29 @@
                     results.push(`✅ Preço: ${priceFormatted} BNB detectado`);
                     addLog(`✅ Preço: ${priceFormatted} BNB`);
                 } catch (e) {
-                    results.push('❌ Preço: Não detectado');
+                    results.push(`❌ Preço: Não detectado - ${e.message}`);
                     addLog(`❌ Erro no preço: ${e.message}`);
                 }
 
-                // Teste 3: Verificar estado
-                addLog('🔍 Teste 3: Verificando estado do contrato...');
+                // Teste 3: Verificar limites de compra
+                addLog('📏 Teste 3: Verificando limites...');
+                let minPurchase = null, maxPurchase = null;
+                try {
+                    minPurchase = await contract.minPurchase();
+                    maxPurchase = await contract.maxPurchase();
+                    
+                    const minFormatted = ethers.utils.formatEther(minPurchase);
+                    const maxFormatted = ethers.utils.formatEther(maxPurchase);
+                    
+                    results.push(`✅ Limites: ${minFormatted} - ${maxFormatted} BNB`);
+                    addLog(`✅ Compra mínima: ${minFormatted} BNB, máxima: ${maxFormatted} BNB`);
+                } catch (e) {
+                    results.push(`⚠️ Limites: Não foi possível verificar`);
+                    addLog(`⚠️ Erro nos limites: ${e.message}`);
+                }
+
+                // Teste 4: Verificar estado
+                addLog('🔍 Teste 4: Verificando estado do contrato...');
                 try {
                     const saleActive = await contract.saleActive();
                     const paused = await contract.paused();
@@ -273,43 +300,54 @@
                         addLog(`⚠️ Venda ativa: ${saleActive}, Pausado: ${paused}`);
                     }
                 } catch (e) {
-                    results.push('⚠️ Estado: Não foi possível verificar');
+                    results.push(`⚠️ Estado: Erro na verificação - ${e.message}`);
                     addLog(`⚠️ Erro no estado: ${e.message}`);
                 }
 
-                // Teste 4: Testar função buy
-                addLog('🛒 Teste 4: Testando função buy()...');
+                // Teste 5: Testar função buy com valor adequado
+                addLog('🛒 Teste 5: Testando função buy()...');
                 try {
-                    const gasEstimate = await contract.estimateGas.buy({ 
-                        value: ethers.utils.parseEther('0.001') 
-                    });
+                    // Usar valor de teste baseado no mínimo do contrato
+                    let testValue = ethers.utils.parseEther(CONFIG.testValue);
                     
-                    results.push(`✅ Função buy(): Detectada (Gas: ${gasEstimate})`);
+                    // Se conseguimos ler o minPurchase, usar esse valor
+                    if (minPurchase && minPurchase.gt(testValue)) {
+                        testValue = minPurchase;
+                        addLog(`📏 Ajustando valor de teste para mínimo do contrato: ${ethers.utils.formatEther(testValue)} BNB`);
+                    }
+                    
+                    const gasEstimate = await contract.estimateGas.buy({ value: testValue });
+                    
+                    results.push(`✅ Função buy(): Detectada e funcional (Gas: ${gasEstimate})`);
                     addLog(`✅ Função buy() funcional - Gas estimado: ${gasEstimate}`);
                 } catch (e) {
-                    if (e.message.includes('revert')) {
-                        results.push('⚠️ Função buy(): Detectada mas com revert (normal)');
-                        addLog(`⚠️ Função buy() detectada mas reverte: ${e.reason || e.message}`);
+                    if (e.message.includes('revert') || e.reason) {
+                        const reason = e.reason || 'Motivo não especificado';
+                        results.push(`⚠️ Função buy(): Detectada mas reverte (${reason})`);
+                        addLog(`⚠️ Função buy() detectada mas reverte: ${reason}`);
                     } else {
-                        results.push('❌ Função buy(): Não detectada');
+                        results.push(`❌ Função buy(): Erro na detecção - ${e.message}`);
                         addLog(`❌ Erro na função buy(): ${e.message}`);
                     }
                 }
 
-                // Teste 5: CallStatic
-                addLog('🔬 Teste 5: Teste callStatic...');
+                // Teste 6: CallStatic
+                addLog('🔬 Teste 6: Teste callStatic...');
                 try {
-                    await contract.callStatic.buy({ 
-                        value: ethers.utils.parseEther('0.001') 
-                    });
+                    let testValue = ethers.utils.parseEther(CONFIG.testValue);
+                    if (minPurchase && minPurchase.gt(testValue)) {
+                        testValue = minPurchase;
+                    }
+                    
+                    await contract.callStatic.buy({ value: testValue });
                     results.push('✅ CallStatic: Passou sem problemas');
                     addLog('✅ CallStatic funcionou perfeitamente');
                 } catch (e) {
-                    if (e.message.includes('revert')) {
+                    if (e.message.includes('revert') || e.reason) {
                         results.push('✅ CallStatic: Revert detectado (comportamento normal)');
                         addLog(`✅ CallStatic com revert (normal): ${e.reason || e.message}`);
                     } else {
-                        results.push('❌ CallStatic: Falhou');
+                        results.push(`❌ CallStatic: Falhou - ${e.message}`);
                         addLog(`❌ CallStatic falhou: ${e.message}`);
                     }
                 }

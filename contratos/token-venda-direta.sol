@@ -42,7 +42,7 @@ contract SCCAFEDirectSaleToken is IERC20 {
     bool public paused = false;
     
     // Limites de compra
-    uint256 public minPurchase = 100000000000000000; // 0.1 BNB mínimo
+    uint256 public minPurchase = 1000000000000000; // 0.001 BNB mínimo (para testes)
     uint256 public maxPurchase = 10000000000000000000; // 10 BNB máximo
     
     // ==================== EVENTOS ====================
