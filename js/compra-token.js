@@ -206,6 +206,16 @@ function setupEventListeners() {
         clearAllBtn.addEventListener('click', clearAllData);
         console.log('✅ Event listener configurado para botão de limpar dados');
     }
+    
+    // Botão de atualizar saldo
+    const refreshBalanceBtn = document.getElementById('refresh-balance-btn');
+    if (refreshBalanceBtn) {
+        refreshBalanceBtn.addEventListener('click', () => {
+            console.log('🔄 Atualizando saldo manualmente...');
+            updateWalletBalance();
+        });
+        console.log('✅ Event listener configurado para botão de atualizar saldo');
+    }
 }
 
 // ==================== GERENCIAMENTO DE WALLET ====================
@@ -253,33 +263,68 @@ async function connectWallet() {
  * Atualiza saldo da carteira
  */
 async function updateWalletBalance() {
-    const balanceElement = document.getElementById('wallet-balance-value');
+    const balanceElement = document.getElementById('wallet-balance-display');
+    const balanceContainer = document.getElementById('wallet-balance-info');
     
-    if (!walletConnected || !walletAddress || !balanceElement) return;
+    if (!walletConnected || !walletAddress) {
+        // Esconder seção se não conectado
+        if (balanceContainer) {
+            balanceContainer.style.display = 'none';
+        }
+        return;
+    }
+    
+    if (!balanceElement) {
+        console.error('❌ Elemento wallet-balance-display não encontrado');
+        return;
+    }
     
     try {
         console.log('💰 Atualizando saldo da carteira...');
+        console.log(`👤 Endereço: ${walletAddress}`);
+        console.log(`🔗 Conectado: ${walletConnected}`);
         
         // Usar provider atual ou inicializar um novo
         let provider = currentProvider;
         if (!provider) {
+            console.log('⚙️ Provider não encontrado, inicializando...');
             provider = await initializeProviderWithFallback();
         }
         
+        if (!provider) {
+            throw new Error('Não foi possível inicializar provider');
+        }
+        
+        console.log('🌐 Provider pronto, buscando saldo...');
+        
         // Buscar saldo
         const balance = await provider.getBalance(walletAddress);
+        console.log(`💰 Saldo raw: ${balance.toString()} wei`);
+        
         const balanceInBNB = ethers.utils.formatEther(balance);
+        console.log(`💰 Saldo em BNB: ${balanceInBNB}`);
         
         // Formatar para exibição
         const formattedBalance = formatNumber(balanceInBNB);
+        console.log(`💰 Saldo formatado: ${formattedBalance}`);
         
-        balanceElement.textContent = `${formattedBalance} BNB`;
+        balanceElement.textContent = formattedBalance;
         
-        console.log(`💰 Saldo da carteira: ${formattedBalance} BNB`);
+        // Mostrar seção do saldo
+        if (balanceContainer) {
+            balanceContainer.style.display = 'block';
+        }
+        
+        console.log(`✅ Saldo da carteira exibido: ${formattedBalance} BNB`);
         
     } catch (error) {
         console.error('❌ Erro ao buscar saldo da carteira:', error);
         balanceElement.textContent = 'Erro ao carregar';
+        
+        // Mostrar seção mesmo com erro
+        if (balanceContainer) {
+            balanceContainer.style.display = 'block';
+        }
     }
 }
 
@@ -319,6 +364,11 @@ function updateWalletUI() {
             updateWalletBalance();
         }, 1000);
         
+        // Terceira tentativa com delay maior para garantir provider
+        setTimeout(() => {
+            updateWalletBalance();
+        }, 2000);
+        
         // Habilita seção de contrato apenas após conexão
         enableContractSection();
     }
@@ -348,6 +398,13 @@ async function detectNetwork() {
         }
         
         console.log('🌐 Rede detectada:', networkData);
+        
+        // Se carteira já conectada, atualiza saldo ao detectar rede
+        if (walletConnected && walletAddress) {
+            setTimeout(() => {
+                updateWalletBalance();
+            }, 500);
+        }
         
     } catch (error) {
         console.error('❌ Erro ao detectar rede:', error);
@@ -2395,7 +2452,9 @@ function initializeWalletConnection() {
                 walletConnected = true;
                 updateWalletUI();
                 // Atualizar saldo quando trocar de conta
-                updateWalletBalance();
+                setTimeout(() => {
+                    updateWalletBalance();
+                }, 500);
             } else {
                 walletConnected = false;
                 walletAddress = '';
@@ -2409,6 +2468,14 @@ function initializeWalletConnection() {
             location.reload();
         });
     }
+    
+    // Verificação periódica do saldo (a cada 30 segundos se conectado)
+    setInterval(() => {
+        if (walletConnected && walletAddress) {
+            console.log('🔄 Verificação periódica do saldo...');
+            updateWalletBalance();
+        }
+    }, 30000); // 30 segundos
 }
 
 // ==================== SISTEMA DE FALLBACK RPC ====================
@@ -2667,9 +2734,13 @@ function clearAllData() {
     }
     
     // Limpar saldo da carteira
-    const balanceElement = document.getElementById('wallet-balance-value');
+    const balanceElement = document.getElementById('wallet-balance-display');
+    const balanceContainer = document.getElementById('wallet-balance-info');
     if (balanceElement) {
         balanceElement.textContent = '-';
+    }
+    if (balanceContainer) {
+        balanceContainer.style.display = 'none';
     }
     
     // Resetar status
