@@ -1731,6 +1731,10 @@ async function executePurchase() {
             errorMessage = 'Saldo insuficiente na carteira';
         } else if (error.code === 'USER_REJECTED') {
             errorMessage = 'Transação cancelada pelo usuário';
+        } else if (error.code === 4001) {
+            errorMessage = 'Transação rejeitada pelo usuário';
+        } else if (error.code === 'UNPREDICTABLE_GAS_LIMIT') {
+            errorMessage = 'Não foi possível estimar o gás necessário. O contrato pode ter rejeitado a transação.';
         } else if (error.code === 'CALL_EXCEPTION') {
             errorMessage = 'Erro na execução do contrato';
             
@@ -1738,12 +1742,12 @@ async function executePurchase() {
             if (error.receipt) {
                 technicalDetails = `Hash: ${error.receipt.transactionHash}\n`;
                 technicalDetails += `Gas usado: ${error.receipt.gasUsed}\n`;
-                technicalDetails += `Status: ${error.receipt.status === 0 ? 'FAILED' : 'SUCCESS'}\n`;
+                technicalDetails += `Status: ${error.receipt.status === 0 ? 'FALHOU' : 'SUCESSO'}\n`;
                 
                 console.log('📋 Detalhes da transação falhada:');
                 console.log('🔗 Hash:', error.receipt.transactionHash);
                 console.log('⛽ Gas usado:', error.receipt.gasUsed.toString());
-                console.log('📊 Status:', error.receipt.status === 0 ? 'FAILED' : 'SUCCESS');
+                console.log('📊 Status:', error.receipt.status === 0 ? 'FALHOU' : 'SUCESSO');
                 
                 // Análise específica baseada no gas usado
                 const gasUsed = error.receipt.gasUsed.toNumber();
@@ -1800,7 +1804,7 @@ async function executePurchase() {
             
             // Análise de reverts comuns
             const errorMsg = error.message.toLowerCase();
-            if (errorMsg.includes('execution reverted')) {
+            if (errorMsg.includes('execution reverted') || errorMsg.includes('execução revertida')) {
                 errorMessage += '\n\n💡 O contrato executou mas rejeitou a transação.';
                 errorMessage += '\nIsso indica que alguma condição interna não foi atendida.';
                 
@@ -1990,15 +1994,25 @@ async function analyzeRevertReason(error, contract, valueInWei) {
     // Análise de padrões comuns de revert
     const commonReverts = {
         'insufficient funds': 'Saldo insuficiente no contrato ou usuário',
+        'saldo insuficiente': 'Saldo insuficiente no contrato ou usuário',
         'not enough tokens': 'Contrato sem tokens suficientes',
+        'sem tokens': 'Contrato sem tokens suficientes',
         'paused': 'Contrato está pausado',
+        'pausado': 'Contrato está pausado',
         'not whitelisted': 'Endereço não está na whitelist',
+        'não autorizado': 'Endereço não está na whitelist',
         'sale not active': 'Venda não está ativa',
+        'venda inativa': 'Venda não está ativa',
         'minimum purchase': 'Valor abaixo do mínimo',
+        'valor mínimo': 'Valor abaixo do mínimo',
         'maximum purchase': 'Valor acima do máximo',
+        'valor máximo': 'Valor acima do máximo',
         'already purchased': 'Usuário já comprou antes',
+        'já comprou': 'Usuário já comprou antes',
         'wrong price': 'Preço incorreto',
-        'invalid amount': 'Quantidade inválida'
+        'preço incorreto': 'Preço incorreto',
+        'invalid amount': 'Quantidade inválida',
+        'quantidade inválida': 'Quantidade inválida'
     };
     
     for (const [pattern, explanation] of Object.entries(commonReverts)) {
