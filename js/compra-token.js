@@ -118,8 +118,14 @@ let walletConnected = false;
 let walletAddress = '';
 let networkData = {};
 let currentContract = null;
-let currentSaleContract = null; // Para contratos de venda
+let currentSaleContract = null;
+let selectedTokenIndex = null;
 let tokenInfo = {};
+
+// Variáveis de controle para evitar execuções múltiplas
+let walletBalanceLoaded = false;
+let providerInitialized = false;
+let balanceUpdateInProgress = false;
 let buyFunctionName = null;
 
 // ==================== INICIALIZAÇÃO ====================
@@ -180,10 +186,13 @@ async function checkInitialWalletState() {
                 walletConnected = true;
                 await detectNetwork();
                 updateWalletUI();
-                // Carregar saldo inicial se já conectado
-                setTimeout(() => {
-                    updateWalletBalance();
-                }, 500);
+                // Carregar saldo inicial se já conectado (apenas uma vez)
+                if (!walletBalanceLoaded) {
+                    setTimeout(() => {
+                        updateWalletBalance();
+                        walletBalanceLoaded = true;
+                    }, 800);
+                }
             }
         } catch (error) {
             console.log('Wallet não conectada previamente');
@@ -329,10 +338,10 @@ async function connectWallet() {
             await detectNetwork();
             updateWalletUI();
             
-            // Força atualização do saldo após conectar
+            // Carregar saldo após conectar (apenas uma vez)
             setTimeout(() => {
                 updateWalletBalance();
-            }, 500);
+            }, 800);
             
             console.log('✅ Wallet conectada:', walletAddress);
         }
@@ -346,9 +355,15 @@ async function connectWallet() {
 }
 
 /**
- * Atualiza saldo da carteira
+ * Atualiza saldo da carteira (com controle de execuções múltiplas)
  */
 async function updateWalletBalance() {
+    // Evitar execuções múltiplas simultâneas
+    if (balanceUpdateInProgress) {
+        console.log('⏳ Atualização de saldo já em progresso, ignorando...');
+        return;
+    }
+    
     const balanceElement = document.getElementById('wallet-balance-display');
     const balanceContainer = document.getElementById('wallet-balance-info');
     
@@ -366,6 +381,7 @@ async function updateWalletBalance() {
     }
     
     try {
+        balanceUpdateInProgress = true;
         console.log('💰 Atualizando saldo da carteira...');
         console.log(`👤 Endereço: ${walletAddress}`);
         console.log(`🔗 Conectado: ${walletConnected}`);
@@ -417,6 +433,9 @@ async function updateWalletBalance() {
         if (balanceContainer) {
             balanceContainer.style.display = 'block';
         }
+    } finally {
+        // Libera controle de execução múltipla
+        balanceUpdateInProgress = false;
     }
 }
 
@@ -448,18 +467,8 @@ function updateWalletUI() {
             networkSection.style.display = 'block';
         }
         
-        // Atualiza saldo da carteira
+        // Atualiza saldo da carteira (apenas uma vez)
         updateWalletBalance();
-        
-        // Força uma segunda atualização após pequeno delay para garantir que apareça
-        setTimeout(() => {
-            updateWalletBalance();
-        }, 1000);
-        
-        // Terceira tentativa com delay maior para garantir provider
-        setTimeout(() => {
-            updateWalletBalance();
-        }, 2000);
         
         // Habilita seção de contrato apenas após conexão
         enableContractSection();
@@ -2985,13 +2994,13 @@ function initializeWalletConnection() {
         });
     }
     
-    // Verificação periódica do saldo (a cada 30 segundos se conectado)
+    // Verificação periódica menos frequente (60 segundos se conectado)
     setInterval(() => {
-        if (walletConnected && walletAddress) {
+        if (walletConnected && walletAddress && !balanceUpdateInProgress) {
             console.log('🔄 Verificação periódica do saldo...');
             updateWalletBalance();
         }
-    }, 30000); // 30 segundos
+    }, 60000); // 60 segundos
 }
 
 // ==================== SISTEMA DE FALLBACK RPC ====================
@@ -3001,6 +3010,12 @@ function initializeWalletConnection() {
  * ESTRATÉGIA: Usa APENAS RPC público para leitura, MetaMask apenas para transações
  */
 async function initializeProviderWithFallback() {
+    // Evitar inicializações múltiplas
+    if (providerInitialized && currentProvider) {
+        console.log('🔄 Provider já inicializado, reutilizando...');
+        return currentProvider;
+    }
+    
     console.log('🔄 Inicializando provider com estratégia RPC-primeiro');
     
     // NUNCA usa MetaMask para operações de leitura
@@ -3145,6 +3160,7 @@ async function retryWithFallbackProvider(contractAddress) {
             // Atualiza provider global
             currentProvider = fallbackProvider;
             currentSigner = null; // Sem signer no RPC público
+            providerInitialized = true; // Marca como inicializado
             
             // Continua verificação
             currentContract = new ethers.Contract(contractAddress, CONFIG.tokenABI, currentProvider);
