@@ -149,7 +149,9 @@ async function checkInitialWalletState() {
                 await detectNetwork();
                 updateWalletUI();
                 // Carregar saldo inicial se já conectado
-                updateWalletBalance();
+                setTimeout(() => {
+                    updateWalletBalance();
+                }, 500);
             }
         } catch (error) {
             console.log('Wallet não conectada previamente');
@@ -233,6 +235,11 @@ async function connectWallet() {
             await detectNetwork();
             updateWalletUI();
             
+            // Força atualização do saldo após conectar
+            setTimeout(() => {
+                updateWalletBalance();
+            }, 500);
+            
             console.log('✅ Wallet conectada:', walletAddress);
         }
         
@@ -253,8 +260,14 @@ async function updateWalletBalance() {
     try {
         console.log('💰 Atualizando saldo da carteira...');
         
-        // Buscar saldo usando provider público
-        const balance = await publicProvider.getBalance(walletAddress);
+        // Usar provider atual ou inicializar um novo
+        let provider = currentProvider;
+        if (!provider) {
+            provider = await initializeProviderWithFallback();
+        }
+        
+        // Buscar saldo
+        const balance = await provider.getBalance(walletAddress);
         const balanceInBNB = ethers.utils.formatEther(balance);
         
         // Formatar para exibição
@@ -279,9 +292,9 @@ function updateWalletUI() {
     const networkSection = document.getElementById('network-info-section');
     
     if (walletConnected && walletAddress) {
-        // Status da wallet
+        // Status da wallet - mostrar endereço completo
         if (statusInput) {
-            statusInput.value = `${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`;
+            statusInput.value = walletAddress;
             statusInput.classList.add('text-success');
         }
         
@@ -300,6 +313,11 @@ function updateWalletUI() {
         
         // Atualiza saldo da carteira
         updateWalletBalance();
+        
+        // Força uma segunda atualização após pequeno delay para garantir que apareça
+        setTimeout(() => {
+            updateWalletBalance();
+        }, 1000);
         
         // Habilita seção de contrato apenas após conexão
         enableContractSection();
