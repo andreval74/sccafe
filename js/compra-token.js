@@ -200,11 +200,15 @@ function setupEventListeners() {
         console.error('❌ Botão de compra não encontrado ao configurar listeners');
     }
     
-    // Botão de limpar dados
+    // Botão de limpar dados - SIMPLIFICADO: apenas recarrega a página
     const clearAllBtn = document.getElementById('clear-all-btn');
     if (clearAllBtn) {
-        clearAllBtn.addEventListener('click', clearAllData);
-        console.log('✅ Event listener configurado para botão de limpar dados');
+        clearAllBtn.addEventListener('click', () => {
+            if (confirm('Deseja realmente limpar todos os dados e recomeçar?')) {
+                location.reload();
+            }
+        });
+        console.log('✅ Event listener configurado para botão de limpar dados (reload)');
     }
     
     // Botão de atualizar saldo
@@ -2754,137 +2758,9 @@ function getFallbackRpcUrls(chainId) {
 // ==================== CONTROLES DO SISTEMA ====================
 
 /**
- * Limpa todos os dados e reinicia o sistema
+ * Função de limpeza simplificada - removida porque agora usa location.reload()
+ * O botão "Limpar e Recomeçar" simplesmente recarrega a página
  */
-function clearAllData() {
-    console.log('🧹 Limpando dados e reiniciando sistema...');
-    
-    // Limpar campos
-    const contractInput = document.getElementById('contract-address');
-    const quantityInput = document.getElementById('token-quantity');
-    const priceInput = document.getElementById('token-price');
-    const totalValueInput = document.getElementById('total-value');
-    
-    if (contractInput) {
-        contractInput.value = '';
-        contractInput.classList.remove('border-success', 'border-danger', 'is-valid', 'is-invalid');
-        contractInput.disabled = false; // Reabilita o campo
-        contractInput.placeholder = 'Conecte sua carteira primeiro...';
-    }
-    
-    if (quantityInput) {
-        quantityInput.value = '';
-        quantityInput.disabled = true;
-    }
-    
-    if (priceInput) {
-        priceInput.value = '';
-        priceInput.readOnly = false;
-        priceInput.disabled = true; // Desabilita até validação
-        priceInput.style.backgroundColor = '';
-        priceInput.style.borderColor = '';
-        priceInput.style.cursor = '';
-        priceInput.title = '';
-    }
-    
-    if (totalValueInput) {
-        totalValueInput.value = '';
-    }
-    
-    // Limpar informações do token
-    const tokenFields = ['tokenName', 'tokenSymbol', 'tokenDecimals', 'tokenTotalSupply', 'contractBalance', 'tokensForSale'];
-    tokenFields.forEach(fieldId => {
-        const field = document.getElementById(fieldId);
-        if (field) {
-            field.textContent = '-';
-            field.className = 'fw-bold text-muted mb-2'; // Reset de classes
-        }
-    });
-    
-    // Ocultar informação de disponibilidade
-    const availabilityInfo = document.getElementById('tokens-availability');
-    if (availabilityInfo) {
-        availabilityInfo.style.display = 'none';
-    }
-    
-    // Limpar saldo da carteira
-    const balanceElement = document.getElementById('wallet-balance-display');
-    const balanceContainer = document.getElementById('wallet-balance-info');
-    if (balanceElement) {
-        balanceElement.textContent = '-';
-    }
-    if (balanceContainer) {
-        balanceContainer.style.display = 'none';
-    }
-    
-    // Resetar status
-    const statusFields = ['erc20Status', 'transferStatus', 'buyStatus'];
-    statusFields.forEach(fieldId => {
-        updateCompatibilityStatus(fieldId, 'Verificando...', 'warning');
-    });
-    
-    // Limpar mensagens
-    ['contract-messages', 'system-messages'].forEach(id => {
-        const element = document.getElementById(id);
-        if (element) element.innerHTML = '';
-    });
-    
-    const purchaseResult = document.getElementById('purchaseResult');
-    if (purchaseResult) {
-        purchaseResult.style.display = 'none';
-        const purchaseErrors = document.getElementById('purchaseErrors');
-        if (purchaseErrors) purchaseErrors.innerHTML = '';
-    }
-    
-    // Ocultar seções
-    ['contract-detection-section', 'token-info-section', 'purchase-section', 'transactionDetails'].forEach(id => {
-        const element = document.getElementById(id);
-        if (element) element.style.display = 'none';
-    });
-    
-    // Resetar botões
-    const detectBtn = document.getElementById('detect-contract-btn');
-    if (detectBtn) {
-        detectBtn.disabled = false;
-        detectBtn.textContent = 'DETECTAR';
-        detectBtn.classList.remove('btn-success');
-        detectBtn.classList.add('btn-info');
-    }
-    
-    // Botão de verificar contrato
-    const verifyBtn = document.getElementById('verify-contract-btn');
-    if (verifyBtn) {
-        verifyBtn.disabled = true;
-        verifyBtn.textContent = 'VERIFICAR CONTRATO';
-        verifyBtn.classList.remove('btn-success', 'btn-warning');
-        verifyBtn.classList.add('btn-info');
-    }
-    
-    const purchaseBtn = document.getElementById('execute-purchase-btn');
-    if (purchaseBtn) {
-        purchaseBtn.disabled = true;
-        purchaseBtn.style.opacity = '0.5';
-        purchaseBtn.style.cursor = 'not-allowed';
-        purchaseBtn.style.backgroundColor = '';
-    }
-    
-    // Resetar variáveis globais
-    currentContract = null;
-    tokenInfo = { 
-        name: '', 
-        symbol: '', 
-        decimals: 0, 
-        price: '0', 
-        minPurchase: null, 
-        maxPurchase: null,
-        tokensForSale: null,
-        tokensForSaleFormatted: 0
-    };
-    buyFunctionName = null;
-    
-    console.log('✅ Sistema reiniciado');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-}
 
 // ==================== EXPORTS ====================
 
@@ -2899,8 +2775,7 @@ window.DynamicTokenPurchase = {
     clearContractMessages,
     clearPurchaseMessages,
     initializeProviderWithFallback,
-    retryWithFallbackProvider,
-    clearAllData
+    retryWithFallbackProvider
 };
 
 // CSS para animação de loading
