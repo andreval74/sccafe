@@ -1503,7 +1503,7 @@ async function testActualPayableFunctions() {
                     // Função existe, apenas reverte com parâmetros de teste
                     buyFunctionName = funcName;
                     updateCompatibilityStatus('buyStatus', '✅ Disponível', 'success');
-                    addContractMessage(`✅ Função de compra detectada - reverte com parâmetros teste`, 'success');
+                    addContractMessage(`✅ Função de compra detectada`, 'success');
                     
                     // Habilita seção de compra diretamente
                     enablePurchaseSection();
