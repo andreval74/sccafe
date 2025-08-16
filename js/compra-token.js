@@ -1142,7 +1142,7 @@ async function verifyBuyFunctions() {
         if (possibleBuyFunctions.length > 0) {
             console.log('🎯 Funções suspeitas de compra encontradas:');
             possibleBuyFunctions.forEach(func => console.log(`   💡 ${func}`));
-            addContractMessage(`⚠️ Contrato tem funções suspeitas: ${possibleBuyFunctions.join(', ')}`, 'warning');
+            // Não mostra mensagem para o usuário - apenas no console para debug
         }
         
     } catch (e) {
@@ -1510,7 +1510,7 @@ async function executePurchase() {
         const valueInWei = ethers.utils.parseEther(totalValueStr);
         
         clearPurchaseMessages();
-        addPurchaseMessage('🚀 Iniciando transação de compra...', 'info');
+        addPurchaseMessage('🚀 Processando compra...', 'info');
         
         // IMPORTANTE: Sempre usar MetaMask para transações (não RPC público)
         const web3Provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -1558,18 +1558,18 @@ async function executePurchase() {
                     
                     if (contractTokens === 0) {
                         console.log('⚠️ Contrato não tem tokens em seu endereço - pode usar mint ou reserva externa');
-                        addPurchaseMessage('ℹ️ Tokens serão criados automaticamente', 'info');
+                        // Não mostra mensagem - apenas no log
                     } else if (contractTokens < quantity) {
                         console.log(`⚠️ Contrato tem poucos tokens (${contractTokens}), mas pode ter outras fontes`);
-                        addPurchaseMessage('⚠️ Verificando outras fontes de tokens...', 'warning');
+                        // Não mostra mensagem - apenas no log
                     } else {
                         console.log(`✅ Contrato tem tokens suficientes: ${contractTokens} >= ${quantity}`);
-                        addPurchaseMessage('✅ Tokens disponíveis para compra', 'success');
+                        // Não mostra mensagem - apenas no log
                     }
                 }
             } catch (tokenCheckError) {
                 console.log('⚠️ Não foi possível verificar tokens do contrato:', tokenCheckError.message);
-                addPurchaseMessage('ℹ️ Tokens serão criados sob demanda', 'info');
+                // Não mostra mensagem - apenas no log
             }
             
             // 🔍 VERIFICAÇÃO ADICIONAL: Tenta detectar se contrato usa mint ou tem reservas
@@ -1586,7 +1586,8 @@ async function executePurchase() {
                         console.log(`💰 ${funcName}(): ${availableTokens} tokens disponíveis`);
                         
                         if (availableTokens >= quantity) {
-                            addPurchaseMessage(`✅ Tokens disponíveis confirmados via ${funcName}()`, 'success');
+                            console.log(`✅ Tokens disponíveis confirmados via ${funcName}(): ${availableTokens}`);
+                            // Não mostra mensagem - apenas no log
                             break;
                         }
                     } catch (e) {
@@ -1602,7 +1603,7 @@ async function executePurchase() {
                 
                 if (hasMintFunction) {
                     console.log('✅ Contrato tem função de mint - pode criar tokens dinamicamente');
-                    addPurchaseMessage('✅ Sistema de criação automática confirmado', 'success');
+                    // Não mostra mensagem - apenas no log
                 }
                 
             } catch (availabilityError) {
@@ -1613,7 +1614,7 @@ async function executePurchase() {
             console.log('🔍 Executando diagnóstico avançado do contrato...');
             await performAdvancedContractDiagnostics(publicProvider);
             
-            addPurchaseMessage('✅ Verificações iniciais aprovadas', 'success');
+            // Não mostra mensagem de aprovação - apenas processa
             
         } catch (diagError) {
             console.warn('⚠️ Erro no diagnóstico:', diagError.message);
@@ -1627,7 +1628,6 @@ async function executePurchase() {
         }
         
         // SIMULAÇÃO COM DIFERENTES VALORES PARA ENCONTRAR O PROBLEMA
-        addPurchaseMessage('🧪 Testando diferentes cenários...', 'info');
         try {
             // Cria provider MetaMask apenas para simulação
             const metamaskProvider = new ethers.providers.Web3Provider(window.ethereum);
@@ -1647,7 +1647,6 @@ async function executePurchase() {
                     from: walletAddress
                 });
                 console.log('✅ Simulação com valor exato: SUCESSO');
-                addPurchaseMessage('✅ Simulação bem-sucedida', 'success');
             } catch (simError1) {
                 console.log('❌ Simulação com valor exato: FALHOU');
                 console.log('🔍 Razão:', simError1.reason || simError1.message);
