@@ -403,7 +403,7 @@ async function verifyContract() {
         clearContractMessages();
         hideTokenInfo();
         
-        addContractMessage('🔍 Verificando contrato na blockchain...', 'info');
+        addContractMessage('🔍 Verificando token...', 'info');
         
         // Inicializa provider com fallback para resolver problemas de RPC
         currentProvider = await initializeProviderWithFallback();
@@ -413,6 +413,14 @@ async function verifyContract() {
         addContractMessage('🔍 Verificando se é um smart contract...', 'info');
         const code = await currentProvider.getCode(contractAddress);
         if (code === '0x') {
+            // Log do erro para suporte
+            window.contractLogger.logContractError(contractAddress, 'CONTRACT_NOT_FOUND', {
+                message: 'Nenhum código encontrado no endereço',
+                code: code,
+                network: currentNetworkId
+            });
+            window.contractLogger.showDownloadButton();
+            
             throw new Error('Contrato não existe neste endereço. Verifique se foi deployado corretamente.');
         }
         
@@ -439,6 +447,17 @@ async function verifyContract() {
     
     catch (error) {
         console.error('❌ Erro ao verificar contrato:', error);
+        
+        // Log geral de erro de verificação para suporte
+        window.contractLogger.logContractError(contractAddress, 'VERIFICATION_FAILED', {
+            error: error.message,
+            stack: error.stack,
+            code: error.code,
+            isRPCError: error.message?.includes('JSON-RPC') || error.code === -32603,
+            contractAddress: contractAddress,
+            providerType: currentProvider ? 'available' : 'unavailable'
+        });
+        window.contractLogger.showDownloadButton();
         
         // Se for erro de RPC, oferece alternativa
         if (error.message?.includes('JSON-RPC') || error.code === -32603) {
@@ -479,14 +498,30 @@ async function verifyERC20Functions() {
             totalSupply: totalSupply.toString()
         };
         
-        updateCompatibilityStatus('erc20Status', '✅ Compatível', 'success');
-        updateCompatibilityStatus('transferStatus', '✅ Detectada', 'success');
-        addContractMessage(`✅ Token: ${name} (${symbol}) - ${decimals} decimais`, 'success');
+        updateCompatibilityStatus('erc20Status', '✅ Suportado', 'success');
+        updateCompatibilityStatus('transferStatus', '✅ Disponível', 'success');
+        addContractMessage(`✅ Token: ${name} (${symbol})`, 'success');
+        
+        // Log de sucesso da validação
+        window.contractLogger.logContractValidation(currentContract.address, {
+            isERC20: true,
+            tokenInfo: { name, symbol, decimals: parseInt(decimals) },
+            errors: []
+        });
         
     } catch (error) {
-        updateCompatibilityStatus('erc20Status', `❌ Incompatível - ${error.message}`, 'error');
-        updateCompatibilityStatus('transferStatus', '❌ Não detectada', 'error');
-        addContractMessage(`❌ Erro ERC-20: ${error.message}`, 'error');
+        updateCompatibilityStatus('erc20Status', '❌ Não suportado', 'error');
+        updateCompatibilityStatus('transferStatus', '❌ Indisponível', 'error');
+        addContractMessage(`❌ Token não suportado`, 'error');
+        
+        // Log do erro ERC-20 para suporte
+        window.contractLogger.logContractError(currentContract.address, 'ERC20_VALIDATION_FAILED', {
+            error: error.message,
+            stack: error.stack,
+            attemptedFunctions: ['name', 'symbol', 'decimals', 'totalSupply']
+        });
+        window.contractLogger.showDownloadButton();
+        
         throw new Error('Contrato não é ERC-20 compatível');
     }
 }
@@ -854,7 +889,7 @@ async function testActualPayableFunctions() {
                 }
                 
                 buyFunctionName = funcName;
-                updateCompatibilityStatus('buyStatus', '✅ Validada 100%', 'success');
+                updateCompatibilityStatus('buyStatus', '✅ Disponível', 'success');
                 addContractMessage(`✅ Função "${funcName}" totalmente validada`, 'success');
                 
                 // **DIAGNÓSTICO PROFUNDO antes de habilitar**
@@ -884,7 +919,7 @@ async function testActualPayableFunctions() {
                     
                     // Função existe, apenas reverte com parâmetros de teste
                     buyFunctionName = funcName;
-                    updateCompatibilityStatus('buyStatus', '✅ Validada (com revert)', 'success');
+                    updateCompatibilityStatus('buyStatus', '✅ Disponível', 'success');
                     addContractMessage(`✅ Função "${funcName}" detectada - reverte com parâmetros teste`, 'success');
                     
                     // **DIAGNÓSTICO PROFUNDO antes de habilitar**
@@ -974,7 +1009,7 @@ async function investigateContractViaEtherscan(contractAddress) {
                     
                     console.log(`✅ SUCESSO! Função ${firstPayable.name}() funciona!`);
                     buyFunctionName = firstPayable.name;
-                    updateCompatibilityStatus('buyStatus', '✅ Detectada via Etherscan', 'success');
+                    updateCompatibilityStatus('buyStatus', '✅ Disponível', 'success');
                     addContractMessage(`✅ Função de compra "${firstPayable.name}" encontrada via Etherscan`, 'success');
                     return true;
                     
@@ -1055,7 +1090,7 @@ async function verifyBuyFunctions() {
             }
             
             buyFunctionName = funcName;
-            updateCompatibilityStatus('buyStatus', '✅ Validada 100%', 'success');
+            updateCompatibilityStatus('buyStatus', '✅ Disponível', 'success');
             addContractMessage(`✅ Função "${funcName}" totalmente validada`, 'success');
             return;
             
@@ -1069,7 +1104,7 @@ async function verifyBuyFunctions() {
                 const reason = error.reason || error.message.split(':')[1] || 'Motivo não especificado';
                 console.log(`⚠️ Função buy(): Detectada mas reverte (${reason})`);
                 buyFunctionName = funcName;
-                updateCompatibilityStatus('buyStatus', '✅ Detectada', 'success');
+                updateCompatibilityStatus('buyStatus', '✅ Disponível', 'success');
                 addContractMessage(`✅ Função de compra "${funcName}" detectada (reverte com parâmetros de teste - normal)`, 'success');
                 return;
             } else {
@@ -1121,7 +1156,20 @@ async function verifyBuyFunctions() {
     if (!found) {
         buyFunctionName = null;
         updateCompatibilityStatus('buyStatus', '❌ Não disponível', 'error');
-        addContractMessage('❌ Este contrato não suporta compra direta de tokens', 'error');
+        addContractMessage('❌ Este token não permite compra automática', 'error');
+        
+        // Log detalhado do erro para suporte
+        window.contractLogger.logContractError(currentContract.address, 'NO_BUY_FUNCTION', {
+            message: 'Nenhuma função de compra detectada',
+            availableFunctions: Object.keys(currentContract.functions || {}),
+            possibleBuyFunctions: possibleBuyFunctions || [],
+            contractABI: CONFIG.tokenABI.map(f => typeof f === 'string' ? f : f.name).filter(Boolean),
+            testedFunctions: {
+                buyFunctionName: buyFunctionName,
+                priceFunction: priceFunctionName
+            }
+        });
+        window.contractLogger.showDownloadButton();
         
         // 🚨 IMPORTANTE: Garantir que a seção de compra permaneça OCULTA
         hidePurchaseSection();
@@ -1345,7 +1393,7 @@ function hidePurchaseSection() {
     }
     
     // Adiciona uma mensagem explicativa para o usuário
-    addContractMessage('🔒 Seção de compra não disponível - Este contrato não suporta compra direta', 'warning');
+    addContractMessage('🔒 Compra não disponível - Este token não permite compra automática', 'warning');
     console.log('🔒 Seção de compra permanece oculta - Contrato incompatível');
 }
 
@@ -1393,24 +1441,24 @@ function calculateTotal() {
  */
 async function executePurchase() {
     if (!buyFunctionName) {
-        alert('Este contrato não suporta compra direta');
+        alert('Este token não permite compra automática');
         return;
     }
     
     // Verifica se a função existe no contrato antes de executar
     if (!buyFunctionName) {
-        alert('❌ Nenhuma função de compra foi detectada no contrato');
+        alert('❌ Este token não permite compra direta');
         return;
     }
     
     // **VALIDAÇÃO CRÍTICA: Verifica se a função realmente existe no contrato**
     if (!currentContract[buyFunctionName]) {
         console.error(`❌ ERRO CRÍTICO: Função ${buyFunctionName}() não existe no contrato!`);
-        alert(`❌ Erro: A função ${buyFunctionName}() não está disponível no contrato`);
+        alert('❌ Erro: Sistema de compra não está disponível');
         
         // Reseta a detecção
         buyFunctionName = null;
-        updateCompatibilityStatus('buyStatus', '❌ Função inválida', 'error');
+        updateCompatibilityStatus('buyStatus', '❌ Erro interno', 'error');
         return;
     }
     
@@ -1459,7 +1507,9 @@ async function executePurchase() {
 
     try {
         const totalValueStr = totalValue.toString();
-        const valueInWei = ethers.utils.parseEther(totalValueStr);        clearPurchaseMessages();
+        const valueInWei = ethers.utils.parseEther(totalValueStr);
+        
+        clearPurchaseMessages();
         addPurchaseMessage('🚀 Iniciando transação de compra...', 'info');
         
         // IMPORTANTE: Sempre usar MetaMask para transações (não RPC público)
@@ -1492,7 +1542,7 @@ async function executePurchase() {
             console.log(`💰 Saldo do usuário: ${ethers.utils.formatEther(userBalance)} BNB`);
             
             // Verifica se usuário tem saldo suficiente
-            const totalCostWei = ethers.utils.parseEther(totalValue);
+            const totalCostWei = ethers.utils.parseEther(totalValue.toString());
             if (userBalance.lt(totalCostWei)) {
                 throw new Error(`Saldo insuficiente. Você tem ${ethers.utils.formatEther(userBalance)} BNB, mas precisa de ${totalValue} BNB`);
             }
@@ -1508,18 +1558,18 @@ async function executePurchase() {
                     
                     if (contractTokens === 0) {
                         console.log('⚠️ Contrato não tem tokens em seu endereço - pode usar mint ou reserva externa');
-                        addPurchaseMessage('ℹ️ Contrato pode usar mint dinâmico ou reserva externa', 'info');
+                        addPurchaseMessage('ℹ️ Tokens serão criados automaticamente', 'info');
                     } else if (contractTokens < quantity) {
                         console.log(`⚠️ Contrato tem poucos tokens (${contractTokens}), mas pode ter outras fontes`);
                         addPurchaseMessage('⚠️ Verificando outras fontes de tokens...', 'warning');
                     } else {
                         console.log(`✅ Contrato tem tokens suficientes: ${contractTokens} >= ${quantity}`);
-                        addPurchaseMessage('✅ Tokens suficientes detectados no contrato', 'success');
+                        addPurchaseMessage('✅ Tokens disponíveis para compra', 'success');
                     }
                 }
             } catch (tokenCheckError) {
                 console.log('⚠️ Não foi possível verificar tokens do contrato:', tokenCheckError.message);
-                addPurchaseMessage('ℹ️ Verificação de tokens ignorada - contrato pode usar mint', 'info');
+                addPurchaseMessage('ℹ️ Tokens serão criados sob demanda', 'info');
             }
             
             // 🔍 VERIFICAÇÃO ADICIONAL: Tenta detectar se contrato usa mint ou tem reservas
@@ -1552,7 +1602,7 @@ async function executePurchase() {
                 
                 if (hasMintFunction) {
                     console.log('✅ Contrato tem função de mint - pode criar tokens dinamicamente');
-                    addPurchaseMessage('✅ Contrato suporta criação dinâmica de tokens', 'success');
+                    addPurchaseMessage('✅ Sistema de criação automática confirmado', 'success');
                 }
                 
             } catch (availabilityError) {
@@ -1613,7 +1663,7 @@ async function executePurchase() {
             if (simError.message.includes('missing trie node')) {
                 addPurchaseMessage('⚠️ Problema de sincronização da rede - tentando mesmo assim', 'warning');
             } else if (simError.message.includes('revert')) {
-                addPurchaseMessage('❌ Contrato rejeitou a simulação - verifique os parâmetros', 'error');
+                addPurchaseMessage('❌ Parâmetros inválidos - verifique os dados', 'error');
                 return;
             } else {
                 addPurchaseMessage(`⚠️ Simulação falhou: ${simError.message}`, 'warning');
@@ -1633,7 +1683,7 @@ async function executePurchase() {
             gasLimit: CONFIG.gasLimit
         });
         
-        addPurchaseMessage(`✅ Transação enviada: ${tx.hash}`, 'success');
+        addPurchaseMessage(`✅ Compra confirmada!`, 'success');
         addPurchaseMessage('⏳ Aguardando confirmação...', 'info');
         
         // Aguarda confirmação
@@ -1646,6 +1696,19 @@ async function executePurchase() {
         
     } catch (error) {
         console.error('❌ Erro na compra:', error);
+        
+        // Log detalhado do erro de transação para suporte
+        window.contractLogger.logTransactionError(error.receipt ? error.receipt.transactionHash : 'unknown', {
+            code: error.code,
+            message: error.message,
+            reason: error.reason,
+            receipt: error.receipt,
+            contractAddress: currentContract.address,
+            functionCalled: buyFunctionName,
+            valueInBNB: totalValue,
+            gasUsed: error.receipt ? error.receipt.gasUsed.toString() : 'unknown'
+        });
+        window.contractLogger.showDownloadButton();
         
         // Mensagens de erro mais detalhadas
         let errorMessage = 'Erro desconhecido';
@@ -1784,18 +1847,20 @@ async function performAdvancedContractDiagnostics(provider) {
             }
             
             if (func.name === 'maxPurchase' && result.gt(0)) {
-                const maxInTokens = ethers.utils.formatUnits(result, tokenInfo.decimals);
-                if (parseFloat(maxInTokens) < quantity) {
-                    console.log(`🚨 PROBLEMA: Quantidade solicitada (${quantity}) excede máximo permitido (${maxInTokens})`);
-                    throw new Error(`Quantidade máxima permitida: ${maxInTokens} tokens`);
+                const maxInBNB = ethers.utils.formatEther(result);
+                const totalValueNeeded = quantity * parseFloat(tokenInfo.price);
+                if (totalValueNeeded > parseFloat(maxInBNB)) {
+                    console.log(`🚨 PROBLEMA: Valor solicitado (${totalValueNeeded} BNB) excede máximo permitido (${maxInBNB} BNB)`);
+                    throw new Error(`Valor máximo permitido: ${maxInBNB} BNB`);
                 }
             }
             
             if (func.name === 'minPurchase' && result.gt(0)) {
-                const minInTokens = ethers.utils.formatUnits(result, tokenInfo.decimals);
-                if (parseFloat(minInTokens) > quantity) {
-                    console.log(`🚨 PROBLEMA: Quantidade solicitada (${quantity}) é menor que mínimo (${minInTokens})`);
-                    throw new Error(`Quantidade mínima necessária: ${minInTokens} tokens`);
+                const minInBNB = ethers.utils.formatEther(result);
+                const totalValueNeeded = quantity * parseFloat(tokenInfo.price);
+                if (totalValueNeeded < parseFloat(minInBNB)) {
+                    console.log(`🚨 PROBLEMA: Valor solicitado (${totalValueNeeded} BNB) é menor que mínimo (${minInBNB} BNB)`);
+                    throw new Error(`Valor mínimo necessário: ${minInBNB} BNB`);
                 }
             }
             
@@ -1932,7 +1997,7 @@ async function analyzeRevertReason(error, contract, valueInWei) {
     }
     
     // Se não conseguiu identificar, mostra a razão bruta
-    addPurchaseMessage(`❌ Contrato rejeitou: ${revertReason}`, 'error');
+    addPurchaseMessage(`❌ Compra rejeitada: ${revertReason}`, 'error');
 }
 
 // ==================== FUNÇÕES AUXILIARES ====================

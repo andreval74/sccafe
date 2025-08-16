@@ -1,0 +1,109 @@
+{
+  "sessionInfo": {
+    "sessionId": "SCCAFE_1723789234567_abcd1234e",
+    "startTime": "2025-08-16T07:47:14.567Z",
+    "endTime": "2025-08-16T07:52:31.123Z",
+    "duration": "316.556 segundos",
+    "platform": "SCCAFE - Sistema de Compra de Tokens",
+    "version": "1.0.0"
+  },
+  "browserInfo": {
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36",
+    "language": "pt-BR",
+    "platform": "Win32",
+    "cookieEnabled": true,
+    "onLine": true
+  },
+  "walletInfo": {
+    "connected": true,
+    "address": "0x1234...abcd",
+    "networkId": 97,
+    "balance": "0.1234 BNB"
+  },
+  "logs": [
+    {
+      "timestamp": "2025-08-16T07:47:14.567Z",
+      "level": "INFO",
+      "message": "SESSÃO INICIADA",
+      "data": {
+        "sessionId": "SCCAFE_1723789234567_abcd1234e",
+        "timestamp": "2025-08-16T07:47:14.567Z",
+        "userAgent": "Mozilla/5.0...",
+        "url": "file:///C:/Users/User/Desktop/cafe/sccafe/sccafe/compra-token.html"
+      },
+      "sessionId": "SCCAFE_1723789234567_abcd1234e"
+    },
+    {
+      "timestamp": "2025-08-16T07:48:22.123Z",
+      "level": "ERROR",
+      "message": "ERRO NO CONTRATO",
+      "data": {
+        "contractAddress": "0x1234567890123456789012345678901234567890",
+        "errorType": "CONTRACT_NOT_FOUND",
+        "errorDetails": {
+          "message": "Nenhum código encontrado no endereço",
+          "code": "0x",
+          "network": 97
+        },
+        "walletConnected": true,
+        "networkId": 97
+      },
+      "sessionId": "SCCAFE_1723789234567_abcd1234e"
+    },
+    {
+      "timestamp": "2025-08-16T07:49:15.456Z",
+      "level": "ERROR",
+      "message": "ERRO NO CONTRATO",
+      "data": {
+        "contractAddress": "0x9876543210987654321098765432109876543210",
+        "errorType": "ERC20_VALIDATION_FAILED",
+        "errorDetails": {
+          "error": "call revert exception",
+          "stack": "Error: call revert exception...",
+          "attemptedFunctions": ["name", "symbol", "decimals", "totalSupply"]
+        },
+        "walletConnected": true,
+        "networkId": 97
+      },
+      "sessionId": "SCCAFE_1723789234567_abcd1234e"
+    },
+    {
+      "timestamp": "2025-08-16T07:50:30.789Z",
+      "level": "ERROR",
+      "message": "ERRO NO CONTRATO",
+      "data": {
+        "contractAddress": "0xabcdefabcdefabcdefabcdefabcdefabcdefabcd",
+        "errorType": "NO_BUY_FUNCTION",
+        "errorDetails": {
+          "message": "Nenhuma função de compra detectada",
+          "availableFunctions": ["balanceOf", "transfer", "approve", "totalSupply"],
+          "possibleBuyFunctions": [],
+          "contractABI": ["function balanceOf(address)", "function transfer(address,uint256)", "function buy() payable"],
+          "testedFunctions": {
+            "buyFunctionName": null,
+            "priceFunction": null
+          }
+        },
+        "walletConnected": true,
+        "networkId": 97
+      },
+      "sessionId": "SCCAFE_1723789234567_abcd1234e"
+    }
+  ],
+  "summary": {
+    "totalLogs": 4,
+    "errorCount": 3,
+    "warningCount": 0,
+    "contractErrors": 3,
+    "hasContractIssues": true,
+    "lastError": {
+      "timestamp": "2025-08-16T07:50:30.789Z",
+      "level": "ERROR",
+      "message": "ERRO NO CONTRATO",
+      "data": {
+        "contractAddress": "0xabcdefabcdefabcdefabcdefabcdefabcdefabcd",
+        "errorType": "NO_BUY_FUNCTION"
+      }
+    }
+  }
+}

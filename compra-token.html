@@ -18,6 +18,9 @@
 
 <!-- Ethers.js -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+
+<!-- Sistema de Log para Suporte -->
+<script src="js/logger-system.js"></script>
 </head>
 <body>
 <!-- Header -->
@@ -154,11 +157,11 @@
                     <p id="erc20Status" class="fw-bold mb-1 text-warning">Verificando...</p>
                   </div>
                   <div class="col-md-4">
-                    <small class="text-muted">Função Transfer</small>
+                    <small class="text-muted">Transferência</small>
                     <p id="transferStatus" class="fw-bold mb-1 text-warning">Verificando...</p>
                   </div>
                   <div class="col-md-4">
-                    <small class="text-muted">Compra Direta</small>
+                    <small class="text-muted">Sistema de Compra</small>
                     <p id="buyStatus" class="fw-bold mb-1 text-warning">Verificando...</p>
                   </div>
                 </div>
@@ -199,17 +202,17 @@
               </div>
               
               <!-- Informações de Limites (se detectados) -->
-              <div id="purchase-limits-info" class="alert alert-info mb-4" style="display: none;">
+              <div id="purchase-limits-info" class="alert alert-warning bg-warning text-dark mb-4" style="display: none;">
                 <h6 class="text-dark mb-2">
                   <i class="bi bi-info-circle me-2"></i>Limites do Contrato
                 </h6>
                 <div class="row g-2 text-dark">
                   <div class="col-md-6">
-                    <small>Compra Mínima:</small>
+                    <small><strong>Compra Mínima:</strong></small>
                     <p id="min-purchase-display" class="fw-bold mb-0">-</p>
                   </div>
                   <div class="col-md-6">
-                    <small>Compra Máxima:</small>
+                    <small><strong>Compra Máxima:</strong></small>
                     <p id="max-purchase-display" class="fw-bold mb-0">-</p>
                   </div>
                 </div>
@@ -230,7 +233,7 @@
                           <p id="totalPrice" class="fw-bold text-primary mb-0">0 BNB</p>
                         </div>
                         <div class="col-4">
-                          <small class="text-muted">+Gas Est.</small>
+                          <small class="text-muted">+Taxa Est.</small>
                           <p id="gasEstimate" class="fw-bold text-warning mb-0">~0.002 BNB</p>
                         </div>
                       </div>
@@ -263,7 +266,7 @@
             <div class="card-body">
               <div class="row g-3">
                 <div class="col-md-6">
-                  <small class="text-muted">Hash da Transação</small>
+                  <small class="text-muted">ID da Transação</small>
                   <p id="txHash" class="fw-bold font-monospace small text-break text-primary">-</p>
                 </div>
                 <div class="col-md-6">
@@ -275,7 +278,7 @@
                   <p id="txValue" class="fw-bold text-white">- BNB</p>
                 </div>
                 <div class="col-md-4">
-                  <small class="text-muted">Taxa de Gas</small>
+                  <small class="text-muted">Taxa da Rede</small>
                   <p id="txGasPrice" class="fw-bold text-white">- BNB</p>
                 </div>
                 <div class="col-md-4">
