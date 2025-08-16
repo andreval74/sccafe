@@ -154,7 +154,6 @@ function ensurePurchaseSectionHidden() {
     
     if (section) {
         section.style.display = 'none';
-        console.log('🔒 Seção de compra garantidamente OCULTA no início');
     }
     
     if (purchaseBtn) {
@@ -166,8 +165,6 @@ function ensurePurchaseSectionHidden() {
     if (quantityInput) {
         quantityInput.disabled = true;
     }
-    
-    console.log('🔒 Estado inicial: Seção de compra BLOQUEADA até validação do contrato');
 }
 
 /**
@@ -236,30 +233,27 @@ function setupEventListeners() {
     const purchaseBtn = document.getElementById('execute-purchase-btn');
     if (purchaseBtn) {
         purchaseBtn.addEventListener('click', executePurchase);
-        console.log('✅ Event listener configurado para botão de compra');
     } else {
         console.error('❌ Botão de compra não encontrado ao configurar listeners');
     }
     
-    // Botão de limpar dados - SIMPLIFICADO: apenas recarrega a página
+    // Botão de limpar dados - SIMPLIFICADO: apenas recarrega a página e vai ao topo
     const clearAllBtn = document.getElementById('clear-all-btn');
     if (clearAllBtn) {
         clearAllBtn.addEventListener('click', () => {
             if (confirm('Deseja realmente limpar todos os dados e recomeçar?')) {
+                window.scrollTo(0, 0); // Vai para o topo
                 location.reload();
             }
         });
-        console.log('✅ Event listener configurado para botão de limpar dados (reload)');
     }
     
     // Botão de atualizar saldo
     const refreshBalanceBtn = document.getElementById('refresh-balance-btn');
     if (refreshBalanceBtn) {
         refreshBalanceBtn.addEventListener('click', () => {
-            console.log('🔄 Atualizando saldo manualmente...');
             updateWalletBalance();
         });
-        console.log('✅ Event listener configurado para botão de atualizar saldo');
     }
 }
 
@@ -343,7 +337,7 @@ async function connectWallet() {
                 updateWalletBalance();
             }, 800);
             
-            console.log('✅ Wallet conectada:', walletAddress);
+            // Wallet conectada: ${walletAddress}
         }
         
     } catch (error) {
@@ -382,10 +376,6 @@ async function updateWalletBalance() {
     
     try {
         balanceUpdateInProgress = true;
-        console.log('💰 Atualizando saldo da carteira...');
-        console.log(`👤 Endereço: ${walletAddress}`);
-        console.log(`🔗 Conectado: ${walletConnected}`);
-        
         // Mostra loading no saldo
         balanceElement.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span>Carregando...';
         if (balanceContainer) {
@@ -395,7 +385,7 @@ async function updateWalletBalance() {
         // Usar provider atual ou inicializar um novo
         let provider = currentProvider;
         if (!provider) {
-            console.log('⚙️ Provider não encontrado, inicializando...');
+            // Provider não encontrado, inicializando...
             provider = await initializeProviderWithFallback();
         }
         
@@ -403,18 +393,13 @@ async function updateWalletBalance() {
             throw new Error('Não foi possível inicializar provider');
         }
         
-        console.log('🌐 Provider pronto, buscando saldo...');
-        
         // Buscar saldo
         const balance = await provider.getBalance(walletAddress);
-        console.log(`💰 Saldo raw: ${balance.toString()} wei`);
         
         const balanceInBNB = ethers.utils.formatEther(balance);
-        console.log(`💰 Saldo em BNB: ${balanceInBNB}`);
         
         // Formatar para exibição
         const formattedBalance = formatNumber(balanceInBNB);
-        console.log(`💰 Saldo formatado: ${formattedBalance}`);
         
         balanceElement.textContent = formattedBalance;
         
@@ -422,8 +407,6 @@ async function updateWalletBalance() {
         if (balanceContainer) {
             balanceContainer.style.display = 'block';
         }
-        
-        console.log(`✅ Saldo da carteira exibido: ${formattedBalance} BNB`);
         
     } catch (error) {
         console.error('❌ Erro ao buscar saldo da carteira:', error);
@@ -498,8 +481,6 @@ async function detectNetwork() {
             chainIdSpan.textContent = networkData.chainId;
         }
         
-        console.log('🌐 Rede detectada:', networkData);
-        
         // Se carteira já conectada, atualiza saldo ao detectar rede
         if (walletConnected && walletAddress) {
             setTimeout(() => {
@@ -565,8 +546,6 @@ function enableContractSection() {
     if (verifyBtn) {
         verifyBtn.disabled = false;
     }
-    
-    console.log('✅ Seção de contrato habilitada após conexão');
 }
 
 /**
@@ -651,7 +630,7 @@ async function checkForMultipleContracts(contractAddress) {
                     const tokenCount = parseInt(count.toString());
                     
                     if (tokenCount > 1) {
-                        console.log(`✅ Encontrados ${tokenCount} tokens via ${funcName}()`);
+                        // Encontrados ${tokenCount} tokens via ${funcName}()
                         
                         // Busca os tokens via getTokenAt ou tokenAt
                         const tokens = [];
@@ -680,7 +659,7 @@ async function checkForMultipleContracts(contractAddress) {
                     const result = await multiContract[funcName]();
                     
                     if (Array.isArray(result) && result.length > 1) {
-                        console.log(`✅ Encontrados ${result.length} tokens via ${funcName}()`);
+                        // Encontrados ${result.length} tokens via ${funcName}()
                         const validTokens = result.filter(addr => 
                             addr && ethers.utils.isAddress(addr) && addr !== '0x0000000000000000000000000000000000000000'
                         );
@@ -696,7 +675,7 @@ async function checkForMultipleContracts(contractAddress) {
             }
         }
         
-        console.log('ℹ️ Não é um contrato de múltiplos tokens');
+        // ℹ️ Não é um contrato de múltiplos tokens
         return { isMultiContract: false };
         
     } catch (error) {
@@ -743,7 +722,7 @@ async function processMultipleTokens(saleContractAddress, tokenAddresses, detect
                 tokenInfo.symbol = symbol;
                 tokenInfo.decimals = parseInt(decimals);
             } catch (e) {
-                console.log(`⚠️ Não foi possível obter info completa do token ${i + 1}`);
+                // ⚠️ Não foi possível obter info completa do token ${i + 1}
             }
             
             // Tenta obter preço se o contrato principal tiver função
@@ -759,7 +738,7 @@ async function processMultipleTokens(saleContractAddress, tokenAddresses, detect
             }
             
             tokenOptions.push(tokenInfo);
-            console.log(`✅ Token ${i + 1}: ${tokenInfo.name} (${tokenInfo.symbol}) - ${tokenAddress.slice(0,6)}...${tokenAddress.slice(-4)}`);
+            // Token ${i + 1}: ${tokenInfo.name} (${tokenInfo.symbol}) - ${tokenAddress.slice(0,6)}...${tokenAddress.slice(-4)}
             
         } catch (error) {
             console.log(`❌ Erro ao processar token ${i + 1}: ${error.message}`);
@@ -846,7 +825,7 @@ async function showTokenSelector(multiContractInfo) {
  * Função global para seleção de token (chamada pelo onclick)
  */
 window.selectToken = async function(tokenAddress, tokenIndex, saleContractAddress) {
-    console.log(`✅ Token selecionado: ${tokenAddress} (índice ${tokenIndex})`);
+    // Token selecionado: ${tokenAddress} (índice ${tokenIndex})
     
     // Mostra loading
     showLoadingMessage('contract-messages', 'Carregando token selecionado');
@@ -933,14 +912,14 @@ async function checkIfSaleContract(contractAddress) {
                 const tokenAddress = await saleContract[funcName]();
                 
                 if (tokenAddress && ethers.utils.isAddress(tokenAddress) && tokenAddress !== '0x0000000000000000000000000000000000000000') {
-                    console.log(`✅ Token encontrado via ${funcName}(): ${tokenAddress}`);
+                    // Token encontrado via ${funcName}(): ${tokenAddress}
                     
                     // Verifica se o endereço do token é diferente do contrato de venda
                     if (tokenAddress.toLowerCase() !== contractAddress.toLowerCase()) {
                         // Verifica se o endereço do token realmente tem um contrato
                         const tokenCode = await currentProvider.getCode(tokenAddress);
                         if (tokenCode !== '0x') {
-                            console.log(`✅ Contrato de venda confirmado! Token real: ${tokenAddress}`);
+                            // Contrato de venda confirmado! Token real: ${tokenAddress}
                             return {
                                 isSaleContract: true,
                                 tokenAddress: tokenAddress,
@@ -952,11 +931,10 @@ async function checkIfSaleContract(contractAddress) {
                 }
             } catch (error) {
                 // Função não existe ou falhou, continua tentando
-                console.log(`❌ Função ${funcName}() não disponível`);
             }
         }
         
-        console.log('ℹ️ Não é um contrato de venda - é o próprio token');
+        // ℹ️ Não é um contrato de venda - é o próprio token
         return {
             isSaleContract: false,
             tokenAddress: contractAddress,
@@ -1173,7 +1151,7 @@ async function performDeepContractAnalysis(contractAddress, buyFunctionName) {
  * 1️⃣ Verificações básicas do estado do contrato
  */
 async function performBasicContractChecks() {
-    console.log('🔍 1️⃣ Verificações básicas do estado...');
+    // 1️⃣ Verificações básicas do estado...
     
     const checks = {
         contractExists: false,
@@ -1197,7 +1175,7 @@ async function performBasicContractChecks() {
             checks.hasTokens = tokens > 0;
             console.log(`📋 Tokens no contrato: ${tokens} (${checks.hasTokens ? 'OK' : 'ZERO'})`);
         } catch (e) {
-            console.log('📋 Não foi possível verificar tokens no contrato');
+            // 📋 Não foi possível verificar tokens no contrato
         }
         
         // Verifica se está pausado
@@ -1240,7 +1218,7 @@ async function performBasicContractChecks() {
  * 2️⃣ Testa diferentes cenários de chamada
  */
 async function performCallTests(buyFunctionName) {
-    console.log('🔍 2️⃣ Testando cenários de chamada...');
+    // 2️⃣ Testando cenários de chamada...
     
     const tests = {
         withoutValue: false,
@@ -1255,7 +1233,7 @@ async function performCallTests(buyFunctionName) {
         try {
             await currentContract.callStatic[buyFunctionName]();
             tests.withoutValue = true;
-            console.log('✅ Teste sem valor: PASSOU (função pode não ser payable)');
+            // Teste sem valor: PASSOU (função pode não ser payable)
         } catch (e) {
             console.log(`❌ Teste sem valor: ${e.reason || e.message}`);
         }
@@ -1264,7 +1242,7 @@ async function performCallTests(buyFunctionName) {
         try {
             await currentContract.callStatic[buyFunctionName]({ value: ethers.utils.parseEther('0.001') });
             tests.withSmallValue = true;
-            console.log('✅ Teste valor pequeno: PASSOU');
+            // Teste valor pequeno: PASSOU
         } catch (e) {
             console.log(`❌ Teste valor pequeno: ${e.reason || e.message}`);
         }
@@ -1334,7 +1312,7 @@ async function analyzeContractConditions() {
  * 4️⃣ Gera relatório final de prontidão
  */
 function generateReadinessReport(basicChecks, callTests, conditions) {
-    console.log('🔍 4️⃣ Gerando relatório de prontidão...');
+    // 4️⃣ Gerando relatório de prontidão...
     
     let score = 0;
     let maxScore = 0;
@@ -1440,7 +1418,7 @@ function updateReadinessUI(readinessPercent, isReady, issues) {
 }
 
 async function testActualPayableFunctions() {
-    console.log('🎯 TESTE DIRETO: Validando funções PAYABLE do ABI...');
+    // TESTE DIRETO: Validando funções PAYABLE do ABI...
     
     try {
         const contractInterface = currentContract.interface;
@@ -1453,7 +1431,7 @@ async function testActualPayableFunctions() {
         });
         
         console.log(`💰 Encontradas ${payableFunctions.length} funções PAYABLE no ABI:`);
-        payableFunctions.forEach(func => console.log(`   💡 ${func}`));
+        // payableFunctions.forEach(func => console.log(`   💡 ${func}`));
         
         if (payableFunctions.length === 0) {
             console.log('❌ Nenhuma função PAYABLE encontrada no ABI!');
@@ -1463,7 +1441,7 @@ async function testActualPayableFunctions() {
         // Testa cada função PAYABLE com estimateGas
         for (const funcName of payableFunctions) {
             try {
-                console.log(`🧪 Testando função PAYABLE: ${funcName}()`);
+                // Testando função PAYABLE: ${funcName}()
                 
                 const fragment = contractInterface.functions[funcName];
                 const testValue = ethers.utils.parseEther('0.001');
@@ -1575,14 +1553,14 @@ async function investigateContractViaEtherscan(contractAddress) {
             
             if (payableFunctions.length > 0) {
                 console.log('💰 Funções PAYABLE encontradas (possíveis compras):');
-                payableFunctions.forEach(func => {
-                    const inputs = func.inputs.map(i => `${i.type} ${i.name}`).join(', ');
-                    console.log(`   🎯 ${func.name}(${inputs})`);
-                });
+                // payableFunctions.forEach(func => {
+                //     const inputs = func.inputs.map(i => `${i.type} ${i.name}`).join(', ');
+                //     console.log(`   🎯 ${func.name}(${inputs})`);
+                // });
                 
                 // Testa a primeira função payable
                 const firstPayable = payableFunctions[0];
-                console.log(`🧪 Testando primeira função payable: ${firstPayable.name}()`);
+                // Testando primeira função payable: ${firstPayable.name}()
                 
                 try {
                     // Monta parâmetros básicos baseado nos inputs esperados
@@ -1687,7 +1665,7 @@ async function verifyBuyFunctions() {
             
         } catch (error) {
             if (error.message.includes('is not a function')) {
-                console.log(`❌ Função ${funcName}() não existe no contrato`);
+                // Função não existe - continua testando outras
             } else if (error.code === 'UNPREDICTABLE_GAS_LIMIT' || 
                        error.message.includes('revert') || 
                        error.message.includes('execution reverted')) {
@@ -1734,7 +1712,7 @@ async function verifyBuyFunctions() {
         
         if (possibleBuyFunctions.length > 0) {
             console.log('🎯 Funções suspeitas de compra encontradas:');
-            possibleBuyFunctions.forEach(func => console.log(`   💡 ${func}`));
+            // possibleBuyFunctions.forEach(func => console.log(`   💡 ${func}`));
             // Não mostra mensagem para o usuário - apenas no console para debug
         }
         
@@ -1743,7 +1721,7 @@ async function verifyBuyFunctions() {
     }
     
     // **TESTE FINAL: Validação das funções PAYABLE reais do ABI**
-    console.log('🎯 Teste final: Validando funções PAYABLE do ABI...');
+    // Teste final: Validando funções PAYABLE do ABI...
     const found = await testActualPayableFunctions();
     
     if (!found) {
@@ -1792,7 +1770,7 @@ async function loadTokenInfo() {
             tokenInfo.tokensForSaleFormatted = tokensForSale;
             console.log(`💰 Tokens disponíveis para venda: ${tokensForSale.toLocaleString()} ${tokenInfo.symbol}`);
         } catch (error) {
-            console.log('⚠️ Não foi possível verificar tokens para venda:', error.message);
+            // ⚠️ Não foi possível verificar tokens para venda: ${error.message}
             tokenInfo.tokensForSale = ethers.BigNumber.from(0);
             tokenInfo.tokensForSaleFormatted = 0;
         }
@@ -1993,7 +1971,7 @@ async function checkPurchaseLimits() {
             addContractMessage(`✅ Compra mínima: ${minFormatted} BNB, máxima: ${maxFormatted} BNB`, 'success');
             
         } catch (e) {
-            console.log(`⚠️ Limites: Não foi possível verificar - ${e.message}`);
+            // ⚠️ Limites: Não foi possível verificar - ${e.message}
             addContractMessage('⚠️ Limites de compra não detectados (pode não ter)', 'warning');
         }
         
@@ -2110,7 +2088,7 @@ function hidePurchaseSection() {
  */
 function debugPurchaseButton() {
     const btn = document.getElementById('execute-purchase-btn');
-    console.log('🔧 DEBUG BOTÃO DE COMPRA:');
+    // DEBUG BOTÃO DE COMPRA:
     console.log('📍 Botão encontrado:', btn ? 'SIM' : 'NÃO');
     if (btn) {
         console.log('📍 Disabled:', btn.disabled);
@@ -2280,7 +2258,7 @@ async function executePurchase() {
                     }
                 }
             } catch (tokenCheckError) {
-                console.log('⚠️ Não foi possível verificar tokens do contrato:', tokenCheckError.message);
+                // ⚠️ Não foi possível verificar tokens do contrato: ${tokenCheckError.message}
                 // Não mostra mensagem - apenas no log
             }
             
@@ -2323,7 +2301,6 @@ async function executePurchase() {
             }
             
             // DIAGNÓSTICO AVANÇADO - Verifica condições especiais do contrato
-            console.log('🔍 Executando diagnóstico avançado do contrato...');
             await performAdvancedContractDiagnostics(publicProvider);
             
             // Não mostra mensagem de aprovação - apenas processa
@@ -2347,7 +2324,7 @@ async function executePurchase() {
             const contractForSim = new ethers.Contract(currentContract.address, CONFIG.tokenABI, metamaskSigner);
             
             // Teste 1: Simulação com valor exato
-            console.log('🧪 Teste 1: Simulação com valor exato');
+            // Teste 1: Simulação com valor exato
             try {
                 // **VALIDAÇÃO: Verifica se a função existe antes de usar**
                 if (!contractForSim[buyFunctionName]) {
@@ -2682,7 +2659,7 @@ async function analyzeRevertReason(error, contract, valueInWei) {
     
     for (const scenario of testScenarios) {
         try {
-            console.log(`🧪 Testando: ${scenario.name}`);
+            // Testando: ${scenario.name}
             await scenario.test();
             console.log(`✅ ${scenario.name}: FUNCIONOU!`);
             // Não mostra mais descobertas para o usuário - apenas no console
@@ -2957,7 +2934,6 @@ function initializeWalletConnection() {
     // Verificação periódica menos frequente (60 segundos se conectado)
     setInterval(() => {
         if (walletConnected && walletAddress && !balanceUpdateInProgress) {
-            console.log('🔄 Verificação periódica do saldo...');
             updateWalletBalance();
         }
     }, 60000); // 60 segundos
@@ -2972,11 +2948,11 @@ function initializeWalletConnection() {
 async function initializeProviderWithFallback() {
     // Evitar inicializações múltiplas
     if (providerInitialized && currentProvider) {
-        console.log('🔄 Provider já inicializado, reutilizando...');
+        // Provider já inicializado, reutilizando...
         return currentProvider;
     }
     
-    console.log('🔄 Inicializando provider com estratégia RPC-primeiro');
+    // Inicializando provider com estratégia RPC-primeiro
     
     // NUNCA usa MetaMask para operações de leitura
     // Detecta chain ID da MetaMask para usar RPC correspondente
