@@ -602,11 +602,109 @@ function validateContractAddress() {
 
 /**
  * Verifica se o contrato tem múltiplos tokens/sales para escolha
- * DESABILITADO - Sempre retorna que não é multi-contrato
  */
 async function checkForMultipleContracts(contractAddress) {
-    console.log('🔍 Verificação de multi-contratos DESABILITADA');
-    return { isMultiContract: false };
+    console.log('🔍 Verificando contratos múltiplos...');
+    
+    try {
+        // Funções comuns para arrays de contratos
+        const arrayFunctions = [
+            'tokens',          // Array de tokens
+            'saleTokens',      // Array de tokens em venda
+            'availableTokens', // Array de tokens disponíveis
+            'tokenList',       // Lista de tokens
+            'contracts',       // Array de contratos
+            'saleContracts',   // Array de contratos de venda
+            'getTokens',       // Função que retorna tokens
+            'getAllTokens',    // Função que retorna todos os tokens
+            'tokenCount'       // Contador de tokens (para iterar)
+        ];
+        
+        // ABI para contratos múltiplos
+        const multiContractABI = [
+            "function tokens() view returns (address[])",
+            "function saleTokens() view returns (address[])",
+            "function availableTokens() view returns (address[])",
+            "function tokenList() view returns (address[])",
+            "function contracts() view returns (address[])",
+            "function saleContracts() view returns (address[])",
+            "function getTokens() view returns (address[])",
+            "function getAllTokens() view returns (address[])",
+            "function tokenCount() view returns (uint256)",
+            "function getTokenAt(uint256) view returns (address)",
+            "function tokenAt(uint256) view returns (address)",
+            "function saleAt(uint256) view returns (address)",
+            // Funções para obter informações dos tokens
+            "function getTokenInfo(address) view returns (string, string, uint8)",
+            "function getTokenPrice(address) view returns (uint256)",
+            "function isTokenActive(address) view returns (bool)"
+        ];
+        
+        const multiContract = new ethers.Contract(contractAddress, multiContractABI, currentProvider);
+        
+        // Testa funções que retornam arrays
+        for (const funcName of arrayFunctions) {
+            try {
+                console.log(`🔍 Testando função: ${funcName}()`);
+                
+                if (funcName === 'tokenCount') {
+                    // Função especial que retorna count
+                    const count = await multiContract[funcName]();
+                    const tokenCount = parseInt(count.toString());
+                    
+                    if (tokenCount > 1) {
+                        console.log(`✅ Encontrados ${tokenCount} tokens via ${funcName}()`);
+                        
+                        // Busca os tokens via getTokenAt ou tokenAt
+                        const tokens = [];
+                        const indexFunctions = ['getTokenAt', 'tokenAt', 'saleAt'];
+                        
+                        for (const indexFunc of indexFunctions) {
+                            try {
+                                for (let i = 0; i < Math.min(tokenCount, 10); i++) { // Limite de 10 por segurança
+                                    const tokenAddress = await multiContract[indexFunc](i);
+                                    if (tokenAddress && ethers.utils.isAddress(tokenAddress)) {
+                                        tokens.push(tokenAddress);
+                                    }
+                                }
+                                if (tokens.length > 0) break;
+                            } catch (e) {
+                                // Função não existe, tenta próxima
+                            }
+                        }
+                        
+                        if (tokens.length > 1) {
+                            return await processMultipleTokens(contractAddress, tokens, funcName);
+                        }
+                    }
+                } else {
+                    // Funções que retornam arrays direto
+                    const result = await multiContract[funcName]();
+                    
+                    if (Array.isArray(result) && result.length > 1) {
+                        console.log(`✅ Encontrados ${result.length} tokens via ${funcName}()`);
+                        const validTokens = result.filter(addr => 
+                            addr && ethers.utils.isAddress(addr) && addr !== '0x0000000000000000000000000000000000000000'
+                        );
+                        
+                        if (validTokens.length > 1) {
+                            return await processMultipleTokens(contractAddress, validTokens, funcName);
+                        }
+                    }
+                }
+            } catch (error) {
+                // Função não existe ou falhou, continua
+                console.log(`❌ Função ${funcName}() não disponível`);
+            }
+        }
+        
+        console.log('ℹ️ Não é um contrato de múltiplos tokens');
+        return { isMultiContract: false };
+        
+    } catch (error) {
+        console.error('❌ Erro ao verificar contratos múltiplos:', error);
+        return { isMultiContract: false };
+    }
 }
 
 /**
@@ -1685,7 +1783,7 @@ async function verifyBuyFunctions() {
         window.contractLogger.logContractError(currentContract.address, 'NO_BUY_FUNCTION', {
             message: 'Nenhuma função de compra detectada',
             availableFunctions: Object.keys(currentContract.functions || {}),
-            possibleBuyFunctions: (typeof possibleBuyFunctions !== 'undefined') ? possibleBuyFunctions : [],
+            possibleBuyFunctions: possibleBuyFunctions || [],
             contractABI: CONFIG.tokenABI.map(f => typeof f === 'string' ? f : f.name).filter(Boolean),
             testedFunctions: {
                 buyFunctionName: buyFunctionName,
