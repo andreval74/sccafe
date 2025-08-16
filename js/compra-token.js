@@ -1287,8 +1287,27 @@ async function loadTokenInfo() {
                 tokenInfo.price = ethers.utils.formatEther(price);
                 console.log(`✅ Preço: ${tokenInfo.price} BNB por token`);
             } else {
-                tokenInfo.price = CONFIG.defaultTokenPrice;
-                console.log(`⚠️ Preço não detectado, usando padrão: ${CONFIG.defaultTokenPrice} BNB`);
+                // Tentar calcular preço usando função calculateEthForTokens
+                try {
+                    console.log('🧮 Tentando calcular preço via calculateEthForTokens...');
+                    const oneToken = ethers.utils.parseUnits('1', tokenInfo.decimals);
+                    const ethCost = await currentContract.calculateEthForTokens(oneToken);
+                    tokenInfo.price = ethers.utils.formatEther(ethCost);
+                    console.log(`✅ Preço calculado: ${tokenInfo.price} BNB por token`);
+                } catch (calcError) {
+                    // Tentar função inversa calculateTokensForEth com 1 ETH
+                    try {
+                        console.log('🧮 Tentando calcular preço via calculateTokensForEth...');
+                        const oneEth = ethers.utils.parseEther('1');
+                        const tokensForOneEth = await currentContract.calculateTokensForEth(oneEth);
+                        const tokensFormatted = ethers.utils.formatUnits(tokensForOneEth, tokenInfo.decimals);
+                        tokenInfo.price = (1 / parseFloat(tokensFormatted)).toString();
+                        console.log(`✅ Preço calculado (inverso): ${tokenInfo.price} BNB por token`);
+                    } catch (invError) {
+                        tokenInfo.price = CONFIG.defaultTokenPrice;
+                        console.log(`⚠️ Preço não detectado, usando padrão: ${CONFIG.defaultTokenPrice} BNB`);
+                    }
+                }
             }
         } catch (error) {
             tokenInfo.price = CONFIG.defaultTokenPrice;
@@ -1364,8 +1383,14 @@ function updateTokenInfoUI() {
         priceInput.style.backgroundColor = '#2d3748'; // Cor de fundo diferenciada
         priceInput.style.cursor = 'not-allowed'; // Cursor indicativo
         
-        // Adiciona tooltip explicativo
-        priceInput.title = 'Preço detectado automaticamente do contrato - não pode ser alterado';
+        // Verifica se preço foi detectado automaticamente ou é padrão
+        if (tokenInfo.price === CONFIG.defaultTokenPrice) {
+            priceInput.title = 'Preço padrão (não detectado no contrato) - verifique manualmente';
+            priceInput.style.borderColor = '#fbbf24'; // Cor amarela para atenção
+        } else {
+            priceInput.title = '✅ Preço detectado automaticamente do contrato';
+            priceInput.style.borderColor = '#10b981'; // Cor verde para sucesso
+        }
         
         console.log(`💰 Preço detectado: ${tokenInfo.price} BNB por token`);
     }
@@ -1393,10 +1418,35 @@ async function checkPurchaseLimits() {
     try {
         let minPurchase = null, maxPurchase = null;
         
-        // Tenta detectar limites
+        // Tenta detectar limites de forma mais robusta
         try {
-            minPurchase = await currentContract.minPurchase();
-            maxPurchase = await currentContract.maxPurchase();
+            // Primeiro tenta as funções básicas
+            try {
+                minPurchase = await currentContract.minPurchase();
+                console.log(`✅ Limite mínimo: ${ethers.utils.formatEther(minPurchase)} BNB`);
+            } catch (e) {
+                console.log('❌ Função minPurchase() não disponível');
+            }
+            
+            try {
+                maxPurchase = await currentContract.maxPurchase();
+                console.log(`✅ Limite máximo: ${ethers.utils.formatEther(maxPurchase)} BNB`);
+            } catch (e) {
+                console.log('❌ Função maxPurchase() não disponível');
+            }
+            
+            // Se não encontrou limites, tenta verificar purchaseLimit para o usuário
+            if (!minPurchase && !maxPurchase && walletAddress) {
+                try {
+                    const userLimit = await currentContract.purchaseLimit(walletAddress);
+                    if (userLimit && !userLimit.isZero()) {
+                        maxPurchase = userLimit;
+                        console.log(`✅ Limite do usuário: ${ethers.utils.formatEther(userLimit)} BNB`);
+                    }
+                } catch (e) {
+                    console.log('❌ Função purchaseLimit() não disponível para o usuário');
+                }
+            }
             
             const minFormatted = ethers.utils.formatEther(minPurchase);
             const maxFormatted = ethers.utils.formatEther(maxPurchase);
@@ -1479,6 +1529,20 @@ function enablePurchaseSection() {
     }
     
     console.log('🛒 Seção de compra TOTALMENTE habilitada - Contrato validado para compras');
+    console.log(`📊 STATUS FINAL: ${tokenInfo.name} (${tokenInfo.symbol}) - Preço: ${tokenInfo.price} BNB - Tokens disponíveis: ${formatNumber(tokenInfo.tokensForSaleFormatted || 0)}`);
+    console.log('🎉 SISTEMA PRONTO! Você pode agora comprar tokens com segurança.');
+    
+    // Adiciona mensagem de sucesso na interface
+    const systemMessages = document.getElementById('system-messages');
+    if (systemMessages) {
+        systemMessages.innerHTML = `
+            <div class="alert alert-success border-0 mb-3">
+                <i class="bi bi-check-circle-fill me-2"></i>
+                <strong>Sistema Validado!</strong> Contrato aprovado e pronto para negociação.
+                <br><small class="text-muted">Função de compra: ${buyFunctionName}() | Tokens disponíveis: ${formatNumber(tokenInfo.tokensForSaleFormatted || 0)}</small>
+            </div>
+        `;
+    }
 }
 
 /**
