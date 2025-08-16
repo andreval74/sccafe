@@ -589,6 +589,297 @@ function validateContractAddress() {
 
 // ==================== DETECÇÃO DE CONTRATOS DE VENDA ====================
 
+// ==================== DETECÇÃO DE CONTRATOS DE VENDA ====================
+
+/**
+ * Verifica se o contrato tem múltiplos tokens/sales para escolha
+ */
+async function checkForMultipleContracts(contractAddress) {
+    console.log('🔍 Verificando contratos múltiplos...');
+    
+    try {
+        // Funções comuns para arrays de contratos
+        const arrayFunctions = [
+            'tokens',          // Array de tokens
+            'saleTokens',      // Array de tokens em venda
+            'availableTokens', // Array de tokens disponíveis
+            'tokenList',       // Lista de tokens
+            'contracts',       // Array de contratos
+            'saleContracts',   // Array de contratos de venda
+            'getTokens',       // Função que retorna tokens
+            'getAllTokens',    // Função que retorna todos os tokens
+            'tokenCount'       // Contador de tokens (para iterar)
+        ];
+        
+        // ABI para contratos múltiplos
+        const multiContractABI = [
+            "function tokens() view returns (address[])",
+            "function saleTokens() view returns (address[])",
+            "function availableTokens() view returns (address[])",
+            "function tokenList() view returns (address[])",
+            "function contracts() view returns (address[])",
+            "function saleContracts() view returns (address[])",
+            "function getTokens() view returns (address[])",
+            "function getAllTokens() view returns (address[])",
+            "function tokenCount() view returns (uint256)",
+            "function getTokenAt(uint256) view returns (address)",
+            "function tokenAt(uint256) view returns (address)",
+            "function saleAt(uint256) view returns (address)",
+            // Funções para obter informações dos tokens
+            "function getTokenInfo(address) view returns (string, string, uint8)",
+            "function getTokenPrice(address) view returns (uint256)",
+            "function isTokenActive(address) view returns (bool)"
+        ];
+        
+        const multiContract = new ethers.Contract(contractAddress, multiContractABI, currentProvider);
+        
+        // Testa funções que retornam arrays
+        for (const funcName of arrayFunctions) {
+            try {
+                console.log(`🔍 Testando função: ${funcName}()`);
+                
+                if (funcName === 'tokenCount') {
+                    // Função especial que retorna count
+                    const count = await multiContract[funcName]();
+                    const tokenCount = parseInt(count.toString());
+                    
+                    if (tokenCount > 1) {
+                        console.log(`✅ Encontrados ${tokenCount} tokens via ${funcName}()`);
+                        
+                        // Busca os tokens via getTokenAt ou tokenAt
+                        const tokens = [];
+                        const indexFunctions = ['getTokenAt', 'tokenAt', 'saleAt'];
+                        
+                        for (const indexFunc of indexFunctions) {
+                            try {
+                                for (let i = 0; i < Math.min(tokenCount, 10); i++) { // Limite de 10 por segurança
+                                    const tokenAddress = await multiContract[indexFunc](i);
+                                    if (tokenAddress && ethers.utils.isAddress(tokenAddress)) {
+                                        tokens.push(tokenAddress);
+                                    }
+                                }
+                                if (tokens.length > 0) break;
+                            } catch (e) {
+                                // Função não existe, tenta próxima
+                            }
+                        }
+                        
+                        if (tokens.length > 1) {
+                            return await processMultipleTokens(contractAddress, tokens, funcName);
+                        }
+                    }
+                } else {
+                    // Funções que retornam arrays direto
+                    const result = await multiContract[funcName]();
+                    
+                    if (Array.isArray(result) && result.length > 1) {
+                        console.log(`✅ Encontrados ${result.length} tokens via ${funcName}()`);
+                        const validTokens = result.filter(addr => 
+                            addr && ethers.utils.isAddress(addr) && addr !== '0x0000000000000000000000000000000000000000'
+                        );
+                        
+                        if (validTokens.length > 1) {
+                            return await processMultipleTokens(contractAddress, validTokens, funcName);
+                        }
+                    }
+                }
+            } catch (error) {
+                // Função não existe ou falhou, continua
+                console.log(`❌ Função ${funcName}() não disponível`);
+            }
+        }
+        
+        console.log('ℹ️ Não é um contrato de múltiplos tokens');
+        return { isMultiContract: false };
+        
+    } catch (error) {
+        console.error('❌ Erro ao verificar contratos múltiplos:', error);
+        return { isMultiContract: false };
+    }
+}
+
+/**
+ * Processa múltiplos tokens encontrados e busca suas informações
+ */
+async function processMultipleTokens(saleContractAddress, tokenAddresses, detectionMethod) {
+    console.log(`🔍 Processando ${tokenAddresses.length} tokens encontrados...`);
+    
+    const tokenOptions = [];
+    
+    for (let i = 0; i < tokenAddresses.length && i < 5; i++) { // Limite de 5 opções
+        const tokenAddress = tokenAddresses[i];
+        
+        try {
+            // Verifica se é um contrato válido
+            const code = await currentProvider.getCode(tokenAddress);
+            if (code === '0x') continue;
+            
+            // Tenta buscar informações básicas do token
+            const tokenContract = new ethers.Contract(tokenAddress, CONFIG.tokenABI, currentProvider);
+            
+            let tokenInfo = {
+                address: tokenAddress,
+                name: 'Token Desconhecido',
+                symbol: 'N/A',
+                decimals: 18,
+                index: i
+            };
+            
+            try {
+                const [name, symbol, decimals] = await Promise.all([
+                    tokenContract.name().catch(() => `Token ${i + 1}`),
+                    tokenContract.symbol().catch(() => 'UNK'),
+                    tokenContract.decimals().catch(() => 18)
+                ]);
+                
+                tokenInfo.name = name;
+                tokenInfo.symbol = symbol;
+                tokenInfo.decimals = parseInt(decimals);
+            } catch (e) {
+                console.log(`⚠️ Não foi possível obter info completa do token ${i + 1}`);
+            }
+            
+            // Tenta obter preço se o contrato principal tiver função
+            try {
+                const multiContract = new ethers.Contract(saleContractAddress, [
+                    "function getTokenPrice(address) view returns (uint256)"
+                ], currentProvider);
+                
+                const price = await multiContract.getTokenPrice(tokenAddress);
+                tokenInfo.price = ethers.utils.formatEther(price);
+            } catch (e) {
+                tokenInfo.price = 'N/A';
+            }
+            
+            tokenOptions.push(tokenInfo);
+            console.log(`✅ Token ${i + 1}: ${tokenInfo.name} (${tokenInfo.symbol}) - ${tokenAddress.slice(0,6)}...${tokenAddress.slice(-4)}`);
+            
+        } catch (error) {
+            console.log(`❌ Erro ao processar token ${i + 1}: ${error.message}`);
+        }
+    }
+    
+    if (tokenOptions.length > 1) {
+        return {
+            isMultiContract: true,
+            isSaleContract: false, // Será definido após seleção
+            saleContractAddress: saleContractAddress,
+            tokenOptions: tokenOptions,
+            detectionMethod: detectionMethod
+        };
+    }
+    
+    return { isMultiContract: false };
+}
+
+/**
+ * Mostra interface para seleção de token em contratos múltiplos
+ */
+async function showTokenSelector(multiContractInfo) {
+    const contractMessages = document.getElementById('contract-messages');
+    if (!contractMessages) return;
+    
+    let selectorHTML = `
+        <div class="alert alert-info border-0 mb-3">
+            <h6 class="mb-3">
+                <i class="bi bi-list-check me-2"></i>
+                <strong>Selecione o Token para Compra</strong>
+            </h6>
+            <p class="small mb-3">
+                Este contrato oferece múltiplos tokens. Escolha qual você deseja comprar:
+            </p>
+    `;
+    
+    multiContractInfo.tokenOptions.forEach((token, index) => {
+        selectorHTML += `
+            <div class="token-option mb-2 p-3 bg-dark border border-secondary rounded" 
+                 style="cursor: pointer;" 
+                 onclick="selectToken('${token.address}', ${index}, '${multiContractInfo.saleContractAddress}')">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <div class="fw-bold text-white">${token.name} (${token.symbol})</div>
+                        <div class="small text-muted">
+                            <i class="bi bi-hash me-1"></i>${token.address.slice(0,8)}...${token.address.slice(-6)}
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <div class="small text-info">
+                            ${token.price !== 'N/A' ? `💰 ${token.price} BNB` : '💰 Preço: A definir'}
+                        </div>
+                        <button class="btn btn-sm btn-outline-primary mt-1">
+                            <i class="bi bi-check-circle me-1"></i>Selecionar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    selectorHTML += `
+        </div>
+        <style>
+            .token-option:hover {
+                border-color: #0d6efd !important;
+                transform: translateY(-1px);
+                transition: all 0.2s ease;
+            }
+        </style>
+    `;
+    
+    contractMessages.innerHTML = selectorHTML;
+    
+    // Oculta botão de verificar até seleção
+    const verifyBtn = document.getElementById('verify-contract-btn');
+    if (verifyBtn) {
+        verifyBtn.style.display = 'none';
+    }
+}
+
+/**
+ * Função global para seleção de token (chamada pelo onclick)
+ */
+window.selectToken = async function(tokenAddress, tokenIndex, saleContractAddress) {
+    console.log(`✅ Token selecionado: ${tokenAddress} (índice ${tokenIndex})`);
+    
+    // Mostra loading
+    showLoadingMessage('contract-messages', 'Carregando token selecionado');
+    
+    try {
+        // Configura contratos
+        CONFIG.contractAddress = tokenAddress;
+        CONFIG.saleContractAddress = saleContractAddress;
+        CONFIG.selectedTokenIndex = tokenIndex;
+        
+        // Criar instância do token selecionado
+        currentContract = new ethers.Contract(tokenAddress, CONFIG.tokenABI, currentProvider);
+        // Criar instância do contrato de venda
+        currentSaleContract = new ethers.Contract(saleContractAddress, CONFIG.saleContractABI, currentProvider);
+        
+        addContractMessage(`✅ Token selecionado: ${tokenAddress.slice(0,8)}...${tokenAddress.slice(-6)}`, 'success');
+        addContractMessage('🔄 Verificando token selecionado...', 'info');
+        
+        // Continua verificação normal
+        await verifyERC20Functions();
+        await verifyBuyFunctions();
+        await loadTokenInfo();
+        showTokenInfo();
+        
+        addContractMessage('🎉 Token verificado e pronto para compra!', 'success');
+        
+        // Restaura botão de verificar
+        const verifyBtn = document.getElementById('verify-contract-btn');
+        if (verifyBtn) {
+            verifyBtn.style.display = 'block';
+        }
+        
+    } catch (error) {
+        console.error('❌ Erro ao processar token selecionado:', error);
+        addContractMessage(`❌ Erro ao carregar token: ${error.message}`, 'error');
+    } finally {
+        hideButtonLoading('verify-contract-btn', 'VERIFICAR CONTRATO');
+    }
+};
+
 /**
  * Verifica se o contrato informado é um contrato de venda que aponta para outro token
  */
@@ -596,7 +887,13 @@ async function checkIfSaleContract(contractAddress) {
     console.log('🔍 Verificando se é contrato de venda...');
     
     try {
-        // Lista de funções comuns em contratos de venda para detectar o token
+        // PRIMEIRO: Tenta detectar contratos múltiplos
+        const multiContractInfo = await checkForMultipleContracts(contractAddress);
+        if (multiContractInfo.isMultiContract) {
+            return multiContractInfo;
+        }
+        
+        // SEGUNDO: Lista de funções comuns em contratos de venda para detectar o token
         const tokenFunctions = [
             'token',           // Mais comum
             'tokenAddress',    // Comum
@@ -728,6 +1025,14 @@ async function verifyContract() {
         
         // **NOVA FUNCIONALIDADE: Verificar se é um contrato de venda**
         const saleContractInfo = await checkIfSaleContract(contractAddress);
+        
+        if (saleContractInfo.isMultiContract) {
+            // Contrato com múltiplas opções - mostra seletor
+            addContractMessage('🎯 Múltiplos tokens detectados!', 'info');
+            addContractMessage(`📍 Encontrados ${saleContractInfo.tokenOptions.length} tokens disponíveis`, 'info');
+            await showTokenSelector(saleContractInfo);
+            return; // Para aqui e espera seleção do usuário
+        }
         
         if (saleContractInfo.isSaleContract) {
             addContractMessage('🎯 Contrato de venda detectado!', 'info');
