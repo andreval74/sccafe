@@ -1075,7 +1075,7 @@ async function verifyContract() {
  * Verifica funções básicas ERC-20 com melhor diagnóstico
  */
 async function verifyERC20Functions() {
-    addContractMessage('📝 Teste 1: Verificando ERC-20...', 'info');
+    addContractMessage('📝 Verificando ERC-20...', 'info');
     
     try {
         // **MELHORIA: Verificar cada função individualmente para melhor diagnóstico**
@@ -1235,7 +1235,7 @@ async function performCallTests(buyFunctionName) {
             tests.withoutValue = true;
             // Teste sem valor: PASSOU (função pode não ser payable)
         } catch (e) {
-            console.log(`❌ Teste sem valor: ${e.reason || e.message}`);
+            console.log(`❌ Sem valor: ${e.reason || e.message}`);
         }
         
         // Teste 2: Com valor pequeno
@@ -1244,7 +1244,7 @@ async function performCallTests(buyFunctionName) {
             tests.withSmallValue = true;
             // Teste valor pequeno: PASSOU
         } catch (e) {
-            console.log(`❌ Teste valor pequeno: ${e.reason || e.message}`);
+            console.log(`❌ Valor pequeno: ${e.reason || e.message}`);
         }
         
         // Teste 3: Tentativa de estimativa de gas
@@ -1475,7 +1475,7 @@ async function testActualPayableFunctions() {
                     console.log(`✅ CONFIRMADO! ${funcName}() passou também no callStatic!`);
                 } catch (staticError) {
                     if (staticError.message.includes('revert') || staticError.message.includes('execution reverted')) {
-                        console.log(`⚠️ ${funcName}() reverte com parâmetros de teste (NORMAL - função existe!)`);
+                        console.log(`⚠️ ${funcName}() Função de reverte com parâmetros existe!`);
                     } else {
                         console.log(`❌ ${funcName}() falhou no callStatic: ${staticError.message}`);
                         continue; // Pula esta função
@@ -1607,7 +1607,7 @@ async function verifyBuyFunctions() {
         'exchange', 'buyToken'
     ];
     
-    addContractMessage('� Teste 4: Testando função de compra...', 'info');
+    addContractMessage('� Função de compra...', 'info');
     
     for (const funcName of buyFunctions) {
         try {
@@ -1644,7 +1644,7 @@ async function verifyBuyFunctions() {
             
             // **MELHORIA: Teste callStatic adicional como no teste**
             try {
-                console.log('🔬 Teste 5: Teste callStatic...');
+                console.log('🔬 CallStatic...');
                 await currentContract.callStatic[funcName](...gasEstimateParams);
                 console.log('✅ CallStatic funcionou perfeitamente');
                 addContractMessage('✅ CallStatic: Passou em todos os testes', 'success');
@@ -1674,7 +1674,7 @@ async function verifyBuyFunctions() {
                 console.log(`⚠️ Função de compra: Detectada mas reverte (${reason})`);
                 buyFunctionName = funcName;
                 updateCompatibilityStatus('buyStatus', '✅ Disponível', 'success');
-                addContractMessage(`✅ Função de compra detectada (reverte com parâmetros de teste - normal)`, 'success');
+                addContractMessage(`✅ Função de compra detectada (reverte com parâmetros normal)`, 'success');
                 return;
             } else {
                 console.log(`❌ Função ${funcName}() erro: ${error.message}`);
@@ -1783,7 +1783,7 @@ async function loadTokenInfo() {
                 'tokenCost', 'cost', 'salePrice', 'pricePerToken'
             ];
             
-            console.log('💰 Teste 2: Verificando preço...');
+            console.log('💰 Verificando preço...');
             
             for (const priceFunc of priceFunctions) {
                 try {
@@ -1926,7 +1926,7 @@ function updateTokenInfoUI() {
  * 📏 Verificar limites de compra do contrato
  */
 async function checkPurchaseLimits() {
-    console.log('📏 Teste 3: Verificando limites...');
+    console.log('📏 Verificando limites...');
     
     try {
         let minPurchase = null, maxPurchase = null;
